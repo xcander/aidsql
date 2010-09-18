@@ -2,6 +2,20 @@
 
 	define ("__CLASSPATH","class");
 
+	function checkPHPVersion(){
+
+		$version		= substr(PHP_VERSION,0,strpos(PHP_VERSION,"."));
+		$subversion	= substr(PHP_VERSION,strpos(PHP_VERSION,".")+1);
+		$subversion	= substr($subversion,0,strpos($subversion,"."));
+
+		if($version != 5 || $subversion < 3){
+			die("Sorry but you need at least version 5.3.0 in order to run aidSQL :(\n");
+		}
+
+	}
+
+	checkPHPVersion();
+
 	require_once "interface/HttpAdapter.interface.php";
 	require_once "interface/InjectionPlugin.interface.php";
 	require_once "class/aidsql/Runner.class.php";
@@ -11,6 +25,7 @@
 	require_once "class/http/eCurl.class.php";
 	require_once "config/config.php";
 	require_once "class/parser/aidSQLParser.class.php";
+
 
 	function mergeConfig($var,$file){
 
