@@ -1,5 +1,11 @@
 <?php
 
+	/**
+	 * @todo Implement spl_autoload
+	 * @todo Fix CmdLineParser so it integrates the functionality given in the function mergeConfig
+	 * located in this file and implement it.
+	 */
+
 	define ("__CLASSPATH","class");
 
 	function checkPHPVersion(){
@@ -16,15 +22,24 @@
 
 	checkPHPVersion();
 
+	//Interfaces
 	require_once "interface/HttpAdapter.interface.php";
 	require_once "interface/InjectionPlugin.interface.php";
+	require_once "interface/Parser.interface.php";
+
+	//Classes
 	require_once "class/aidsql/Runner.class.php";
-	require_once "class/parser/CmdLine.parser.php";
+	require_once "class/core/CmdLine.class.php";
 	require_once "class/core/String.class.php";
 	require_once "class/core/File.class.php";
 	require_once "class/http/eCurl.class.php";
 	require_once "config/config.php";
-	require_once "class/parser/aidSQLParser.class.php";
+	
+	//Parsers
+	require_once "class/parser/Generic.parser.php";
+	require_once "class/parser/TagMatcher.parser.php";
+	require_once "class/parser/Dummy.parser.php";
+	require_once "class/parser/MySQLError.parser.php";
 
 
 	function mergeConfig($var,$file){
