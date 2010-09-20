@@ -107,9 +107,9 @@
 
 			public function loadPlugins(\HttpAdapter $adapter, Array $wantedPlugins=array(),$verbose=FALSE){
 
-				$pluginsDir		= __CLASSPATH."/plugins";
+				$pluginsDir		= __CLASSPATH."/plugin";
 				$sizeOfWanted	= sizeof($wantedPlugins);
-				$allPlugins		= $this->getAllPlugins();
+				$allPlugins		= $this->listPlugins();
 
 				if(!sizeof($allPlugins)){
 
@@ -117,16 +117,18 @@
 
 				}
 
-				$basicPlugin	= "$pluginsDir/InjectionPlugin.class.php";
+				$basicPlugin	= __CLASSPATH."/aidsql/InjectionPlugin.class.php";
+
 				require_once "$basicPlugin";
 
 				if(!$sizeOfWanted){ //Load all plugins
 
 					while(list(,$plugin) = each($allPlugins)){
-	  
-						require_once "$pluginsDir/$plugin.plugin.php";
 
-						$pluginInstance	= new $plugin($adapter);
+	  					require_once "$pluginsDir/$plugin.plugin.php";
+
+						$pluginClass		= 'aidSQL\\plugin\\'.$plugin;
+						$pluginInstance	= new $pluginClass($adapter);
 						$pluginInstance->setVerbose($verbose);
 
 						$this->addInjectionPlugin($pluginInstance);
@@ -170,17 +172,18 @@
 
 			}
 
-			public function getAllPlugins(){
+			public function listPlugins(){
 
-					$dir	= __CLASSPATH."/plugins/";
+					$dir	= __CLASSPATH."/plugin/";
 					$dp	= opendir($dir);
 
-					$basePlugin = "InjectionPlugin.class.php";
+					require_once __CLASSPATH."/aidsql/InjectionPlugin.class.php";
+
 					$pluginList = array();
 
 					while($file = readdir($dp)){
 
-						if(is_dir($file)||$file==$basePlugin||preg_match("/^[.]/",$file)){
+						if(is_dir($file)||preg_match("/^[.]/",$file)){
 							continue;
 						}
 
@@ -258,7 +261,7 @@
 
 			}
 
-			private function addInjectionPlugin(\InjectionPluginInterface $plugin){
+			private function addInjectionPlugin(\aidSQL\plugin\InjectionPluginInterface $plugin){
 
 				$this->_injectionPlugins[] = $plugin;
 
