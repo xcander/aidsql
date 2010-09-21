@@ -2,12 +2,13 @@
 
 	/**
 	 * @todo Implement spl_autoload
-	 * @todo Fix CmdLineParser so it integrates the functionality given in the function mergeConfig
-	 * located in this file and implement it.
+	 * @todo Fix CmdLineParser so it integrates the functionality given in the function mergeConfig located in launcher.php and implement it.
+	 * @todo Analyze script performance with xdebug
+	 * 
 	 */
 
 	define ("__CLASSPATH","class");
-
+	error_reporting(E_ALL);
 	function checkPHPVersion(){
 
 		$version		= substr(PHP_VERSION,0,strpos(PHP_VERSION,"."));
