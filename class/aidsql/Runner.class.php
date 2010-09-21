@@ -6,7 +6,6 @@
 
 			private $_debug					= TRUE;
 			private $_injectionPlugins		= array();	//Contains all plugins
-			private $_cmdLineParser			= NULL;
 			private $_vulnerable				= FALSE;		//boolean vulnerable TRUE or not vulnerable FALSE
 			private $_plugin					= NULL;		//Contains the plugin to be used, i.e the vulnerable plugin
 
@@ -61,7 +60,7 @@
 				$database	= $database[0];
 				$dbuser		= $plugin->analyzeInjection($plugin->getUser());
 				$dbuser		= $dbuser[0];
-
+				
 				$report	= "SITE:";
 				$report  = "BASIC INFORMATION\n";
 				$report .= $this->line();
