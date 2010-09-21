@@ -363,7 +363,7 @@
 		function addRequestVariables(Array $array){
 
 			foreach($array as $k=>$v){
-				$this->addVar($k,$v);
+				$this->addRequestVariable($k,$v);
 			}
 
 		}
@@ -424,11 +424,11 @@
 
 			}
 			
-			$content = curl_exec($this->getHandler());
+			$content = curl_exec($this->handler);
 
 			$this->setContent($content);
 
-			$error = curl_error($this->getHandler());
+			$error = curl_error($this->handler);
 			
 			if($error){
 
