@@ -378,12 +378,13 @@
 						$this->setMaxFields($i);
 
 						$injection	= $this->makeDiscoveryInjection();
-
+						
 						$this->dEcho("[$variable] Attempt:\t$i");
 
 						$matches = $this->analyzeInjection($injection);
 
-						if($matches){
+
+						if(isset($matches[0])){
 
 							$this->dEcho("FOUND SQL INJECTION!!!\n");
 							$this->dEcho("Affected Variable:\t$variable");
@@ -435,41 +436,18 @@
 
 				}
 
-				$openTag		= $this->getOpenTag();
-				$closeTag	= $this->getCloseTag();
-
-				$this->dEcho("String identifier is: $openTag - $closeTag");
-
 				$value		= "$value UNION ALL SELECT $injection LIMIT 1,1";
 				$content		= $this->execute($variable,$value);
 
-				$parser	= $this->getParser();
+				$parser		= $this->getParser("tagmatcher");
 
-				if(is_null($parser)){
+				$parser->setContent($content);
 
-					$parsers	= $this->listParsers();
-
-					$flag = FALSE;
-
-					foreach($parsers as $parser){
-
-						if(strtolower($parser) == "tagmatcher"){
-
-							$parser = new \aidSQL\parser\TagMatcher($content);
-							$this->setParser($parser);
-							$flag = TRUE;
-							break;
-
-						}
-
-					}
-
-					if(!$flag){
-						throw (new \Exception("TagMatcher parser was not found in class/parser/TagMatcher.parser.php!"));
-					}
-
-				}
-
+				$openTag		= $this->getOpenTag();
+				$closeTag	= $this->getCloseTag();
+				
+				$this->dEcho("String identifier is: $openTag - $closeTag");
+				
 				$parser->setOpenTag($openTag);
 				$parser->setCloseTag($closeTag);
 
