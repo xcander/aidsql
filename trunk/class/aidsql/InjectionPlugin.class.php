@@ -150,8 +150,36 @@
 				$this->_parser = $parser;
 			}
 
-			public function getParser(){
+			public function getParser($requiredParser=NULL){
+
+				if(!is_null($requiredParser)){
+
+					$allParsers	= $this->listParsers();
+
+					$flag = FALSE;
+
+					foreach($allParsers as $theParser){
+
+						if(strtolower($theParser) == strtolower($requiredParser)){
+
+							$parserClassName	= "\\aidSQL\\parser\\$theParser";
+							$parserInstance	= new $parserClassName();
+							$this->setParser($parserInstance);
+							$flag = TRUE;
+							break;
+
+						}
+
+					}
+
+					if(!$flag){
+						throw (new \Exception("$requiredParser parser was not found in class/parser/TagMatcher.parser.php!"));
+					}
+
+				}
+
 				return $this->_parser;
+
 			}
 
 
