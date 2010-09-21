@@ -39,7 +39,7 @@
 				$regex = '/'.$this->_openTag."+.*".$this->_closeTag.'/';
 
 				$matches = NULL;
-				//var_dump($this->_content);
+
 				preg_match_all($regex, $this->_content,$matches,PREG_SET_ORDER);
 
 				if(sizeof($matches)){
