@@ -8,7 +8,9 @@
 
 			final public function __construct($content=NULL){
 
-				$this->setContent($content);
+				if(!is_null($content)){
+					$this->setContent($content);
+				}
 
 			}
 
@@ -19,7 +21,7 @@
 			public function setContent($content=NULL){
 
 				if(empty($content)){
-					throw(new Exception("Invalid content provided"));
+					throw(new \Exception("Invalid content provided"));
 				}
 
 				$this->_content=$content;
