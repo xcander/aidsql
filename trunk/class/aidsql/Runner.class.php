@@ -58,14 +58,19 @@
 
 				$database	= $plugin->analyzeInjection($plugin->getDatabase());
 				$database	= $database[0];
+
 				$dbuser		= $plugin->analyzeInjection($plugin->getUser());
 				$dbuser		= $dbuser[0];
+
+				$dbtables	= $plugin->analyzeInjection($plugin->getTables());
+				$dbtables	= $dbtables[0];
 				
 				$report	= "SITE:";
 				$report  = "BASIC INFORMATION\n";
 				$report .= $this->line();
 				$report .= "DBASE\t:\t\t$database\n";
 				$report .= "DBUSER\t:\t\t$dbuser\n";
+				$report .= "TABLES\t:\t\t$dbtables\n";
 
 				return $report;
 

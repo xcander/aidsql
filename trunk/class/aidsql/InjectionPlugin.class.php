@@ -12,7 +12,7 @@
 			private $_verbose								= FALSE;
 			protected $_httpAdapter						= NULL;
 			protected $_affectedVariable				= Array();
-			protected $_injectionAttempts				= 100;
+			protected $_injectionAttempts				= 40;
 			protected $_parser							= NULL;
 
 			public final function __construct(\HttpAdapter $adapter){
@@ -97,7 +97,7 @@
 
 			public function setQueryCommentOpen($commentOpen=NULL){
 
-				if(empty($concatChar)){
+				if(empty($commentOpen)){
 					throw(new Exception("Query comment open character cannot be empty!"));
 				}
 
