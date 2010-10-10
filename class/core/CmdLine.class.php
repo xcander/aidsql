@@ -29,6 +29,23 @@
 
 		}
 
+		public function setOption($option=NULL,$value){
+
+			try{			
+
+				$this->validateOption($option,$value);
+				$this->_parsedOptions[$option]=$value;	
+				return TRUE;
+
+			}catch(\Exception $e){
+
+				echo $e->getMessage();
+				return NULL;
+
+			}
+
+		}
+
 		private function parseOptions(){
 
 			for($i=0;isset($this->_cmdLineOptions[$i]);$i++){
