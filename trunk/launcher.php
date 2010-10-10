@@ -29,6 +29,7 @@
 	require_once "interface/Parser.interface.php";
 
 	//Classes
+	require_once "class/aidsql/Crawler.class.php";
 	require_once "class/aidsql/Runner.class.php";
 	require_once "class/core/CmdLine.class.php";
 	require_once "class/core/String.class.php";
@@ -94,31 +95,68 @@
 
 	}
 
+	function isVulnerable(cmdLineParser $cmdParser,$save=NULL){
+
+			$aidSQL		= new aidSQL\Runner($cmdParser);
+
+			if($aidSQL->isVulnerable()){
+
+				echo "Site is vulnerable to sql injection\n";
+				$report	= $aidSQL->generateReport();
+
+				if(!is_null($save)){
+
+					echo "Report saved to $save\n";
+					file_put_contents($save,$report);
+
+				}
+
+
+				echo $report."\n";
+
+			}
+
+	}
+
 	try {
 
 		unset($_SERVER["argv"][0]);
 
-		$parameters = mergeConfig($_SERVER["argv"],"config/config.ini");
+		$save				= NULL;
 
-		$cmdParser	= new CmdLineParser($config,$parameters);
-		$aidSQL		= new aidSQL\Runner($cmdParser);
+		$parameters		= mergeConfig($_SERVER["argv"],"config/config.ini");
+		$cmdParser		= new CmdLineParser($config,$parameters);
+		$parsedOptions = $cmdParser->getParsedOptions();
 
-		$options = $cmdParser->getParsedOptions();
-		$save		= (isset($options["save-report"])) ? $options["save-report"] : NULL;
+		//Check if url vars where passed,if not, we crawl the url
+		/////////////////////////////////////////////////////////////////
 
-		if($aidSQL->isVulnerable()){
-			echo "Site is vulnerable to sql injection\n";
-	
-			$report	= $aidSQL->generateReport();
+		if(!in_array("urlvars",array_keys($parsedOptions))){
 
-			if(!is_null($save)){
+			$httpAdapter	= 	new $parsedOptions["http-adapter"]($parsedOptions["url"]);
+			$crawler			=	new aidsql\Crawler($httpAdapter);
+			$crawler->crawl();
 
-				echo "Report saved to $save\n";
-				file_put_contents($save,$report);
+			$links			= $crawler->getLinks();
 
+		}else{
+
+			//If urlvars was specified we will do whatever the user tells us to do
+
+			$links = array($parsedOptions["urlvars"]);
+
+		}
+
+		foreach($links as $path=>$query){
+
+			if($path===0){
+				$cmdParser->setOption("url",$parsedOptions["url"]);
+			} else {
+				$cmdParser->setOption("url",$parsedOptions["url"]."/".$path);
 			}
 
-			echo $report."\n";
+			$cmdParser->setOption("urlvars",$query);
+			isVulnerable($cmdParser,$save);	
 
 		}
 
@@ -129,3 +167,4 @@
 	}
 		
 
+?>

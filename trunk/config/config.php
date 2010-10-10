@@ -64,7 +64,7 @@
 			"requires"=>array("proxy-server")
 		),
 		"urlvars"=>array(
-			"required"=>TRUE
+			"requires"=>array("url")
 		),
 		"save-report"=>array(
 			"alias"=>"s"

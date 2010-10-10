@@ -63,6 +63,7 @@
 									$this->dEcho("FOUND SQL INJECTION!!!\n");
 									$this->dEcho("Affected Variable:\t$variable");
 									$this->dEcho("Affected Fields:\t".implode($matches,","));
+									$this->dEcho("Field Count:\t$i");
 
 									$field = $this->pickRandomValue($matches);
 
