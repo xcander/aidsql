@@ -211,11 +211,6 @@
 
 			$ending = substr($url,-1);
 
-			if($ending!=='/'){
-				$url.="/";
-			}
-
-
 			$this->url = $url;
 
 		}

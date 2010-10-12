@@ -134,10 +134,27 @@
 		if(!in_array("urlvars",array_keys($parsedOptions))){
 
 			$httpAdapter	= 	new $parsedOptions["http-adapter"]($parsedOptions["url"]);
+			$httpAdapter->setMethod($parsedOptions["http-method"]);
+
 			$crawler			=	new aidsql\Crawler($httpAdapter);
 			$crawler->crawl();
 
 			$links			= $crawler->getLinks();
+			var_dump($links);
+			die();
+			$tmpLinks		= array();
+
+			foreach($links as $page=>$variables){
+	
+				foreach($variables as $param=>$value){
+					$tmpLinks[$page].="$param=$value,";
+				}
+
+				$tmpLinks[$page] = substr($tmpLinks[$page],0,-1);
+
+			}
+
+			$links = $tmpLinks;
 
 		}else{
 

@@ -4,10 +4,12 @@
 
 		class Crawler {
 
-			private $_url				=	NULL;
+			private $_host				=	NULL;
 			private $_links			=	array();
 			private $_httpAdapter	=	NULL;
 			private $_content			=	NULL;
+			private $_pages			=	array();
+			private $_depth			=	5;
 
 			public function __construct(\HttpAdapter $httpAdapter){
 
@@ -19,6 +21,10 @@
 
 				$this->_httpAdapter = $httpAdapter;
 
+			}
+
+			public function setDepth($depth=5){
+				$this->_depth = $depth;
 			}
 
 			public function setContent($content=NULL){
@@ -38,49 +44,152 @@
 				return $this->_links;
 			}
 
-			private function fetchLinks(){
 
-				$content	=	$this->_httpAdapter->fetch();
+			//Fetches all A elements from a given content
+
+			private function fetchLinks($content=NULL){
+
+				if(empty($content)){
+					return FALSE;
+				}
+
+				$return	=	array();
 				$dom		=	new \DomDocument();
 
 				@$dom->loadHTML($content);
 
-				$links = $dom->getElementsByTagName("a");
-
-				$return = array();
+				$links	=	$dom->getElementsByTagName("a");
 
 				foreach($links as $link){
-
 					$href = $link->getAttribute("href");
-						
-					if(!in_array($href,$return)){
-
-						$return[] = parse_url($href);
-
-					}
-
+					$return[$href] = parse_url($href);
 				}
 
 				return $return;
 
 			}
 
-			public function crawl(){
 
-				$links = $this->fetchLinks();
 
-				foreach($links as $link){
+			public function crawl($page=NULL){
 
-					if(!isset($link["query"])){
-						continue;
+				if(!empty($page)){
+
+					$this->_httpAdapter->setUrl($page);
+
+				}else{
+
+					$url		=	$this->_httpAdapter->getUrl();
+					$parsed	=	parse_url($url);
+
+					if(!isset($parsed["scheme"])){
+
+						$url = "http://".$url;
+						$parsed = parse_url($url);
+
 					}
-	
-					if(!in_array($link["query"],$this->_links)){
 
-						$params = explode("&",$link["query"]);
+					if(!isset($parsed["host"])){
+						$parsed["host"] = substr($url,strpos($url,"/")+1);
+					}
 
-						//Cuidado aca porque evitamos todos los otros parametros que puedan haber!
-						$this->_links[$link["path"]]	=	implode(",",$params);
+					$baseName = NULL;
+
+					if(isset($parsed["path"])){
+
+						$baseName = basename($parsed["path"]);
+
+						if(preg_match("/\./",$baseName)){
+
+							$parsed["path"] = substr($parsed["path"],0,strlen($baseName)*-1);
+
+						}else{
+
+							$baseName = NULL;
+
+						}
+
+						if(!is_null($baseName)){
+							$page = $baseName;
+						}
+
+					} else {
+
+						$parsed["path"] = "/";
+
+					}
+
+					$this->_host	= $parsed["scheme"]."://".$parsed["host"];
+
+					$this->_httpAdapter->setUrl($this->_host.$parsed["path"].$page);
+
+				}
+
+				echo "Crawling ".$this->_httpAdapter->getUrl()." ...\n";
+
+				$content	=	$this->_httpAdapter->fetch();
+
+				//Fetches all the links, we are through with this page, hence we have effectively
+				//got all links on the given content.
+
+				$links	=	$this->fetchLinks($content);
+				$depth	=	0;
+
+				while($depth++<$this->_depth){
+
+					foreach($links as $link=>$value){
+
+						if($link=="#"||preg_match("/javascript/",$link)){
+							continue;
+						}
+
+						if(!isset($value["path"])){
+							$value["path"] = "/";
+						}
+
+						if(!isset($value["query"])){
+							$value["query"] = "";
+						}
+
+						$site = parse_url($link);
+
+						if(preg_match("#://#",$link)){
+
+							$isAnotherSite = $site["scheme"]."://".$site["host"];
+
+							if($isAnotherSite!==$this->_host){
+
+								echo $this->_host."!== $isAnotherSite is not on the same host, skipping\n";
+								continue;
+
+							}
+
+						}else{
+
+							$currentUrl = parse_url($page);
+
+							$path = NULL;
+
+							if(isset($currentUrl["path"])){
+
+								if(preg_match("#/.*/#",$currentUrl["path"])){
+									$path = $currentUrl["path"];
+								}
+
+							}
+
+							$link = $this->_host."/".$path.trim($link,"/");
+
+						}
+
+						if(!isset($this->_links[$value["path"]]["parameters"])){
+
+							$this->_links[$value["path"]]["parameters"][] = $value["query"];
+							$this->crawl($link);	
+
+						}else{
+							$this->_links[$value["path"]]["parameters"][] = $value["query"];
+						}
 
 					}
 
@@ -89,6 +198,7 @@
 			}
 
 		}
+
 
 	}
 
