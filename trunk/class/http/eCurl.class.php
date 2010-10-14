@@ -17,6 +17,7 @@
 		private		$requestVariables	= array();
 		private		$requestInterval	= 0;
 		private		$method				= NULL;
+		private		$transferInfo		= NULL;
 
 		private		$proxy				= array(
 			"server"		=>NULL,
@@ -54,7 +55,7 @@
 
 		}
 
-
+	
 		public function setProxyServer($server){
 
 			$this->proxy["server"] = $server;
@@ -419,7 +420,8 @@
 
 			}
 			
-			$content = curl_exec($this->handler);
+			$content					= curl_exec($this->handler);
+			$this->transferInfo	= curl_getinfo($this->handler);
 
 			$this->setContent($content);
 
@@ -453,6 +455,14 @@
 
 			return;
 
+		}
+
+		public function getTransferInfo(){
+			return $this->transferInfo;
+		}
+
+		public function getHttpCode(){
+			return $this->transferInfo["http_code"];
 		}
 
 	}
