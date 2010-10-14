@@ -16,6 +16,7 @@
 		public function setProxyPort($port);
 		public function setProxyAuth($auth);
 		public function setProxyType($type);
+		public function getHttpCode();
 
 	}
 
