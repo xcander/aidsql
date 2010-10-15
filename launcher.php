@@ -139,15 +139,19 @@
 			$crawler			=	new aidsql\Crawler($httpAdapter);
 			$crawler->crawl();
 
-			$links			= $crawler->getLinks();
-			var_dump($links);
-			die();
+			$links			= $crawler->getLinks(TRUE);
 			$tmpLinks		= array();
 
 			foreach($links as $page=>$variables){
 	
 				foreach($variables as $param=>$value){
+
+					if(!isset($tmpLinks[$page])){
+						$tmpLinks[$page]="";
+					}
+
 					$tmpLinks[$page].="$param=$value,";
+
 				}
 
 				$tmpLinks[$page] = substr($tmpLinks[$page],0,-1);

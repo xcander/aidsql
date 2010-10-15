@@ -461,6 +461,10 @@
 				$value		= "$value UNION ALL SELECT $injection ".$this->_currTerminatingPayload." ".$this->getQueryCommentOpen();
 				$content		= $this->execute($variable,$value);
 
+				if($content===FALSE){
+					throw (new \Exception("There was a problem processing the request! Got ". $this->_httpCode."!!!"));
+				}
+
 				$parser		= $this->getParser("tagmatcher");
 
 				$parser->setContent($content);
