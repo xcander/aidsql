@@ -5,6 +5,21 @@ For instance:
 
 php launcher.php --url=http://localhost/~jimmy/test.php --urlvars=id=1
 
+---------------------------------------------------
+NEW!!!!!
+---------------------------------------------------
+
+You can now also make aidSQL do all the work for you! Just
+
+Feed it a web site 
+
+php launcher.php --url=http://www.mywebsite.com
+
+and it will automatically crawl the whole website fetching url's with their parameters!
+
+Note that the crawling functionality is yet to be enhanced so maximum recursion limits with
+PHP might appear more than often in sites which use stuff like mod_rewrite, etc.
+
 
 ---------------------------------------------------
 Database Script
