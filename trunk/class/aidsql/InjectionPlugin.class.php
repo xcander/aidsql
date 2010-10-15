@@ -11,6 +11,7 @@
 			private $_table								= NULL;
 			private $_verbose								= FALSE;
 			protected $_httpAdapter						= NULL;
+			protected $_httpCode							= NULL;
 			protected $_affectedVariable				= Array();
 			protected $_injectionAttempts				= 40;
 			protected $_parser							= NULL;
@@ -32,8 +33,17 @@
 			public function execute($variable,$value){
 
 				$this->_httpAdapter->addRequestVariable($variable,$value);
+
 				echo "Fetching ".$this->_httpAdapter->getFullUrl()."\n\n";
-				$content = $this->_httpAdapter->fetch();
+
+				$content				=	$this->_httpAdapter->fetch();
+				$this->_httpCode	=	$this->_httpAdapter->getHttpCode();
+
+				if($this->_httpCode!==200){
+
+					return FALSE;
+
+				}
 
 				if($this->_verbose){
 					echo $content;

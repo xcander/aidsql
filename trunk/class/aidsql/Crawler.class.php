@@ -143,8 +143,31 @@
 				return $this->_content;
 			}
 
-			public function getLinks(){
+			public function getLinks($onlyWithParameters=FALSE){
+
+				if(!sizeof($this->_links)){
+					return $this->_links;
+				}
+
+
+				if($onlyWithParameters){
+
+					$links = array();
+
+					foreach($this->_links as $link=>$params){
+
+						if(isset($params["parameters"])){
+							$links[$link] = $params["parameters"];
+						}
+
+					}
+
+					return $links;
+
+				}
+
 				return $this->_links;
+
 			}
 
 
@@ -216,6 +239,8 @@
 				$depth	=	0;
 
 				while($depth++<$this->_depth){
+
+					echo ">DEPTH: $depth\n";
 
 					foreach($links as $link=>$value){
 
@@ -330,7 +355,7 @@
 					if(preg_match("#=#",$query)){
 
 						$param	=	substr($query,0,strpos($query,"="));
-						$value	=	substr($query,strpos($query,"="));
+						$value	=	substr($query,strpos($query,"=")+1);
 
 						return array($param=>$value);
 
