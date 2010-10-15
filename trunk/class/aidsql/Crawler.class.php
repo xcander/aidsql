@@ -261,7 +261,13 @@
 
 						}
 
-						$fLink = $this->parseUrl($this->getFullLink($link,$path));
+						$fLink = $this->getFullLink($link,$path);
+
+						if($fLink===FALSE){
+							continue;
+						}
+
+						$fLink = $this->parseUrl($fLink);
 
 						if($fLink["path"]==$fLink["page"]){
 
@@ -412,8 +418,12 @@
 
 			public function getFullLink($link,$path="/"){
 
-				$host		=	$this->_host["host"];
+				if(substr($link,0,3) == "../"){
+					echo "UHhhh FIX ME!!!!!!!! $link\n";
+					return FALSE;
+				}
 
+				$host		=	$this->_host["host"];
 				$regex	=	"#".$host."#";
 
 				//Check if its a full link
@@ -432,12 +442,11 @@
 
 				$link = trim($link,"/");
 
-
 				if(stristr($link, $path) === FALSE) {
 					return $this->_host["scheme"]."://".$host.$path.$link;
 				}
 
-				return $this->_host["scheme"]."://".$host.$link;
+				return $this->_host["scheme"]."://".$host.$path.$link;
 
 			}
 
