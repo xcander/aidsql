@@ -8,3 +8,6 @@ having a word or two with you.
 
 mail me at: jpfstange<at>gmail.com
 
+PS: If you think you're some kind of h4x0r 1337 guy for just using this application (or even developing it) you really really really shouldnt be using this or even considering joining this project.
+
+
