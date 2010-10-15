@@ -215,6 +215,8 @@
 
 			public function crawl($url=NULL,$path="/"){
 
+				$this->_curPath = $path;
+
 				if(!is_null($url)){
 
 					$this->_httpAdapter->setURL($url);
@@ -419,8 +421,12 @@
 			public function getFullLink($link,$path="/"){
 
 				if(substr($link,0,3) == "../"){
+
+					//Be able to determine how many levels deep does the link go
+
 					echo "UHhhh FIX ME!!!!!!!! $link\n";
 					return FALSE;
+
 				}
 
 				$host		=	$this->_host["host"];
