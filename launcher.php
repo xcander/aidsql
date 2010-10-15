@@ -177,7 +177,12 @@
 			}
 
 			$cmdParser->setOption("urlvars",$query);
+
 			isVulnerable($cmdParser,$save);	
+
+			if($parsedOptions["immediate-mode"]=="yes"){
+				break;
+			}
 
 		}
 

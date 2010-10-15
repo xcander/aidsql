@@ -71,6 +71,12 @@
 		),
 		"verbose"=>array(
 				  "novalue"=>TRUE
-		)	
+		),
+		"immediate-mode"=>array(
+			"values"=>array(
+				"yes",
+				"no"		
+			)
+		)
 	);
 ?>
