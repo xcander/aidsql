@@ -220,6 +220,7 @@
 					foreach($links as $link=>$value){
 
 						if(!$this->isValidLink($link)){
+							echo "Invalid link found $link\n";
 							continue;
 						}
 
@@ -258,10 +259,12 @@
 								if(!is_null($parameters)){
 
 									$key = key($parameters);
-									$this->_links[$value["path"]]["parameters"][$key] = $parameters[$key];
+									$this->_links[$linkKey]["parameters"][$key] = $parameters[$key];
 
 								}
 
+							}else{
+								$this->_links[$linkKey]="";
 							}
 
 							$this->crawl($fLink["fullUrl"],$fLink["path"]);
@@ -344,7 +347,7 @@
 					}
 
 					$param = substr($param,0,strpos($param,"="));
-					$value = substr($param,strpos($param,"="));
+					$value = substr($param,strpos($param,"=")+1);
 
 					$parameters[$param] = $value;
 
