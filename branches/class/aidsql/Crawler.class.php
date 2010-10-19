@@ -26,9 +26,9 @@
 				$host = $this->parseUrl($httpAdapter->getUrl());
 				$this->_host			=	$host;
 				$this->_httpAdapter	=	$httpAdapter;
+				$this->_httpAdapter->setUrl($host["scheme"]."://".$host["host"]);
 
 			}
-
 
 			/**
 			*Adds an email link, if the link is an email link returns TRUE, else it returns false
@@ -425,12 +425,12 @@
 
 			public function getFullLink($link,$path="/"){
 
-				$host		=	$this->_host["host"];
-				$regex	=	"#".$host."#";
-
 				//Check if its a full link
 
-				if(preg_match($regex,$link)){	//Full link
+				if(preg_match("#".$this->_host["host"]."#",$link)){	//Full link
+
+					echo "FULL LINK***\n";
+					echo "$link\n";
 
 					if(!preg_match("#^".$this->_host["scheme"]."#",$link)){
 						return $this->_host["scheme"]."://".$link;
