@@ -11,7 +11,6 @@
 			private $_pages			=	array();
 			private $_depth			=	5;
 			private $_otherSites		=	array();
-			private $_curPath			=	"/";
 			private $_scheme			=	NULL;
 			private $_emails			=	array();
 
@@ -26,7 +25,8 @@
 				$host = $this->parseUrl($httpAdapter->getUrl());
 				$this->_host			=	$host;
 				$this->_httpAdapter	=	$httpAdapter;
-				$this->_httpAdapter->setUrl($host["scheme"]."://".$host["host"]);
+				echo $host["scheme"]."://".$host["host"].$host["path"].$host["page"]."\n";
+				$this->_httpAdapter->setUrl($host["scheme"]."://".$host["host"].$host["path"].$host["page"]);
 
 			}
 
@@ -176,7 +176,7 @@
 			private function fetchLinks($content=NULL){
 
 				if(empty($content)){
-					return FALSE;
+					return array();
 				}
 
 				$return	=	array();
@@ -186,10 +186,17 @@
 
 				$links	=	$dom->getElementsByTagName("a");
 
-				foreach($links as $link){
+				$return = array();
 
-					$href = $link->getAttribute("href");
-					$return[$href] = parse_url($href);
+				if($links->length > 0){
+
+					foreach($links as $link){
+
+						$href = $link->getAttribute("href");
+						$return[$href] = $this->parseUrl($href);
+
+					}
+
 
 				}
 
@@ -213,9 +220,11 @@
 
 			}
 
-			public function crawl($url=NULL,$path="/"){
+			public function crawl($url=NULL,$path=NULL){
 
-				$this->_curPath = $path;
+				if(empty($path)){
+					$path = $this->_host["path"];
+				}
 
 				if(!is_null($url)){
 
@@ -242,101 +251,102 @@
 				//got all links on the given content.
 
 				$links	=	$this->fetchLinks($content);
+
+				if(!sizeof($links)){
+			
+					echo "Couldnt find any links in given URL\n";
+					return FALSE;
+
+				}
+
 				$depth	=	0;
 
-				while($depth++<$this->_depth){
+				foreach($links as $link=>$value){
 
-					echo ">DEPTH: $depth\n";
+					if(!$this->isValidLink($link)){
+						echo "Invalid link found $link\n";
+						continue;
+					}
 
-					foreach($links as $link=>$value){
+					if($this->addEmailLink($link)){
+						echo "Email link found $link\n";
+						continue;
+					}
 
-						if(!$this->isValidLink($link)){
-							echo "Invalid link found $link\n";
-							continue;
-						}
+					if($this->isExternalSite($link)){
 
-						if($this->addEmailLink($link)){
-							echo "Email link found $link\n";
-							continue;
-						}
+						$this->addExternalSite($link);
+						continue;
 
-						if($this->isExternalSite($link)){
+					}
 
-							$this->addExternalSite($link);
-							continue;
+					$fLink = $this->getFullLink($link,$path);
+					var_dump($fLink);
 
-						}
+					if($fLink===FALSE){
+						continue;
+					}
 
-						$fLink = $this->getFullLink($link,$path);
 
-						if($fLink===FALSE){
-							continue;
-						}
+					$linkKey	=	trim($fLink["scheme"]."://".$fLink["host"].$fLink["path"].$fLink["page"],"/");
 
-						$fLink = $this->parseUrl($fLink);
+					echo "KEY : $linkKey"."\n";
 
-						if($fLink["path"]==$fLink["page"]){
+					if(!isset($this->_links[$linkKey])){
 
-							$linkKey	=	trim($fLink["path"],"/");
+						if(!empty($fLink["query"])){
 
-						}else{
+							$parameters				=	$this->parseQuery($fLink["query"]);
 
-							$linkKey	=	trim($fLink["path"].$fLink["page"],"/");
+							if(!is_null($parameters)){
 
-						}
+								$key = key($parameters);
+								$this->_links[$linkKey]["parameters"][$key] = $parameters[$key];
 
-						$linkKey = empty($linkKey) ? '/' : $linkKey;
-
-						if(!isset($this->_links[$linkKey])){
-
-							if(!empty($fLink["query"])){
-
-								$parameters				=	$this->parseQuery($fLink["query"]);
-
-								if(!is_null($parameters)){
-
-									$key = key($parameters);
-									$this->_links[$linkKey]["parameters"][$key] = $parameters[$key];
-
-								}
-
-							}else{
-								$this->_links[$linkKey]="";
-							}
-
-							if($this->crawl($fLink["fullUrl"],$fLink["path"])===FALSE){
-								break;
 							}
 
 						}else{
 
-							try{
+							$this->_links[$linkKey]="";
 
-								$parameters				=	$this->parseQuery($fLink["query"]);
-								$storedParameters		=	array_keys($this->_links[$linkKey]["parameters"]);
-								$sizeOfStoredParams	=	sizeof($storedParameters);
+						}
 
-								foreach($parameters as $parameter=>$value){
+						if($this->crawl($fLink["fullUrl"],$fLink["path"])===FALSE){
+							unset($this->_links[$linkKey]);
+							break;
+						}
 
-									if($sizeOfStoredParams){
+					}else{
 
-										if(in_array($parameter,$storedParameters)){
+						echo "LINK $fLink[path]$fLink[page] was already set\n";
 
-											continue;
+						try{
 
-										}
+							$parameters				=	$this->parseQuery($fLink["query"]);
+							var_dump($parameters);
+							$storedParameters		=	array_keys($this->_links[$linkKey]["parameters"]);
+							$sizeOfStoredParams	=	sizeof($storedParameters);
+
+							foreach($parameters as $parameter=>$value){
+
+								if($sizeOfStoredParams){
+
+									if(in_array($parameter,$storedParameters)){
+
+										echo "YA ESTABA!\n".$parameter."\n";
+										continue;
 
 									}
 
-									$this->_links[$linkKey]["parameters"][$parameter] = $value;
-
 								}
 
-							}catch(\Exception $e){
-
-								echo $e->getMessage()."\n";
+								$this->_links[$linkKey]["parameters"][$parameter] = $value;
 
 							}
+
+						}catch(\Exception $e){
+
+							echo $e->getMessage()."\n";
 
 						}
 
@@ -429,20 +439,14 @@
 
 				if(preg_match("#".$this->_host["host"]."#",$link)){	//Full link
 
-					echo "FULL LINK***\n";
-					echo "$link\n";
+					echo "FULL LINK \n";
 
-					if(!preg_match("#^".$this->_host["scheme"]."#",$link)){
-						return $this->_host["scheme"]."://".$link;
-					}
-
-					return $link;
+					return $this->parseUrl($link);
 
 				}
 
 				echo "RELATIVE!!!!!!!!!!\n";
-				echo "LINK : ".$this->_host["host"].$this->getRelativePath($link,$path)."\n";
-				return $this->_host["host"].$this->getRelativePath($link,$path);
+				return $this->getRelativePath($link,$path);
 
 			}
 
@@ -481,10 +485,10 @@
 				}
 
 				if($path=="/"){
-					return $path.$link;
+					return $this->parseUrl($this->_host["scheme"]."://".$this->_host["host"].$path.$link);
 				}
 
-				return $path."/".$link;
+				return $this->parseUrl($this->_host["scheme"]."://".$this->_host["host"].$path."/".$link);
 
 			}
 

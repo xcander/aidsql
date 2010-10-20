@@ -143,7 +143,7 @@
 			$tmpLinks		= array();
 
 			foreach($links as $page=>$variables){
-	
+
 				foreach($variables as $param=>$value){
 
 					if(!isset($tmpLinks[$page])){
@@ -173,14 +173,12 @@
 			if($path===0){
 				$cmdParser->setOption("url",$parsedOptions["url"]);
 			} else {
-				$cmdParser->setOption("url",$parsedOptions["url"]."/".$path);
+				$cmdParser->setOption("url",$path);
 			}
 
 			$cmdParser->setOption("urlvars",$query);
 
-			isVulnerable($cmdParser,$save);	
-
-			if($parsedOptions["immediate-mode"]=="yes"){
+			if(isVulnerable($cmdParser,$save)&&$parsedOptions["immediate-mode"]=="yes"){
 				break;
 			}
 
