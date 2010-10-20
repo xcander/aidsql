@@ -15,7 +15,9 @@
 		}
 
 		private function setCmdLineOptions(Array $options){
-				  $this->_cmdLineOptions = $options;
+
+			$this->_cmdLineOptions = $options;
+				
 		}
 
 		public function parse(Array $config, Array $optArray){
@@ -53,11 +55,12 @@
 				$rawOption  = $this->_cmdLineOptions[$i];
 				$position	= strpos("-",$rawOption);
 				$opt			= substr($rawOption,$position);
-				$optSplit = str_split($opt);
+				$optSplit	= str_split($opt);
 
 				if($optSplit[0]=='-' && $optSplit[1]=='-'){	//long option
 
 					$this->parseLongOption($optSplit);
+
 				}
 
 				if($optSplit[1]!='-'){
@@ -116,11 +119,9 @@
 			$realOption			= implode($realOption);
 			$realOptionValue	= NULL;
 
-			if(preg_match("/=/",$realOption)){
-
+			if(strpos($realOption,"=")){
 				$realOptionValue	= substr($realOption,strpos($realOption,"=")+1);
 				$realOption			= substr($realOption,0,strpos($realOption,"="));
-
 			}
 
 			$this->validateOption($realOption,$realOptionValue);
@@ -151,7 +152,7 @@
 
 					$option			= $this->searchOption($realOption);
 					$validValues	= implode($option["values"],",");
-					throw(new Exception("Invalid value specified for option $realOption, valid values: $validValues"));
+					throw(new Exception("Invalid value specified for option $realOption,(".$realOptionValue."), valid values: $validValues"));
 				}
 			}
 

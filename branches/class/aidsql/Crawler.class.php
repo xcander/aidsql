@@ -13,6 +13,10 @@
 			private $_otherSites		=	array();
 			private $_scheme			=	NULL;
 			private $_emails			=	array();
+			private $_omitPaths		=	array();
+			private $_omitPages		=	array();
+			private $_pageTypes		=	array();
+			private $_lpp				=	0;				//Links per page
 
 			public function __construct(\HttpAdapter $httpAdapter){
 
@@ -29,6 +33,130 @@
 				$this->_httpAdapter->setUrl($host["scheme"]."://".$host["host"].$host["path"].$host["page"]);
 
 			}
+
+			public function addPageType($type){
+
+				if(empty($type)){
+					throw(new \Exception("Given page type was empty!"));
+				}
+
+				if(!in_array($type,$this->_pageTypes)){
+
+					$this->_pageTypes[] = $type;
+					return TRUE;
+
+				}
+
+				return FALSE;
+
+			}
+
+			public function addPageTypes(Array $types){
+
+				foreach($types as $type){
+					$this->addPageType($type);
+				}
+
+			}
+
+			public function pageHasValidType($page){
+
+				if(!sizeof($this->_pageTypes)){
+					return NULL;
+				}
+
+				$pageType = substr($page,strrpos($page,".")+1);
+
+				if(in_array($pageType,$this->_pageTypes)){
+					return TRUE;
+				}
+
+				return FALSE;
+
+			}
+
+			public function addOmitPath($path){
+
+				if(empty($path)){
+					throw(new \Exception("Given path was empty!"));
+				}
+
+				if(!in_array($path,$this->_omitPaths)){
+
+					$this->_omitPaths[] = $path;
+					return TRUE;
+
+				}
+
+				return FALSE;
+
+			}
+
+			public function addOmitPaths (Array $paths){
+
+				foreach ($paths as $path){
+					$this->addOmitPath($path);
+				}
+
+			}
+
+			public function addOmitPage($page=NULL){
+
+				if(empty($page)){
+					throw(new \Exception("Given page was empty!"));
+				}
+
+				if(!in_array($page,$this->_omitPages)){
+
+					$this->_omitPages[] = $page;
+					return TRUE;
+
+				}
+
+				return FALSE;
+
+			}
+
+			public function addOmitPages(Array $pages){
+
+				foreach ($pages as $page){
+					$this->addOmitPage($page);
+				}
+
+			}
+
+			public function isOmittedPath($path=NULL){
+
+				echo $path."\n";
+
+				if(empty($path)){
+					throw(new \Exception("Path to be tested cant be empty!"));
+				}
+
+				$path = trim($path,"/");
+
+				if(in_array($path,$this->_omitPaths)){
+					return TRUE;
+				}
+	
+				return FALSE;
+
+			}
+
+			public function isOmittedPage($page=NULL){
+
+				if(empty($page)){
+					throw(new \Exception("Page to be tested cant be empty!"));
+				}
+
+				if(in_array($page,$this->_omitPages)){
+					return TRUE;
+				}
+	
+				return FALSE;
+
+			}
+
 
 			/**
 			*Adds an email link, if the link is an email link returns TRUE, else it returns false
@@ -50,9 +178,48 @@
 
 			}
 
+			public function setLinksPerPage($amount=0){
+
+				$amount = (int)$amount;
+
+				if($amount==0){
+					throw(new \Exception("Amount of links per page can't be 0"));	
+				}
+
+				$this->_lpp = $amount;
+
+			}
+
 			public function getEmailLinks($link){
 
 				return $this->_emails;
+
+			}
+
+			private function reduxLinks(Array $links){
+
+				$sizeOfLinks = sizeof($links);
+
+				if(!$sizeOfLinks){
+					echo "No links to reduce!\n";
+					return $links;
+				}
+
+				if($sizeOfLinks < $this->_lpp){
+					echo "Amount of links not enough to perform redux!\n";
+					return $links;
+				}
+
+				echo "Shuffling Links ...\n";
+
+				$shuffled = array_keys($links);
+				shuffle($shuffled);
+
+				for($i=0;$i<$this->_lpp;$i++){
+					unset($links[$shuffled[$i]]);
+				}
+
+				return $links;
 
 			}
 
@@ -100,8 +267,13 @@
 
 				}
 
-				$parsedUrl["path"]		=	$path;
-				$parsedUrl["page"]		=	basename($url);
+				$parsedUrl["path"]	=	$path;
+
+				if(strrpos($path,"?")!==FALSE){
+					$parsedUrl["path"]	=	substr($path,0,strpos($path,"?"));
+				}
+
+				$parsedUrl["page"]	=	basename($url);
 
 				if($parsedUrl["page"]==$parsedUrl["host"]){
 					$parsedUrl["page"]="";
@@ -220,10 +392,93 @@
 
 			}
 
+			public function wasCrawled($linkKey){
+
+				if(isset($this->_links[$linkKey])){
+					return TRUE;
+				}
+
+				return FALSE;
+				
+			}
+
+			public function getLinkKey($link,$path){
+
+				$fLink = $this->getFullLink($link,$path);
+
+				if(trim($fLink["path"],"/")==trim($fLink["page"],"/")){
+
+					$linkKey	=	trim($fLink["scheme"]."://".$fLink["host"].$fLink["path"],"/");
+
+				}else{
+
+					$linkKey	=	trim($fLink["scheme"]."://".$fLink["host"].$fLink["path"].$fLink["page"],"/");
+
+				}
+
+				return $linkKey;
+
+			}
+
+			/**
+			*Some sites make bad use of mod_rewrite and other server side URL rewriting
+			*techniques which can cause the cralwer to go into deep recursion, hopefully,
+			*this function will avoid that kind of recursion.
+			*@param String $path only the path, not the hostname
+			*@param Int    $fuckLimit count until fuckLimit is reached
+			*@return boolean TRUE  The URL is fucked up
+			*@return boolean FALSE The URL is not fucked up
+			*/
+
+			public function detectModRewriteFuckUp($path,$fuckLimit=2){
+
+				if($fuckLimit==0){
+					throw(new \Exception("Fuck limit cant be 0!"));
+				}
+
+				$token	=	strtok($path,"/");
+				$paths	=	array();
+				$fucked	=	0;
+				$i			=	0;
+				$fuckLimit--;
+
+				for($i=0;($fucked<$fuckLimit)&&($token!==FALSE);$i++){
+
+					$paths[$i]=$token;
+
+					if($i!=0){
+
+						for($x=0;$x<$i;$x++){
+							if($paths[$x]==$paths[$i]){
+								$fucked++;
+							}
+						}
+
+					}
+			
+					$token = strtok("/");
+
+				}
+
+				if($fucked>=$fuckLimit){
+					return TRUE;
+				}
+
+				return FALSE;
+
+			}
+
+
+
 			public function crawl($url=NULL,$path=NULL){
 
 				if(empty($path)){
 					$path = $this->_host["path"];
+				}
+
+				if($this->detectModRewriteFuckUp($path)){
+					echo "Mod Rewrite Fuck up detected in $path!\n";
+					return FALSE;
 				}
 
 				if(!is_null($url)){
@@ -234,6 +489,14 @@
 
 				echo "Crawling ".$this->_httpAdapter->getUrl()." ...  ";
 
+				if($this->isOmittedPath($path)){
+
+					echo "*$path is omitted will NOT fetch content from here!\n";
+					return FALSE;
+
+				}
+
+				echo "Fetching content ...\n";
 				$content	=	$this->_httpAdapter->fetch();
 
 				if(($httpCode = $this->_httpAdapter->getHttpCode()) != 200){
@@ -252,16 +515,31 @@
 
 				$links	=	$this->fetchLinks($content);
 
-				if(!sizeof($links)){
+				//If links per page was specified, then we call the reduxLinks method
+
+				if($this->_lpp>0){
+					$links = $this->reduxLinks($links);
+				}
+
+				$sizeOfLinks = sizeof($links);
+
+				if(!$sizeOfLinks){
 			
 					echo "Couldnt find any links in given URL\n";
 					return FALSE;
 
 				}
 
-				$depth	=	0;
+				echo "Found $sizeOfLinks Links to dig in ...\n";
 
 				foreach($links as $link=>$value){
+
+					$linkKey = $this->getLinkKey($link,$path);
+
+					if(isset($this->_links[$linkKey]) && $this->_links[$linkKey]["depth"]++>5){
+						echo "!!!!!!!!!!!!!DEPTH LIMIT REACHED!!!!!!!!!!!!!!!!!!\n";
+						break;
+					}
 
 					if(!$this->isValidLink($link)){
 						echo "Invalid link found $link\n";
@@ -281,22 +559,69 @@
 					}
 
 					$fLink = $this->getFullLink($link,$path);
-					var_dump($fLink);
 
-					if($fLink===FALSE){
-						continue;
+					if(!empty($fLink["page"])){
+
+						if($this->isOmittedPage($path.$fLink["page"])){
+
+							$page = $path.$fLink["page"];
+							echo "*$page  was meant to be omitted\n";
+							continue;
+
+						}
+
+						if($this->pageHasValidType($fLink["page"])===FALSE){
+							echo "Page doesnt matches with given page types\n";
+							continue;
+						}else{
+							echo "Page matches required types ".implode($this->_pageTypes)."\n";
+						}
+
 					}
 
+					//Check if the given Linkkey was already Crawled before, if so, check if there are any
+					//Different parameters that will be usefull to us.
 
-					$linkKey	=	trim($fLink["scheme"]."://".$fLink["host"].$fLink["path"].$fLink["page"],"/");
+					if($this->wasCrawled($linkKey)){
 
-					echo "KEY : $linkKey"."\n";
+						echo "Parsing previously crawled URL, looking for new parameters ...\n";
 
-					if(!isset($this->_links[$linkKey])){
+						try{
+
+							$parameters				=	$this->parseQuery($fLink["query"]);
+							$storedParameters		=	array_keys($this->_links[$linkKey]["parameters"]);
+							$sizeOfStoredParams	=	sizeof($storedParameters);
+
+							foreach($parameters as $parameter=>$value){
+
+								if($sizeOfStoredParams){
+
+									if(in_array($parameter,$storedParameters)){
+
+										echo "This parameter was already inside\n";
+										continue;
+
+									}
+
+								}
+
+								echo "Detected new parameter \"$parameter\"!\n";
+
+								$this->_links[$linkKey]["parameters"][$parameter] = $value;
+
+							}
+
+						}catch(\Exception $e){
+
+							echo $e->getMessage()."\n";
+
+						}
+
+					}else{
 
 						if(!empty($fLink["query"])){
 
-							$parameters				=	$this->parseQuery($fLink["query"]);
+							$parameters	=	$this->parseQuery($fLink["query"]);
 
 							if(!is_null($parameters)){
 
@@ -311,42 +636,18 @@
 
 						}
 
-						if($this->crawl($fLink["fullUrl"],$fLink["path"])===FALSE){
-							unset($this->_links[$linkKey]);
-							break;
+						if(!isset($this->_links[$linkKey]["depth"])){
+							$this->_links[$linkKey]["depth"]=0;
 						}
 
-					}else{
 
-						echo "LINK $fLink[path]$fLink[page] was already set\n";
+						if($this->_links[$linkKey]["depth"] < 5){
 
-						try{
+							$crawlResult = $this->crawl($fLink["fullUrl"],$fLink["path"]);
 
-							$parameters				=	$this->parseQuery($fLink["query"]);
-							var_dump($parameters);
-							$storedParameters		=	array_keys($this->_links[$linkKey]["parameters"]);
-							$sizeOfStoredParams	=	sizeof($storedParameters);
-
-							foreach($parameters as $parameter=>$value){
-
-								if($sizeOfStoredParams){
-
-									if(in_array($parameter,$storedParameters)){
-
-										echo "YA ESTABA!\n".$parameter."\n";
-										continue;
-
-									}
-
-								}
-
-								$this->_links[$linkKey]["parameters"][$parameter] = $value;
-
+							if($crawlResult === FALSE){
+								unset($this->_links[$linkKey]);
 							}
-
-						}catch(\Exception $e){
-
-							echo $e->getMessage()."\n";
 
 						}
 

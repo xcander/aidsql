@@ -3,7 +3,8 @@ A) Improve the Command line parser with all the bells and whistles, i.e alias op
 B) Try to remove that merge function from the launcher, the launcher should have the minimal
 amount of code possible that function should probably be in the command line parser
 
-C) Improve how the crawler handles depth! The crawler can now sometimes crash due to too much recursion
+C*) Partially improved, right now Im not really sure what I meant with depth, but I think in this case in particular
+we are talking about depth as in amount of links per page
 
 D) Improve MySQL5 plugin adding methods such as isRoot (when we get a user from the DB) and if so perform
 the getSh3ll method from this plugin, trying to figure out here how we get writable directories. Do

@@ -74,9 +74,18 @@
 		),
 		"immediate-mode"=>array(
 			"values"=>array(
-				"yes",
-				"no"		
+				1,
+				0
 			)
+		),
+		"omit-paths"=>array(
+		),
+		"omit-pages"=>array(
+		),
+		"page-types"=>array(
+		),
+		"lpp"=>array(
 		)
+
 	);
 ?>

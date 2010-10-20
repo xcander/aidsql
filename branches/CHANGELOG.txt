@@ -1,4 +1,33 @@
 -------------------------------------------------------------------------------------------
+10/20/2010
+-------------------------------------------------------------------------------------------
+
+End luser stuff
+^^^^^^^^^^^^^^^^
+	*Improved Crawler, now the crawler can accept certain "page types" (extensions) theres a default set in the
+	config/config.ini file however you can change that as much as you want
+
+	*Crawler is not likely to crash due to recursion limits anymore. (Please report any bugs you may find!)
+	
+For Developers:
+^^^^^^^^^^^^^^^
+
+	*Fixed an issue with immediate-mode, it appears that yes in a config file parsed by the PHP native function
+	parse_ini_file will return a 1 instead of the string yes, you'd actually have to quote the string in order 
+	for it to be String(3) yes
+
+	*Added a method which attempts to find mod_rewrite "fuck ups" (as I like to call them)
+	and other URL masking techniques that do seem to exist but they recurse inside, 
+	such as http://host/path/other/path/other/path/other, this previously leaded to infinite recursion 
+	which made the crawler die badly. I'm not saying it will not crash for other causes right now! ;)
+
+	*Changes in code disposition, added more methods to fine tune crawling, methos such as addOmitPath
+	(Which will omit an entire path) and its counter part addOmitPaths which basically takes in an Array
+	and performs addOmitPath on each element.
+
+
+
+-------------------------------------------------------------------------------------------
 10/15/2010 
 -------------------------------------------------------------------------------------------
 
@@ -20,3 +49,5 @@ For Developers:
 	*Everything remains pretty much the same, except for the addition of the crawler class
 	to class/aidsql/Crawler.class.php and some other slight changes in the httpAdapter interface
 	(getHttpCode), usefull to know if we've hit some place that doesnt exists, etc.
+
+

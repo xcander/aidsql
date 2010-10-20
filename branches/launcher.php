@@ -2,7 +2,7 @@
 
 	/**
 	 * @todo Implement spl_autoload
-	 * @todo Fix CmdLineParser so it integrates the functionality given in the function mergeConfig located in launcher.php and implement it.
+	 * @todo Fix CmdLineParser so it integrates the functionality given in the function mergeConfig located in launcher.php
 	 * @todo Analyze script performance with xdebug
 	 * 
 	 */
@@ -50,8 +50,11 @@
 			return $var;
 		}
 
-		$config	= parse_ini_file($file);
 
+		//parse_ini_file if an option in the ini file is set to yes is automatically translated into a 1 ...
+		//PHP 5.3.2
+
+		$config	= parse_ini_file($file);
 		$cmdLine	= array();
 
 		foreach($config as $configParam=>$configValue){
@@ -99,20 +102,30 @@
 
 			$aidSQL		= new aidSQL\Runner($cmdParser);
 
-			if($aidSQL->isVulnerable()){
+			try {
 
-				echo "Site is vulnerable to sql injection\n";
-				$report	= $aidSQL->generateReport();
+				if($aidSQL->isVulnerable()){
 
-				if(!is_null($save)){
+					echo "Site is vulnerable to sql injection\n";
+					$report	= $aidSQL->generateReport();
 
-					echo "Report saved to $save\n";
-					file_put_contents($save,$report);
+					if(!is_null($save)){
+
+						echo "Report saved to $save\n";
+						file_put_contents($save,$report);
+
+					}
+
+					echo $report."\n";
+
+					return TRUE;
 
 				}
 
-
-				echo $report."\n";
+			}catch(\Exception $e){
+		
+				echo $e->getMessage()."\n";
+				return FALSE;
 
 			}
 
@@ -136,7 +149,29 @@
 			$httpAdapter	= 	new $parsedOptions["http-adapter"]($parsedOptions["url"]);
 			$httpAdapter->setMethod($parsedOptions["http-method"]);
 
+
 			$crawler			=	new aidsql\Crawler($httpAdapter);
+
+			if(isset($parsedOptions["lpp"])){
+
+				$crawler->setLinksPerPage($parsedOptions["lpp"]);
+
+			}
+
+			if(isset($parsedOptions["omit-paths"])){
+
+				$omitPaths = explode(",",$parsedOptions["omit-paths"]);
+				$crawler->addOmitPaths($omitPaths);
+
+			}
+
+			if(isset($parsedOptions["omit-pages"])){
+
+				$omitPages = explode(",",$parsedOptions["omit-pages"]);
+				$crawler->addOmitPages($omitPages);
+
+			}
+
 			$crawler->crawl();
 
 			$links			= $crawler->getLinks(TRUE);
@@ -168,27 +203,40 @@
 
 		}
 
-		foreach($links as $path=>$query){
-
-			if($path===0){
-				$cmdParser->setOption("url",$parsedOptions["url"]);
-			} else {
-				$cmdParser->setOption("url",$path);
-			}
-
-			$cmdParser->setOption("urlvars",$query);
-
-			if(isVulnerable($cmdParser,$save)&&$parsedOptions["immediate-mode"]=="yes"){
-				break;
-			}
-
-		}
 
 	}catch(Exception $e){
 
 		echo $e->getMessage()."\n";
 
 	}
-		
+
+	echo "\nAmount of links to be tested for injection:".sizeof($links)."\n";
+	echo "-----------------------------------------------------------\n\n";
+
+	$tmpLinks = array_keys($links);
+
+	foreach($tmpLinks as $lnk){
+		echo $lnk."\n";
+	}
+
+	echo "\n\n";
+
+	sleep(2);
+
+	foreach($links as $path=>$query){
+
+		if($path===0){
+			$cmdParser->setOption("url",$parsedOptions["url"]);
+		} else {
+			$cmdParser->setOption("url",$path);
+		}
+
+		$cmdParser->setOption("urlvars",$query);
+
+		if(isVulnerable($cmdParser,$save)&&(bool)$parsedOptions["immediate-mode"]){
+			break;
+		}
+
+	}
 
 ?>
