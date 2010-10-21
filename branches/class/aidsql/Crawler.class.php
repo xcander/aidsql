@@ -536,7 +536,7 @@
 
 					$linkKey = $this->getLinkKey($link,$path);
 
-					if(isset($this->_links[$linkKey]) && $this->_links[$linkKey]["depth"]++>5){
+					if(isset($this->_links[$linkKey]) && $this->_links[$linkKey]["depth"]++>$this->_depth){
 						echo "!!!!!!!!!!!!!DEPTH LIMIT REACHED!!!!!!!!!!!!!!!!!!\n";
 						break;
 					}
@@ -623,7 +623,7 @@
 
 							$parameters	=	$this->parseQuery($fLink["query"]);
 
-							if(!is_null($parameters)){
+							if(!empty($parameters)){
 
 								$key = key($parameters);
 								$this->_links[$linkKey]["parameters"][$key] = $parameters[$key];
@@ -633,6 +633,7 @@
 						}else{
 
 							$this->_links[$linkKey]="";
+							$this->_links[$linkKey]["parameters"]="";
 
 						}
 
@@ -641,7 +642,7 @@
 						}
 
 
-						if($this->_links[$linkKey]["depth"] < 5){
+						if($this->_links[$linkKey]["depth"] < $this->_depth){
 
 							$crawlResult = $this->crawl($fLink["fullUrl"],$fLink["path"]);
 
