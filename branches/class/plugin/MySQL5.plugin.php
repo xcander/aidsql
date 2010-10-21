@@ -66,7 +66,7 @@
 
 								if(isset($matches[0])){
 
-									$this->log("FOUND SQL INJECTION!!!\n");
+									$this->log("FOUND SQL INJECTION!!!");
 									$this->log("Affected Variable:\t$variable");
 									$this->log("Affected Fields:\t".implode($matches,","));
 									$this->log("Field Count:\t$i");
@@ -458,9 +458,9 @@
 
 					$value = mt_rand(0,10);
 
-					$this->log("WARNING! Variable value is not set, this will probably make this plugin not to work!");
-					$this->log("Be sure to specify a valid value for the URL variable of the site you're attacking.");
-					$this->log("Assuming random value for variable $variable. Value is: $value");
+					$this->log("WARNING! Variable value is not set, this will probably make this plugin not to work!",2,"yellow");
+					$this->log("Be sure to specify a valid value for the URL variable of the site you're attacking.",2,"yellow");
+					$this->log("Assuming random value for variable $variable. Value is: $value",2,"yellow");
 
 				}
 
@@ -478,7 +478,7 @@
 				$openTag		= $this->getOpenTag();
 				$closeTag	= $this->getCloseTag();
 				
-				$this->log("String identifier is: $openTag - $closeTag");
+				$this->log("String identifier is: $openTag - $closeTag",0,"white");
 				
 				$parser->setOpenTag($openTag);
 				$parser->setCloseTag($closeTag);

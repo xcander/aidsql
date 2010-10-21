@@ -12,16 +12,16 @@
 
 			public function __construct(\CmdLineParser $parser,\LogInterface &$log=NULL){
 
-				$this->configure($parser);	
-
 				if(!is_null($log)){
 					$this->setLog($log);
 				}
 
+				$this->configure($parser);	
+
 			}
 
 			public function setLog(\LogInterface &$log){
-				$this->_log = &$log;
+				$this->_log = $log;
 			}
 
 			private function log($msg=NULL){

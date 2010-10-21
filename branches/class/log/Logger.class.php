@@ -36,11 +36,16 @@
 		private $_fp = NULL;
 
 		/**
+		 * @var $_uselogDate
+		 * @see Log::useLogDate($filename)
+		 */
+	
+		private $_useLogDate = FALSE;
+
+		/**
 		 * @var $_filename String name of log file
 		 * @see Log::setFilename($filename)
 		 */
-
-
 
 		private  $_filename = NULL;
 
@@ -118,6 +123,15 @@
 		}
 
 		/**
+		*Specifies if date should be prepended in the log file
+		*@param boolean $boolean TRUE prepend date
+		*@param boolean $boolean FALSE do NOT prepend date
+		*/
+		public function useLogDate($boolean=TRUE){
+				$this->_useLogDate = $boolean;
+		}
+
+		/**
 		*
 		* @method registraLog() registro los eventos en el archivo log creado por el constructor
 		*/
@@ -134,7 +148,7 @@
 				return FALSE;
 			}
 
-			$date = date("[d-M-Y / H:i:s]");
+			$date = ($this->_useLogDate) ? date("[d-M-Y / H:i:s]") : NULL;
 		
 			$code = NULL;
 
@@ -422,6 +436,10 @@
 		public function getArray(){
 
 			return $this->logArray;
+		}
+
+		public function getEcho(){
+			return $this->_echo;
 		}
 
 	

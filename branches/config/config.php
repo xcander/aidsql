@@ -87,6 +87,12 @@
 		"lpp"=>array(
 		),
 		"max-links"=> array(
+		),
+		"log-prepend-date"=>array(
+			"values"=>array(
+				1,
+				0
+			)
 		)
 
 	);

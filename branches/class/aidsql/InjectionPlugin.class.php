@@ -19,13 +19,17 @@
 			protected $_parser							= NULL;
 
 
-			public final function __construct(\HttpAdapter $adapter){
+			public final function __construct(\HttpAdapter $adapter,\LogInterface &$log=NULL){
 
 				if(!$adapter->getRequestVariables()){
 					throw(new \Exception("Unable to perform injection without any request variables set in the http adapter!"));
 				}
 
 				$this->_httpAdapter = $adapter;
+
+				if(!is_null($log)){
+					$this->setLog($log);
+				}
 
 			}
 
@@ -41,6 +45,7 @@
 					call_user_func_array(array($this->_log, "log"),func_get_args());
 					return TRUE;
 				}
+
 
 				return FALSE;
 

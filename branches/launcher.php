@@ -101,16 +101,16 @@
 
 	}
 
-	function isVulnerable(cmdLineParser $cmdParser,LogInterface &$logger){
+	function isVulnerable(cmdLineParser $cmdParser,\LogInterface &$log=NULL){
 
-			$aidSQL		= new aidSQL\Runner($cmdParser,$logger);
+			$aidSQL		= new aidSQL\Runner($cmdParser,$log);
 
 			try {
 
 				if($aidSQL->isVulnerable()){
 
-					$logger->log("Site is vulnerable to sql injection!!",0,"light_cyan");
-					$aidSQL->generateReport($logger);
+					$log->log("Site is vulnerable to sql injection!!",0,"light_cyan");
+					$aidSQL->generateReport();
 
 					return TRUE;
 
@@ -137,6 +137,10 @@
 		$parameters		=	mergeConfig($_SERVER["argv"],"config/config.ini");
 		$cmdParser		=	new CmdLineParser($config,$parameters);
 		$parsedOptions	=	$cmdParser->getParsedOptions();
+
+		if(isset($parsedOptions["log-prepend-date"])){
+			$logger->useLogDate($parsedOptions["log-prepend-date"]);
+		}
 
 		//Check if url vars where passed,if not, we crawl the url
 		/////////////////////////////////////////////////////////////////
