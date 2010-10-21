@@ -7,22 +7,22 @@
 		 */
 
 		private $colors = array(
-			"black"		=>"\33[0;30m",
-			"blue"		=>"\33[0;34m",
+			"black"			=>"\33[0;30m",
+			"blue"			=>"\33[0;34m",
 			"light_blue"	=>"\33[1;34m",
-			"green"		=>"\33[0;32m",
+			"green"			=>"\33[0;32m",
 			"light_green"	=>"\33[1;32m",
-			"cyan"		=>"\33[0;36m",
+			"cyan"			=>"\33[0;36m",
 			"light_cyan"	=>"\33[1;36m",
-			"red"		=>"\33[0;31m",
-			"light_red"	=>"\33[0;31m",
-			"purple"	=>"\33[0;35m",
+			"red"				=>"\33[0;31m",
+			"light_red"		=>"\33[0;31m",
+			"purple"			=>"\33[0;35m",
 			"light_purple"	=>"\33[1;35m",
-			"brown"		=>"\33[0;33m",
-			"gray"		=>"\33[1;30m",
+			"brown"			=>"\33[0;33m",
+			"gray"			=>"\33[1;30m",
 			"light_gray"	=>"\33[0;37m",
-			"yellow"	=>"\33[1;33m",
-			"white"	=>"\33[1;37m"
+			"yellow"			=>"\33[1;33m",
+			"white"			=>"\33[1;37m"
 		);
 
 
@@ -124,12 +124,15 @@
 
 		public function log($msg=NULL,$type=0,$color=NULL,$frequency=0,$file=NULL,$line=NULL,$method=NULL) {
 
-			$check = $this->_frequencyCheck($frequency);
-
-			if(!is_null($check)&&$check==FALSE){
-				return FALSE;
+			if(empty($msg)){
+				throw(new \Exception("Message to be logged cant be empty"));
 			}
 
+			$check = $this->_frequencyCheck($frequency);
+
+			if(!is_null($check) && $check==FALSE){
+				return FALSE;
+			}
 
 			$date = date("[d-M-Y / H:i:s]");
 		
@@ -152,7 +155,6 @@
 
 			$msg = $this->_prepend.$type." ".$date.$msg.$this->_append;
 
-
 			if ($this->_echo) {
 
 				if($color) {
@@ -165,7 +167,7 @@
 
 						if($this->_colors) {
 
-							echo $this->colors[$color].$codigo.$msg."\033[37m\r\n";
+							echo $this->colors[$color].$code.$msg."\033[37m\r\n";
 
 							if(!is_null($file)){
 								echo $this->colors["yellow"].$code."[DD]$date FILE: $file"."\033[37m\r\n";
@@ -232,12 +234,7 @@
 		
 		}
 
-
-		/**
-		 * @access private
-		 */
-
-		function _fwrite($msg){
+		private function _fwrite($msg){
 
 			$return = @fwrite($this->_fp,$msg);
 
@@ -254,11 +251,7 @@
 
 		}
 
-		/**
-		 * @access private
-		 */
-
-		function _frequencyCheck($frequency=0){
+		private function _frequencyCheck($frequency=0){
 
 			if($frequency==0){
 				return TRUE;
@@ -282,7 +275,7 @@
 		*Returns an X11 debug like tag according to the given number
 		*/
 
-		function _infoType($type=NULL) {
+		private function _infoType($type=NULL) {
 
 			switch($type) {
 				case 1:

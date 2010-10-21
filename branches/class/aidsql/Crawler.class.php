@@ -17,8 +17,10 @@
 			private $_omitPages		=	array();
 			private $_pageTypes		=	array();
 			private $_lpp				=	0;				//Links per page
+			private $_log				=	NULL;
+			private $_maxLinks		=	0;				//Amount of links desired to crawl
 
-			public function __construct(\HttpAdapter $httpAdapter){
+			public function __construct(\HttpAdapter $httpAdapter,\LogInterface $log=NULL){
 
 				if(is_null($httpAdapter->getUrl())){
 
@@ -29,8 +31,32 @@
 				$host = $this->parseUrl($httpAdapter->getUrl());
 				$this->_host			=	$host;
 				$this->_httpAdapter	=	$httpAdapter;
-				echo $host["scheme"]."://".$host["host"].$host["path"].$host["page"]."\n";
+
+				if(!is_null($log)){
+					$this->setLog($log);
+				}
+
+				$this->log("Normalized URL: ".$host["scheme"]."://".$host["host"].$host["path"].$host["page"],"0","light_green");
 				$this->_httpAdapter->setUrl($host["scheme"]."://".$host["host"].$host["path"].$host["page"]);
+
+			}
+
+			public function setLog(\LogInterface &$log){
+
+				$this->_log = $log;
+
+			}
+
+			/* Wrapper */
+
+			private function log(){
+
+				if(!is_null($this->_log)){
+					call_user_func_array(array($this->_log, "log"),func_get_args());
+					return TRUE;
+				}
+
+				return FALSE;
 
 			}
 
@@ -127,8 +153,6 @@
 
 			public function isOmittedPath($path=NULL){
 
-				echo $path."\n";
-
 				if(empty($path)){
 					throw(new \Exception("Path to be tested cant be empty!"));
 				}
@@ -142,6 +166,7 @@
 				return FALSE;
 
 			}
+
 
 			public function isOmittedPage($page=NULL){
 
@@ -178,6 +203,10 @@
 
 			}
 
+			public function setMaxLinks($amount=0){
+				$this->_maxLinks=(int)$amount;
+			}
+
 			public function setLinksPerPage($amount=0){
 
 				$amount = (int)$amount;
@@ -201,16 +230,18 @@
 				$sizeOfLinks = sizeof($links);
 
 				if(!$sizeOfLinks){
-					echo "No links to reduce!\n";
+					$this->log("No links to reduce");	
 					return $links;
 				}
 
 				if($sizeOfLinks < $this->_lpp){
-					echo "Amount of links not enough to perform redux!\n";
+
+					$this->log("Amount of links not enough to perform redux!");
 					return $links;
+
 				}
 
-				echo "Shuffling Links ...\n";
+				$this->log("Shuffling Links ...");
 
 				$shuffled = array_keys($links);
 				shuffle($shuffled);
@@ -372,7 +403,7 @@
 
 				}
 
-				echo "Got ".sizeof($return)." links ...\n";
+				$this->log("Got ".sizeof($return)." links ...");
 
 				return $return;
 
@@ -382,7 +413,7 @@
 
 				if(!in_array($externalSite,$this->_otherSites)){
 
-					echo "$externalSite, external site detected adding to other sites list ...\n";
+					$this->log("$externalSite, external site detected adding to other sites list ...");
 					$this->_otherSites[] = $externalSite;
 					return TRUE;
 
@@ -472,12 +503,19 @@
 
 			public function crawl($url=NULL,$path=NULL){
 
+				if($this->_maxLinks>0){
+					if(sizeof($this->_links)>$this->_maxLinks){
+						$this->log("Link limit reached!",2,"white");
+						return NULL;
+					}
+				}
+
 				if(empty($path)){
 					$path = $this->_host["path"];
 				}
 
 				if($this->detectModRewriteFuckUp($path)){
-					echo "Mod Rewrite Fuck up detected in $path!\n";
+					$this->log("Mod Rewrite Fuck up detected in $path!");
 					return FALSE;
 				}
 
@@ -487,26 +525,26 @@
 
 				}
 
-				echo "Crawling ".$this->_httpAdapter->getUrl()." ...  ";
+				$this->log("Crawling ".$this->_httpAdapter->getUrl()." ...  ",0,"light_green");
 
 				if($this->isOmittedPath($path)){
 
-					echo "*$path is omitted will NOT fetch content from here!\n";
+					$this->log("*$path is omitted will NOT fetch content from here!");
 					return FALSE;
 
 				}
 
-				echo "Fetching content ...\n";
+				$this->log("Fetching content ...",0,"light_green");
 				$content	=	$this->_httpAdapter->fetch();
 
 				if(($httpCode = $this->_httpAdapter->getHttpCode()) != 200){
 
-					echo "Got $httpCode\n";
+					$this->log("Got $httpCode",1,"red");;
 					return FALSE;
 
 				}else{
 
-					echo "200 OK\n";	
+					$this->log("200 OK",1,"light_green");;
 
 				}
 
@@ -525,29 +563,24 @@
 
 				if(!$sizeOfLinks){
 			
-					echo "Couldnt find any links in given URL\n";
+					$this->log("Couldnt find any links in given URL",0,"yellow");
 					return FALSE;
 
 				}
 
-				echo "Found $sizeOfLinks Links to dig in ...\n";
+				$this->log("Found $sizeOfLinks Links to dig in ...",0,"light_cyan");
 
 				foreach($links as $link=>$value){
 
 					$linkKey = $this->getLinkKey($link,$path);
 
-					if(isset($this->_links[$linkKey]) && $this->_links[$linkKey]["depth"]++>$this->_depth){
-						echo "!!!!!!!!!!!!!DEPTH LIMIT REACHED!!!!!!!!!!!!!!!!!!\n";
-						break;
-					}
-
 					if(!$this->isValidLink($link)){
-						echo "Invalid link found $link\n";
+						$this->log("Invalid link found $link",0,"red");
 						continue;
 					}
 
 					if($this->addEmailLink($link)){
-						echo "Email link found $link\n";
+						$this->log("Email link found $link",0,"light_green");
 						continue;
 					}
 
@@ -565,16 +598,20 @@
 						if($this->isOmittedPage($path.$fLink["page"])){
 
 							$page = $path.$fLink["page"];
-							echo "*$page  was meant to be omitted\n";
+							$this->log("*$page  was meant to be omitted",0);
 							continue;
 
 						}
 
 						if($this->pageHasValidType($fLink["page"])===FALSE){
-							echo "Page doesnt matches with given page types\n";
+							
+							$this->log("Page \"$fLink[page]\" doesnt matches given page types",1,"yellow");
 							continue;
+
 						}else{
-							echo "Page matches required types ".implode($this->_pageTypes)."\n";
+						
+							$this->log("Page \"$fLink[page]\" matches required types ".implode($this->_pageTypes,","),0,"light_green");
+
 						}
 
 					}
@@ -584,11 +621,12 @@
 
 					if($this->wasCrawled($linkKey)){
 
-						echo "Parsing previously crawled URL, looking for new parameters ...\n";
+						$this->log("Parsing previously crawled URL, looking for new parameters ...",0,"blue");
 
-						try{
+						$parameters	=	$this->parseQuery($fLink["query"]);
 
-							$parameters				=	$this->parseQuery($fLink["query"]);
+						if($parameters!==FALSE){
+
 							$storedParameters		=	array_keys($this->_links[$linkKey]["parameters"]);
 							$sizeOfStoredParams	=	sizeof($storedParameters);
 
@@ -598,22 +636,21 @@
 
 									if(in_array($parameter,$storedParameters)){
 
-										echo "This parameter was already inside\n";
+										$this->log("Parameter $parameter was already inside",0,"yellow");
 										continue;
 
 									}
 
 								}
 
-								echo "Detected new parameter \"$parameter\"!\n";
-
+								$this->log("Detected new parameter \"$parameter\"!",0,"cyan");
 								$this->_links[$linkKey]["parameters"][$parameter] = $value;
 
 							}
 
-						}catch(\Exception $e){
+						}else{
 
-							echo $e->getMessage()."\n";
+							$this->log("No parameters found");
 
 						}
 
@@ -632,8 +669,8 @@
 
 						}else{
 
-							$this->_links[$linkKey]="";
-							$this->_links[$linkKey]["parameters"]="";
+							$this->_links[$linkKey]=array();
+							$this->_links[$linkKey]["parameters"]=array();
 
 						}
 
@@ -643,12 +680,20 @@
 
 
 						if($this->_links[$linkKey]["depth"] < $this->_depth){
+	
+							$this->_links[$linkKey]["depth"]++;
 
+							$this->log($this->drawLine($this->_links[$linkKey]["depth"]),0,"light_cyan");
 							$crawlResult = $this->crawl($fLink["fullUrl"],$fLink["path"]);
 
 							if($crawlResult === FALSE){
 								unset($this->_links[$linkKey]);
 							}
+
+						}else{
+
+							$this->log("DEPTH LIMIT FOR $linkKey REACHED!",1,"yellow");
+							break;
 
 						}
 
@@ -658,7 +703,23 @@
 
 			}
 
-			public function isValidLink($link){
+			private function drawLine($depth){
+
+				$depth = ($depth == 0) ? 1 : $depth;
+
+				$line = "";
+
+				for($i=0;$i<$depth;$i++){
+					$line.="-";
+				}
+
+				$line.=">";
+
+				return $line;
+
+			}
+
+			private function isValidLink($link){
 
 				if($link=="#"||preg_match("/javascript:/i",$link)){
 					return FALSE;
@@ -668,10 +729,11 @@
 
 			}
 
-			public function parseQuery($query=NULL,$separator="&"){
+			private function parseQuery($query=NULL,$separator="&"){
 
 				if(empty($query)){
-					throw(new \Exception("Query to be parsed was empty"));
+					$this->log("Query to be parsed was empty",1,"red");
+					return FALSE;
 				}
 
 				$params = explode("&",$query);
@@ -741,13 +803,13 @@
 
 				if(preg_match("#".$this->_host["host"]."#",$link)){	//Full link
 
-					echo "FULL LINK \n";
+					//$this->log("FULL LINK",0,"green");
 
 					return $this->parseUrl($link);
 
 				}
 
-				echo "RELATIVE!!!!!!!!!!\n";
+				//$this->log("RELATIVE!!!!!!!!!!",0,"light_green");
 				return $this->getRelativePath($link,$path);
 
 			}
@@ -769,13 +831,12 @@
 
 				}
 
-				echo "Levels: $ascendCount\n";
+				//$this->log("Levels: $ascendCount",0,"green");
 
 				while($ascendCount--){
 
 					$path	=	substr($path,0,strrpos($path,'/'));
 					$link	=	substr($link,strpos($link,'/')+1);
-					echo "$ascendCount:$link\n";
 
 				}
 

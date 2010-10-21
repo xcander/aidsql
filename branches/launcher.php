@@ -8,7 +8,9 @@
 	 */
 
 	define ("__CLASSPATH","class");
+
 	error_reporting(E_ALL);
+
 	function checkPHPVersion(){
 
 		$version		= substr(PHP_VERSION,0,strpos(PHP_VERSION,"."));
@@ -27,10 +29,12 @@
 	require_once "interface/HttpAdapter.interface.php";
 	require_once "interface/InjectionPlugin.interface.php";
 	require_once "interface/Parser.interface.php";
+	require_once "interface/Log.interface.php";
 
 	//Classes
 	require_once "class/aidsql/Crawler.class.php";
 	require_once "class/aidsql/Runner.class.php";
+	require_once "class/log/Logger.class.php";
 	require_once "class/core/CmdLine.class.php";
 	require_once "class/core/String.class.php";
 	require_once "class/core/File.class.php";
@@ -49,7 +53,6 @@
 		if(is_null($file)||!file_exists($file)){
 			return $var;
 		}
-
 
 		//parse_ini_file if an option in the ini file is set to yes is automatically translated into a 1 ...
 		//PHP 5.3.2
@@ -98,7 +101,7 @@
 
 	}
 
-	function isVulnerable(cmdLineParser $cmdParser,$save=NULL){
+	function isVulnerable(cmdLineParser $cmdParser,LogInterface &$logger){
 
 			$aidSQL		= new aidSQL\Runner($cmdParser);
 
@@ -124,22 +127,25 @@
 
 			}catch(\Exception $e){
 		
-				echo $e->getMessage()."\n";
+				$logger->log($e->getMessage(),1,"light_red");
 				return FALSE;
 
 			}
 
 	}
 
+	$logger			=	new Logger();
+	$logger->setEcho(TRUE);
+
 	try {
 
 		unset($_SERVER["argv"][0]);
 
-		$save				= NULL;
-
-		$parameters		= mergeConfig($_SERVER["argv"],"config/config.ini");
-		$cmdParser		= new CmdLineParser($config,$parameters);
-		$parsedOptions = $cmdParser->getParsedOptions();
+		$save				=	NULL;
+		$links			=	array();
+		$parameters		=	mergeConfig($_SERVER["argv"],"config/config.ini");
+		$cmdParser		=	new CmdLineParser($config,$parameters);
+		$parsedOptions	=	$cmdParser->getParsedOptions();
 
 		//Check if url vars where passed,if not, we crawl the url
 		/////////////////////////////////////////////////////////////////
@@ -149,13 +155,22 @@
 			$httpAdapter	= 	new $parsedOptions["http-adapter"]($parsedOptions["url"]);
 			$httpAdapter->setMethod($parsedOptions["http-method"]);
 
-
-			$crawler			=	new aidsql\Crawler($httpAdapter);
+			$crawler			=	new aidsql\Crawler($httpAdapter,$logger);
 
 			if(isset($parsedOptions["lpp"])){
 
 				$crawler->setLinksPerPage($parsedOptions["lpp"]);
 
+			}
+
+			if(isset($parsedOptions["max-links"])){
+
+				$crawler->setMaxLinks($parsedOptions["max-links"]);
+
+			}
+
+			if(isset($parsedOptions["page-types"])){
+				$crawler->addPageTypes(explode(",",$parsedOptions["page-types"]));
 			}
 
 			if(isset($parsedOptions["omit-paths"])){
@@ -179,18 +194,20 @@
 
 			foreach($links as $page=>$variables){
 
-				foreach($variables as $param=>$value){
+				if(sizeof($variables)){
+					foreach($variables as $param=>$value){
 
-					if(!isset($tmpLinks[$page])){
-						$tmpLinks[$page]="";
+						if(!isset($tmpLinks[$page])){
+							$tmpLinks[$page]="";
+						}
+
+						$tmpLinks[$page].="$param=$value,";
+
 					}
 
-					$tmpLinks[$page].="$param=$value,";
+					$tmpLinks[$page] = substr($tmpLinks[$page],0,-1);
 
 				}
-
-				$tmpLinks[$page] = substr($tmpLinks[$page],0,-1);
-
 			}
 
 			$links = $tmpLinks;
@@ -199,29 +216,32 @@
 
 			//If urlvars was specified we will do whatever the user tells us to do
 
-			$links = array($parsedOptions["urlvars"]);
+			$links = array($parsedOptions["url"]=>$parsedOptions["urlvars"]);
 
 		}
 
 
 	}catch(Exception $e){
 
-		echo $e->getMessage()."\n";
+		$logger->log($e->getMessage(),1,"light_red");
 
 	}
 
-	echo "\nAmount of links to be tested for injection:".sizeof($links)."\n";
-	echo "-----------------------------------------------------------\n\n";
+
+	if(!sizeof($links)){
+
+		$logger->log("Not enough links / No valid links (i.e no parameters) to perform injection :(");
+		exit(1);
+
+	}
+
+	$logger->log("Amount of links to be tested for injection:".sizeof($links),0,"light_cyan");
 
 	$tmpLinks = array_keys($links);
 
 	foreach($tmpLinks as $lnk){
-		echo $lnk."\n";
+		$logger->log($lnk,0,"light_cyan");
 	}
-
-	echo "\n\n";
-
-	sleep(2);
 
 	foreach($links as $path=>$query){
 
@@ -233,7 +253,7 @@
 
 		$cmdParser->setOption("urlvars",$query);
 
-		if(isVulnerable($cmdParser,$save)&&(bool)$parsedOptions["immediate-mode"]){
+		if(isVulnerable($cmdParser,$logger)&&(bool)$parsedOptions["immediate-mode"]){
 			break;
 		}
 

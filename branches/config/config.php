@@ -85,6 +85,8 @@
 		"page-types"=>array(
 		),
 		"lpp"=>array(
+		),
+		"max-links"=> array(
 		)
 
 	);
