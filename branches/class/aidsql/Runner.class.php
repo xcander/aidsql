@@ -8,10 +8,30 @@
 			private $_injectionPlugins		= array();	//Contains all plugins
 			private $_vulnerable				= FALSE;		//boolean vulnerable TRUE or not vulnerable FALSE
 			private $_plugin					= NULL;		//Contains the plugin to be used, i.e the vulnerable plugin
+			private $_log						= NULL;		//Log object
 
-			public function __construct(\CmdLineParser $parser){
+			public function __construct(\CmdLineParser $parser,\LogInterface &$log=NULL){
 
 				$this->configure($parser);	
+
+				if(!is_null($log)){
+					$this->setLog($log);
+				}
+
+			}
+
+			public function setLog(\LogInterface &$log){
+				$this->_log = &$log;
+			}
+
+			private function log($msg=NULL){
+
+				if(!is_null($this->_log)){
+					call_user_func_array(array($this->_log, "log"),func_get_args());
+					return TRUE;
+				}
+
+				return FALSE;
 
 			}
 
@@ -23,7 +43,7 @@
 
 				foreach($this->_injectionPlugins as $plugin){
 
-					$this->dEcho("Testing ".get_class($plugin)." injection plugin...");
+					$this->log("Testing ".get_class($plugin)." injection plugin...");
 
 					if($plugin->isVulnerable()){
 
@@ -34,7 +54,7 @@
 
 					}
 
-					$this->dEcho("Not vulnerable to this plugin ...");
+					$this->log("Not vulnerable to this plugin ...");
 
 				}
 
@@ -54,8 +74,7 @@
 					throw(new Exception($msg));
 				}
 	
-				$plugin = $this->_plugin;
-
+				$plugin		= $this->_plugin;
 				$database	= $plugin->analyzeInjection($plugin->getDatabase());
 				$database	= $database[0];
 
@@ -65,19 +84,15 @@
 				$dbtables	= $plugin->analyzeInjection($plugin->getTables());
 				$dbtables	= $dbtables[0];
 				
-				$report	= "SITE:";
-				$report  = "BASIC INFORMATION\n";
-				$report .= $this->line();
-				$report .= "DBASE\t:\t\t$database\n";
-				$report .= "DBUSER\t:\t\t$dbuser\n";
-				$report .= "TABLES\t:\t\t$dbtables\n";
+				$this->log("BASIC INFORMATION",0,"cyan");
+				$this->log("---------------------------------",0,"white");
+				$this->log("PLUGIN\t:\t".$plugin->getPluginName(),0,"cyan");
+				$this->log("DBASE\t:\t$database",0,"white");
+				$this->log("USER\t:\t$dbuser",0,"white");
+				$this->log("TABLES\t:\t$dbtables",0,"white");
 
-				return $report;
+				return;
 
-			}
-
-			private function line(){
-				return "-----------------------------------\n";
 			}
 
 			private function configure(\CmdLineParser $parser){
@@ -133,6 +148,11 @@
 
 						$pluginClass		= 'aidSQL\\plugin\\'.$plugin;
 						$pluginInstance	= new $pluginClass($adapter);
+
+						if(!is_null($this->_log)){
+							$pluginInstance->setLog($this->_log);
+						}
+
 						$pluginInstance->setVerbose($verbose);
 
 						$this->addInjectionPlugin($pluginInstance);
@@ -271,28 +291,8 @@
 
 			}
 
-			private function dEcho($str){
-
-				if(!$this->_debug){
-					return;
-				}
-
-				echo $str."\n";
-
-			}
-
-
-				public function setDebug($boolean=TRUE){
-
-					$this->_debug = (boolean)$boolean;
-
-				}
-
-				public function getDebug(){
-					return $this->_debug;
-				}
-
-
 		}
 
-}
+	}
+
+?>

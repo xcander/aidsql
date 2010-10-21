@@ -103,23 +103,14 @@
 
 	function isVulnerable(cmdLineParser $cmdParser,LogInterface &$logger){
 
-			$aidSQL		= new aidSQL\Runner($cmdParser);
+			$aidSQL		= new aidSQL\Runner($cmdParser,$logger);
 
 			try {
 
 				if($aidSQL->isVulnerable()){
 
-					echo "Site is vulnerable to sql injection\n";
-					$report	= $aidSQL->generateReport();
-
-					if(!is_null($save)){
-
-						echo "Report saved to $save\n";
-						file_put_contents($save,$report);
-
-					}
-
-					echo $report."\n";
+					$logger->log("Site is vulnerable to sql injection!!",0,"light_cyan");
+					$aidSQL->generateReport($logger);
 
 					return TRUE;
 

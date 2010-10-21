@@ -4,6 +4,9 @@
 		
 		interface InjectionPluginInterface {
 
+			public function getPluginName();
+			public function setLog(\LogInterface &$log);	//Log setter
+			public function log($msg=NULL);					//Log wrapper
 			public function select();
 			public function count();
 			public function setTable();

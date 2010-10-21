@@ -10,11 +10,14 @@
 			private $_queryCommentClose				= NULL;
 			private $_table								= NULL;
 			private $_verbose								= FALSE;
+			private $_log									= NULL;
+
 			protected $_httpAdapter						= NULL;
 			protected $_httpCode							= NULL;
 			protected $_affectedVariable				= Array();
 			protected $_injectionAttempts				= 40;
 			protected $_parser							= NULL;
+
 
 			public final function __construct(\HttpAdapter $adapter){
 
@@ -26,6 +29,23 @@
 
 			}
 
+			/* Wrapper */
+
+			public function setLog(\LogInterface &$log){
+				$this->_log = $log;
+			}
+
+			public function log($msg = NULL){
+
+				if(!is_null($this->_log)){
+					call_user_func_array(array($this->_log, "log"),func_get_args());
+					return TRUE;
+				}
+
+				return FALSE;
+
+			}
+
 			/**
 			*Good for decoupling execution with injection string generation
 			*/
@@ -34,7 +54,7 @@
 
 				$this->_httpAdapter->addRequestVariable($variable,$value);
 
-				echo "Fetching ".$this->_httpAdapter->getFullUrl()."\n\n";
+				$this->log("Fetching ".$this->_httpAdapter->getFullUrl());
 
 				$content				=	$this->_httpAdapter->fetch();
 				$this->_httpCode	=	$this->_httpAdapter->getHttpCode();
@@ -46,7 +66,7 @@
 				}
 
 				if($this->_verbose){
-					echo $content;
+					$this->log($content);
 				}
 
 				return $content;
