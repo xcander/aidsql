@@ -23,7 +23,36 @@
 
 	}
 
-	checkPHPVersion();
+	function banner(\LogInterface &$log){
+
+		$log->setX11Info(FALSE);
+
+		$banner="               _     _           _ ";
+		$log->log($banner,0,"red");
+		$banner="   _          (_)   | |         | |";
+		$log->log($banner,0,"red");
+		$banner=" _| |_    __ _ _  __| |___  __ _| |";
+		$log->log($banner,0,"red");
+		$banner="|_   _|  / _` | |/ _` / __|/ _` | |";
+		$log->log($banner,0,"red");
+		$banner="  |_|   | (_| | | (_| \__ \ (_| | |";
+		$log->log($banner,0,"red");
+		$banner="         \__,_|_|\__,_|___/\__, |_|";
+		$log->log($banner,0,"red");
+      $banner="                              | |  ";
+		$log->log($banner,0,"red");
+      $banner="                              |_|  ";
+		$log->log($banner,0,"red");
+		$banner="\n\tSQL INJECTION DETECTION TOOL\n";
+		$log->log($banner,0,"white");
+		$banner="\t\tBy Juan Stange <jpfstange@gmail.com>\n\n\n";
+		$log->log($banner,0,"white");
+
+		$log->setX11Info(TRUE);
+
+	}
+
+	
 
 	//Interfaces
 	require_once "interface/HttpAdapter.interface.php";
@@ -47,6 +76,12 @@
 	require_once "class/parser/Dummy.parser.php";
 	require_once "class/parser/MySQLError.parser.php";
 
+	checkPHPVersion();
+
+	$logger			=	new Logger();
+	$logger->setEcho(TRUE);
+
+	banner($logger);
 
 	function mergeConfig($var,$file){
 
@@ -118,15 +153,13 @@
 
 			}catch(\Exception $e){
 		
-				$logger->log($e->getMessage(),1,"light_red");
+				$log->log($e->getMessage(),1,"light_red");
 				return FALSE;
 
 			}
 
 	}
 
-	$logger			=	new Logger();
-	$logger->setEcho(TRUE);
 
 	try {
 

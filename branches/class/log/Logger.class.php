@@ -26,7 +26,7 @@
 		);
 
 
-		var $_colors = TRUE;
+		private $_colors = TRUE;
 
 
 		/**
@@ -57,6 +57,15 @@
 		*/
 
 		private $_echo = NULL;
+
+		/**
+		*
+		* @var $_x11Info 
+		* @see self::setX11Info()
+		*
+		*/
+
+		private $_x11Info = TRUE;
 
 		/**
 		*
@@ -115,6 +124,9 @@
 		}
 
 
+		public function setX11Info($boolean=TRUE){
+			$this->_x11Info = (bool)$boolean;
+		}
 
 		private function openFile() {
 
@@ -160,7 +172,8 @@
 
 			}
 
-			$type = $this->_infoType($type);
+			$type = ($this->_x11Info) ? $this->_infoType($type) : NULL;
+			
 
 			$this->logArray[] =	array(
 											"type"	=>$type,
