@@ -93,6 +93,17 @@
 				1,
 				0
 			)
+		),
+		"im-bored"=>array(
+			"overlaps-with"=>array("url")
+		),
+		"google-language"=>array(
+			"requires"=>"im-bored"
+		),
+		"google-maxpages"=>array(
+			"requires"=>"im-bored"
+		),
+		"omit-sites"=>array(
 		)
 
 	);

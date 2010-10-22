@@ -25,7 +25,9 @@
 			$this->setConfig($config);
 			$this->setCmdLineOptions($optArray);
 			$this->parseOptions();
+			$this->optionOverlapsOption();
 			$this->optionRequiresOption();
+			$this->parseRequiredOptions($this->_parsedOptions);
 
 			return $this->_parsedOptions;
 
@@ -71,7 +73,6 @@
 
 			}
 
-			$this->parseRequiredOptions($this->_parsedOptions);
 
 		}
 
@@ -158,6 +159,7 @@
 
 			//Option is OK, add it to the parsed options
 
+			$option=$this->searchOption($realOption);
 			$this->_parsedOptions[$realOption] = $realOptionValue;
 
 			return TRUE;
@@ -173,7 +175,7 @@
 				if(isset($optConfig["requires"]) && in_array($opt,$parsedOptions)){
 
 					foreach($optConfig["requires"] as $required){
-				
+
 						if(!in_array($required,$parsedOptions)){
 							throw(new Exception("Option $opt requires option $required to be set!"));
 						}
@@ -185,6 +187,39 @@
 			}
 
 		}
+
+		private function optionOverlapsOption(){
+
+			$parsedOptions = array_keys($this->_parsedOptions);
+
+			foreach($this->_options as $opt=>$optConfig){
+
+				if(isset($optConfig["overlaps-with"]) && in_array($opt,$parsedOptions)){
+
+					foreach($optConfig["overlaps-with"] as $required){
+
+						if(in_array($required,$parsedOptions)){
+
+							throw(new Exception("Option $opt overlaps with option $required!"));
+
+						}else{
+
+							$option = $this->searchOption($required);
+
+							if(isset($option["required"])&&$option["required"]){
+								$this->_options[$required]="";	//Fake the option
+							}
+
+						}
+
+					}
+
+				}	
+
+			}
+
+		}
+
 
 		private function parseRequiredOptions(Array $givenOptions){
 

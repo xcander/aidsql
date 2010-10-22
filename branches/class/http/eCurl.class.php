@@ -29,11 +29,13 @@
 			"tunnel"		=>0
 		);
 
-		public function __construct($url,$setCurlDefaults=TRUE){
+		public function __construct($url=NULL,$setCurlDefaults=TRUE){
 
 			$this->setHandler(curl_init());
 
-			$this->setUrl($url);
+			if(!is_null($url)){
+				$this->setUrl($url);
+			}
 
 			if($setCurlDefaults === TRUE){
 

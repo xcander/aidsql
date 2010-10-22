@@ -52,7 +52,6 @@
 
 	}
 
-
 	//Interfaces
 	require_once "interface/HttpAdapter.interface.php";
 	require_once "interface/InjectionPlugin.interface.php";
@@ -67,6 +66,8 @@
 	require_once "class/core/String.class.php";
 	require_once "class/core/File.class.php";
 	require_once "class/http/eCurl.class.php";
+	require_once "class/google/GoogleOptions.class.php";
+	require_once "class/google/GoogleSearch.class.php";
 	require_once "config/config.php";
 	
 	//Parsers
@@ -165,75 +166,151 @@
 		unset($_SERVER["argv"][0]);
 
 		$save				=	NULL;
+		$sites			=	array();
 		$links			=	array();
 		$parameters		=	mergeConfig($_SERVER["argv"],"config/config.ini");
 		$cmdParser		=	new CmdLineParser($config,$parameters);
 		$parsedOptions	=	$cmdParser->getParsedOptions();
 
+		if(!empty($parsedOptions["url"])){
+			$sites[0]	=	$parsedOptions["url"]; 
+		}
+
+		$httpAdapter	= 	new $parsedOptions["http-adapter"]();
+
 		if(isset($parsedOptions["log-prepend-date"])){
 			$logger->useLogDate($parsedOptions["log-prepend-date"]);
 		}
+
+		//Instance of the http adapter, this one has to be shared by aggregation in all classes
+
+		
+
+		//Check if youre bored and you just want to rule the world (?)
+		/////////////////////////////////////////////////////////////////
+
+		if(in_array("im-bored",array_keys($parsedOptions))){
+
+			$logger->setPrepend("[G00Gl3]");
+			$logger->log("WWeally!? Well letz GoOoOoOoGle then :o",0,"light_green");
+
+			sleep(3);			
+
+			$search	=	new googleSearch();	//This class needs to implement the httpAdapterInterface
+			$search->setQuery($parsedOptions["im-bored"]);
+
+			(isset($parsedOptions["google-language"])) ? $search->setLanguage($parsedOptions["google-language"]) : NULL;
+			$search->setStart(0);
+
+			$search	=	$search->doGoogleSearch();
+
+			if(sizeof($search)){
+
+				$search = $search->responseData;
+	
+				foreach($search->results as $searchResult){
+
+					if(isset($parsedOptions["omit-sites"])){
+
+						$regex = trim($parsedOptions["omit-sites"]);
+
+						if(preg_match("/$regex/",$searchResult->visibleUrl)){
+
+							$logger->log("Not adding ".$searchResult->visibleUrl,2,"yellow");
+
+						}else{
+
+							$logger->log("Site added ".$searchResult->visibleUrl,0,"green");
+							$sites[] = $searchResult->visibleUrl;
+
+						}
+
+					}else{
+
+						$logger->log("Site added ".$searchResult->visibleUrl,0,"green");
+						$sites[] = $searchResult->visibleUrl;
+
+					}
+
+				}
+
+			}
+
+			$logger->setPrepend("");
+
+		}
+
 
 		//Check if url vars where passed,if not, we crawl the url
 		/////////////////////////////////////////////////////////////////
 
 		if(!in_array("urlvars",array_keys($parsedOptions))){
 
-			$httpAdapter	= 	new $parsedOptions["http-adapter"]($parsedOptions["url"]);
 			$httpAdapter->setMethod($parsedOptions["http-method"]);
 
-			$crawler			=	new aidsql\Crawler($httpAdapter,$logger);
-
-			if(isset($parsedOptions["lpp"])){
-
-				$crawler->setLinksPerPage($parsedOptions["lpp"]);
-
+			if(!sizeof($sites)){
+				$logger->log("No sites :(!",1,"red");
+				die();
 			}
 
-			if(isset($parsedOptions["max-links"])){
+			foreach($sites as $site){
 
-				$crawler->setMaxLinks($parsedOptions["max-links"]);
+				$httpAdapter->setUrl($site);
 
-			}
+				$crawler			=	new aidsql\Crawler($httpAdapter,$logger);
 
-			if(isset($parsedOptions["page-types"])){
-				$crawler->addPageTypes(explode(",",$parsedOptions["page-types"]));
-			}
+				if(isset($parsedOptions["lpp"])){
 
-			if(isset($parsedOptions["omit-paths"])){
+					$crawler->setLinksPerPage($parsedOptions["lpp"]);
 
-				$omitPaths = explode(",",$parsedOptions["omit-paths"]);
-				$crawler->addOmitPaths($omitPaths);
+				}
 
-			}
+				if(isset($parsedOptions["max-links"])){
 
-			if(isset($parsedOptions["omit-pages"])){
+					$crawler->setMaxLinks($parsedOptions["max-links"]);
 
-				$omitPages = explode(",",$parsedOptions["omit-pages"]);
-				$crawler->addOmitPages($omitPages);
+				}
 
-			}
+				if(isset($parsedOptions["page-types"])){
+					$crawler->addPageTypes(explode(",",$parsedOptions["page-types"]));
+				}
 
-			$crawler->crawl();
+				if(isset($parsedOptions["omit-paths"])){
 
-			$links			= $crawler->getLinks(TRUE);
-			$tmpLinks		= array();
+					$omitPaths = explode(",",$parsedOptions["omit-paths"]);
+					$crawler->addOmitPaths($omitPaths);
 
-			foreach($links as $page=>$variables){
+				}
 
-				if(sizeof($variables)){
+				if(isset($parsedOptions["omit-pages"])){
 
-					foreach($variables as $param=>$value){
+					$omitPages = explode(",",$parsedOptions["omit-pages"]);
+					$crawler->addOmitPages($omitPages);
 
-						if(!isset($tmpLinks[$page])){
-							$tmpLinks[$page]="";
+				}
+
+				$crawler->crawl();
+
+				$links			= $crawler->getLinks(TRUE);
+				$tmpLinks		= array();
+
+				foreach($links as $page=>$variables){
+
+					if(sizeof($variables)){
+
+						foreach($variables as $param=>$value){
+
+							if(!isset($tmpLinks[$page])){
+								$tmpLinks[$page]="";
+							}
+
+							$tmpLinks[$page].="$param=$value,";
+
 						}
 
-						$tmpLinks[$page].="$param=$value,";
+						$tmpLinks[$page] = substr($tmpLinks[$page],0,-1);
 
 					}
-
-					$tmpLinks[$page] = substr($tmpLinks[$page],0,-1);
 
 				}
 
