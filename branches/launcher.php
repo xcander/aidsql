@@ -39,9 +39,9 @@
 		$log->log($banner,0,"red");
 		$banner="         \__,_|_|\__,_|___/\__, |_|";
 		$log->log($banner,0,"red");
-      $banner="                              | |  ";
+		$banner="                              | |  ";
 		$log->log($banner,0,"red");
-      $banner="                              |_|  ";
+		$banner="                              |_|  ";
 		$log->log($banner,0,"red");
 		$banner="\n\tSQL INJECTION DETECTION TOOL\n";
 		$log->log($banner,0,"white");
@@ -52,7 +52,6 @@
 
 	}
 
-	
 
 	//Interfaces
 	require_once "interface/HttpAdapter.interface.php";
@@ -223,6 +222,7 @@
 			foreach($links as $page=>$variables){
 
 				if(sizeof($variables)){
+
 					foreach($variables as $param=>$value){
 
 						if(!isset($tmpLinks[$page])){
@@ -236,6 +236,7 @@
 					$tmpLinks[$page] = substr($tmpLinks[$page],0,-1);
 
 				}
+
 			}
 
 			$links = $tmpLinks;
@@ -247,7 +248,6 @@
 			$links = array($parsedOptions["url"]=>$parsedOptions["urlvars"]);
 
 		}
-
 
 	}catch(Exception $e){
 

@@ -515,7 +515,7 @@
 				}
 
 				if($this->detectModRewriteFuckUp($path)){
-					$this->log("Mod Rewrite Fuck up detected in $path!");
+					$this->log("Possible url rewrite Fuck up detected in $path!");
 					return FALSE;
 				}
 
@@ -625,7 +625,7 @@
 
 						$parameters	=	$this->parseQuery($fLink["query"]);
 
-						if($parameters!==FALSE){
+						if(sizeof($parameters)){
 
 							$storedParameters		=	array_keys($this->_links[$linkKey]["parameters"]);
 							$sizeOfStoredParams	=	sizeof($storedParameters);
@@ -732,37 +732,27 @@
 			private function parseQuery($query=NULL,$separator="&"){
 
 				if(empty($query)){
+
 					$this->log("Query to be parsed was empty",1,"red");
-					return FALSE;
-				}
-
-				$params = explode("&",$query);
-
-				if($params!==FALSE&&sizeof($params)){
-
-					if(preg_match("#=#",$query)){
-
-						$param	=	substr($query,0,strpos($query,"="));
-						$value	=	substr($query,strpos($query,"=")+1);
-
-						return array($param=>$value);
-
-					}
-
-					return NULL; //No parameters, we are not interested in parameters that probably act as flags or whatever
+					return NULL;
 
 				}
 
-				foreach($params as $param){
+				$parameters = array();
 
-					if(in_array($param,array_keys($parameters))){
+				$token = strtok($query,$separator);
+
+				while($token!==FALSE){
+
+					if(!strpos($token,"=")){
 						continue;
 					}
 
-					$param = substr($param,0,strpos($param,"="));
-					$value = substr($param,strpos($param,"=")+1);
+					$param = substr($token,0,strpos($token,"="));
+					$value = substr($token,strpos($token,"=")+1);
+					$parameters[$param]=$value;
 
-					$parameters[$param] = $value;
+					$token = strtok($separator);
 
 				}
 
