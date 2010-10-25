@@ -192,9 +192,9 @@
 		if(in_array("im-bored",array_keys($parsedOptions))){
 
 			$logger->setPrepend("[G00Gl3]");
-			$logger->log("WWeally!? Well letz GoOoOoOoGle then :o",0,"light_green");
+			$logger->log("Googling ...",0,"light_green");
 
-			sleep(3);			
+			sleep(2);			
 
 			$search	=	new googleSearch();	//This class needs to implement the httpAdapterInterface
 			$search->setQuery($parsedOptions["im-bored"]);
@@ -233,6 +233,8 @@
 					}
 
 				}
+
+				die();
 
 			}
 
