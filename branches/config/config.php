@@ -104,6 +104,8 @@
 			"requires"=>"im-bored"
 		),
 		"omit-sites"=>array(
+		),
+		"connect-timeout"=>array(
 		)
 
 	);

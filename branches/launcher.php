@@ -52,6 +52,7 @@
 
 	}
 
+
 	//Interfaces
 	require_once "interface/HttpAdapter.interface.php";
 	require_once "interface/InjectionPlugin.interface.php";
@@ -135,9 +136,9 @@
 
 	}
 
-	function isVulnerable(cmdLineParser $cmdParser,\LogInterface &$log=NULL){
+	function isVulnerable(cmdLineParser $cmdParser,\HttpAdapter &$httpAdapter,\LogInterface &$log=NULL){
 
-			$aidSQL		= new aidSQL\Runner($cmdParser,$log);
+			$aidSQL		= new aidSQL\Runner($cmdParser,$httpAdapter,$log);
 
 			try {
 
@@ -176,6 +177,16 @@
 		}
 
 		$httpAdapter	= 	new $parsedOptions["http-adapter"]();
+
+		if(isset($parsedOptions["connect-timeout"])){
+
+			$httpAdapter->setConnectTimeout($parsedOptions["connect-timeout"]);
+
+		}
+
+		if(isset($parsedOptions["request-interval"])&&$parsedOptions["request-interval"]>0){
+			$httpAdapter->setRequestInterval($parsedOptions["request-interval"]);
+		}
 
 		if(isset($parsedOptions["log-prepend-date"])){
 			$logger->useLogDate($parsedOptions["log-prepend-date"]);
@@ -359,7 +370,7 @@
 
 		$cmdParser->setOption("urlvars",$query);
 
-		if(isVulnerable($cmdParser,$logger)&&(bool)$parsedOptions["immediate-mode"]){
+		if(isVulnerable($cmdParser,$httpAdapter,$logger)&&(bool)$parsedOptions["immediate-mode"]){
 			break;
 		}
 

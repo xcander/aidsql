@@ -11,6 +11,8 @@
 		public function getRequestVariables();
 		public function setRequestInterval($interval);
 		public function getRequestInterval();
+		public function setConnectTimeout($timeout);
+		public function getConnectTimeout();
 		public function setProxyServer($server);
 		public function setProxyTunnel($boolean);
 		public function setProxyPort($port);

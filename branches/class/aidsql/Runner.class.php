@@ -4,19 +4,34 @@
 
 		class Runner{
 
-			private $_debug					= TRUE;
-			private $_injectionPlugins		= array();	//Contains all plugins
-			private $_vulnerable				= FALSE;		//boolean vulnerable TRUE or not vulnerable FALSE
-			private $_plugin					= NULL;		//Contains the plugin to be used, i.e the vulnerable plugin
-			private $_log						= NULL;		//Log object
+			private $_debug					=	TRUE;
+			private $_injectionPlugins		=	array();	//Contains all plugins
+			private $_vulnerable				=	FALSE;		//boolean vulnerable TRUE or not vulnerable FALSE
+			private $_plugin					=	NULL;		//Contains the plugin to be used, i.e the vulnerable plugin
+			private $_log						=	NULL;		//Log object
+			private $_httpAdapter			=	NULL;
 
-			public function __construct(\CmdLineParser $parser,\LogInterface &$log=NULL){
+			public function __construct(\CmdLineParser $parser,\HttpAdapter &$adapter,\LogInterface &$log=NULL){
 
 				if(!is_null($log)){
 					$this->setLog($log);
 				}
 
+				$this->setHttpAdapter($adapter);
+				$this->configureHttpAdapter($parser);
 				$this->configure($parser);	
+
+			}
+
+			public function setHttpAdapter(\HttpAdapter &$httpAdapter){
+
+				$this->_httpAdapter = $httpAdapter;
+
+			}
+
+			public function getHttpAdapter(){
+
+				return $this->_httpAdapter;
 
 			}
 
@@ -97,8 +112,6 @@
 
 			private function configure(\CmdLineParser $parser){
 
-				$adapter = $this->configureHttpAdapter($parser);
-
 				$options = $parser->getParsedOptions();
 
 				$plugins = $options["plugins"];
@@ -107,12 +120,12 @@
 
 				if($plugins=="all"){
 
-					$this->loadPlugins($adapter,array(),$verbose);
+					$this->loadPlugins($this->_httpAdapter,array(),$verbose);
 
 				}else{
 
 					$plugins = array_unique(explode(",",$plugins));
-					$this->loadPlugins($adapter,$plugins,$verbose);
+					$this->loadPlugins($this->_httpAdapter,$plugins,$verbose);
 
 				}
 
@@ -124,7 +137,7 @@
 			*throws an exception when a given "wanted plugin" is not found.
 			*/
 
-			public function loadPlugins(\HttpAdapter $adapter, Array $wantedPlugins=array(),$verbose=FALSE){
+			public function loadPlugins(\HttpAdapter &$adapter, Array $wantedPlugins=array(),$verbose=FALSE){
 
 				$pluginsDir		= __CLASSPATH."/plugin";
 				$sizeOfWanted	= sizeof($wantedPlugins);
@@ -229,18 +242,9 @@
 			private function configureHttpAdapter(\CmdLineParser $parser){
 
 				$options			= $parser->getParsedOptions();
-				$adapterName	= $options["http-adapter"];
-				$httpMethod		= $options["http-method"];
 
-				if(!file_exists(__CLASSPATH."/http/$adapterName.class.php")){
-					throw(new \Exception("Cannot load adapter $adapterName. Adapter doesnt exists."));		
-				}
-
-				require_once __CLASSPATH."/http/$adapterName.class.php";
-
-				$adapter = new $adapterName($options["url"]);
-
-				$adapter->setMethod($httpMethod);
+				$this->_httpAdapter->setMethod($options["http-method"]);
+				$this->_httpAdapter->setUrl($options["url"]);
 
 				$urlVariables	= explode(",",$options["urlvars"]);
 				$realUrlVars	= array();
@@ -252,30 +256,25 @@
 
 					$var		= explode("=",$urlVar);
 					$value	= (isset($var[1])) ? $var[1] : "";
-					$adapter->addRequestVariable($var[0],$value);
+					$this->_httpAdapter->addRequestVariable($var[0],$value);
 
 				}				
 				
-				if(!is_a($adapter,"HttpAdapter")){
-					throw(new \Exception("Invalid HTTP Adapter specified, $adapterName"));
-				}
-
 				if(!empty($options["proxy-server"])){
 
-					$adapter->setProxyServer($options["proxy-server"]);
-					$adapter->setProxyPort($options["proxy-port"]);
-					$adapter->setProxyType($options["proxy-type"]);
+					$this->_httpAdapter->setProxyServer($options["proxy-server"]);
+					$this->_httpAdapter->setProxyPort($options["proxy-port"]);
+					$this->_httpAdapter->setProxyType($options["proxy-type"]);
+
 				}
 
 				if(!empty($options["proxy-auth"])){
 
-					$adapter->setProxyAuth($options["proxy-auth"]);
-					$adapter->setProxyUser($options["proxy-user"]);
-					$adapter->setProxyPassword($options["proxy-password"]);
+					$this->_httpAdapter->setProxyAuth($options["proxy-auth"]);
+					$this->_httpAdapter->setProxyUser($options["proxy-user"]);
+					$this->_httpAdapter->setProxyPassword($options["proxy-password"]);
 
 				}
-
-				return $adapter;
 
 			}
 
