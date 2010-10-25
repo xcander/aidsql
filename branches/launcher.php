@@ -66,7 +66,6 @@
 	require_once "class/core/String.class.php";
 	require_once "class/core/File.class.php";
 	require_once "class/http/eCurl.class.php";
-	require_once "class/google/GoogleOptions.class.php";
 	require_once "class/google/GoogleSearch.class.php";
 	require_once "config/config.php";
 	
