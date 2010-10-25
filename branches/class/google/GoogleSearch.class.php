@@ -15,6 +15,7 @@
 		private	$fullUrl		=	NULL;
 		private	$errMsg		=	NULL;
 		private	$pagerUrl	=	NULL;
+		private	$httpAdapter=	NULL;
 
 		//protected $gLKey:	Google license key. This is a valid license. Get your own license, by going to www.google.com/api
 
@@ -37,6 +38,17 @@
 		protected $language	=	NULL;
 		protected $start		=	NULL;
 
+		public function __construct(\HttpAdapter &$adapter=NULL){
+			if(!is_null($adapter)){
+				$this->setHttpAdapter($adapter);
+			}
+		}
+		
+		public function setHttpAdapter(\HttpAdapter &$adapter){
+
+			$this->httpAdapter = $adapter;
+
+		}
 
 		public function setBaseUrl($url=NULL){
 
@@ -127,17 +139,10 @@
 			$this->parseSearchQuery();
 			$this->createFullUrl();
 
+			$this->httpAdapter->setUrl($this->fullUrl);
+			$this->httpAdapter->setMethod("GET");
 
-			$curl		=	curl_init();
-
-			curl_setopt($curl,CURLOPT_URL           ,$this->fullUrl);
-			curl_setopt($curl,CURLOPT_AUTOREFERER   ,1             );
-			curl_setopt($curl,CURLOPT_RETURNTRANSFER,1             );
-			curl_setopt($curl,CURLOPT_HEADER        ,0             );
-
-			$result = curl_exec($curl);
-
-			curl_close($curl);
+			$result = $this->httpAdapter->fetch();
 
 			$this->result	=	json_decode($result);
 

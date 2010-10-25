@@ -195,7 +195,7 @@
 
 			sleep(2);			
 
-			$search	=	new googleSearch();	//This class needs to implement the httpAdapterInterface
+			$search	=	new GoogleSearch($httpAdapter);
 			$search->setQuery($parsedOptions["im-bored"]);
 
 			(isset($parsedOptions["google-language"])) ? $search->setLanguage($parsedOptions["google-language"]) : NULL;
@@ -205,7 +205,7 @@
 
 			if(sizeof($search)){
 
-				$search = $search->responseData;
+				$search	=	$search->responseData;
 	
 				foreach($search->results as $searchResult){
 
