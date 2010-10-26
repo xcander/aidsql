@@ -1,5 +1,21 @@
 <?php
 
+	function usageShort(\LogInterface &$log){
+
+		$info = $log->getX11Info();
+
+		$log->setX11Info(FALSE);
+		$log->log("\n",0,"white");
+		$log->log("--url\t\t\t<url>\t\t\tUse this URL to perform injection tests",0,"white");
+		$log->log("--urlvars\t\t<paramX=value,...>\tIf parameters are not specified the URL will be crawled automatically",0,"white");
+		$log->log("--google\t\t<search term>\t\tJust Google it!",0,"white");
+		$log->log("--help\t\t\tExtended help",0,"white");
+		$log->log("\n",0,"white");
+	
+		$log->setX11Info($info);
+		
+	}
+
 	function mergeConfig($var,$file){
 
 		if(is_null($file)||!file_exists($file)){
