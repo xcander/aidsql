@@ -1,4 +1,25 @@
 -------------------------------------------------------------------------------------------
+10/26/2010
+-------------------------------------------------------------------------------------------
+
+End luser stuff
+^^^^^^^^^^^^^^^^
+	*Added simple shell script which will run aidSQL and do some checking for PHP
+	*Added Googling option, you can now google through this application and look up for sites
+	Check the googling options in the config file (config/config.ini)
+	*Added several configuration options for the crawler
+	
+For Developers:
+^^^^^^^^^^^^^^^
+
+	*All of the functions lurking in the launcher.php file were moved to functions/launcher.functions.php
+	*Unique httpAdapter instance, shared by all objects
+	*Unique Logger instance, also, shared by all objects
+	*Added an "overlaps-with" parameter to the CmdLineParser this was required for the fact of having
+	the google option overlapping with the --url option, it kind of works, I really have to sit down 
+	and revisit the command line parser.
+
+-------------------------------------------------------------------------------------------
 10/20/2010
 -------------------------------------------------------------------------------------------
 
