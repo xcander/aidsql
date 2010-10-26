@@ -130,6 +130,10 @@
 			$this->_x11Info = (bool)$boolean;
 		}
 
+		public function getX11Info(){
+			return $this->_x11Info;
+		}
+
 		private function openFile() {
 
 			return $this->_fp = @fopen($this->_filename.".log","a+");
