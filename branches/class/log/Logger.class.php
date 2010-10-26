@@ -113,8 +113,6 @@
 
 		public function __construct($write=FALSE,$filename=NULL) {
 
-			echo "LOGGER CONSTRUCTED!\n";
-
 			if(!$write) {
 				return;
 			}
