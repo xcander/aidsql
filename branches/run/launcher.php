@@ -214,6 +214,7 @@
 	}catch(Exception $e){
 
 		$logger->log($e->getMessage(),1,"light_red");
+		usageShort($logger);
 
 	}
 
