@@ -30,7 +30,7 @@
 		);
 
 		public function __construct($url=NULL,$setCurlDefaults=TRUE){
-			echo "CONSTRUCTED\n";
+
 			$this->setHandler(curl_init());
 
 			if(!is_null($url)){

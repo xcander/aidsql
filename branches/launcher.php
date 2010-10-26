@@ -52,6 +52,46 @@
 
 	}
 
+	function googleSearch(\GoogleSearch &$google,$offset=0,$userTotal=200){
+
+		try{
+
+			$sites	= array();
+
+			$total = 1;
+
+			for($i=$offset;$i<$total&&$i<$userTotal;$i+=8){
+
+				$google->setStart($i);
+				$result = $google->doGoogleSearch();
+
+				if($result->responseData->cursor->estimatedResultCount){
+					$total = $result->responseData->cursor->estimatedResultCount;
+				}
+
+				foreach($result->responseData->results as $searchResult){
+
+					$url = $searchResult->visibleUrl;
+
+					if(!in_array($url,$sites)){
+						$sites[] = $url;
+					}
+
+				}
+			}
+
+		}catch(Exception $e){
+
+			echo $e->getMessage()."\n";
+			return $sites;
+
+		}
+
+		return $sites;
+
+	}
+
+
 
 	//Interfaces
 	require_once "interface/HttpAdapter.interface.php";
@@ -206,45 +246,44 @@
 
 			sleep(2);			
 
-			$search	=	new GoogleSearch($httpAdapter);
-			$search->setQuery($parsedOptions["im-bored"]);
+			$google	=	new GoogleSearch($httpAdapter);
 
-			(isset($parsedOptions["google-language"])) ? $search->setLanguage($parsedOptions["google-language"]) : NULL;
-			$search->setStart(0);
+			$google->setQuery($parsedOptions["im-bored"]);
 
-			$search	=	$search->doGoogleSearch();
+			(isset($parsedOptions["google-language"])) ? $google->setLanguage($parsedOptions["google-language"]) : NULL;
+			$start = (isset($parsedOptions["google-offset"])) ? $parsedOptions["google-offset"] : 0;
 
-			if(sizeof($search)){
+			$google->setStart($start);
 
-				$search	=	$search->responseData;
+			$sites = googleSearch($google);
+
+			if(sizeof($sites)){
 	
-				foreach($search->results as $searchResult){
+				foreach($sites as $key=>$site){
 
 					if(isset($parsedOptions["omit-sites"])){
 
 						$regex = trim($parsedOptions["omit-sites"]);
 
-						if(preg_match("/$regex/",$searchResult->visibleUrl)){
+						if(preg_match("/$regex/",$site)){
 
-							$logger->log("Not adding ".$searchResult->visibleUrl,2,"yellow");
+							$logger->log("Not adding ".$site,2,"yellow");
+							unset($sites[$key]);
 
 						}else{
 
-							$logger->log("Site added ".$searchResult->visibleUrl,0,"green");
-							$sites[] = $searchResult->visibleUrl;
+							$logger->log("Site added ".$site,0,"green");
 
 						}
 
 					}else{
 
-						$logger->log("Site added ".$searchResult->visibleUrl,0,"green");
-						$sites[] = $searchResult->visibleUrl;
+						$logger->log("Site added ".$site,0,"green");
 
 					}
 
 				}
 
-				die();
 
 			}
 

@@ -8,14 +8,14 @@
 
 	class GoogleSearch { 
 
-		private	$baseUrl		=	'http://ajax.googleapis.com/ajax/services/search/web';
-		private	$rawQuery	=	NULL;
-		private	$pQuery		=	NULL;
-		private	$result		=	NULL;
-		private	$fullUrl		=	NULL;
-		private	$errMsg		=	NULL;
-		private	$pagerUrl	=	NULL;
-		private	$httpAdapter=	NULL;
+		private	$baseUrl				=	'http://ajax.googleapis.com/ajax/services/search/web';
+		private	$rawQuery			=	NULL;
+		private	$pQuery				=	NULL;
+		private	$result				=	NULL;
+		private	$fullUrl				=	NULL;
+		private	$errMsg				=	NULL;
+		private	$pagerUrl			=	NULL;
+		private	$httpAdapter		=	NULL;
 
 		//protected $gLKey:	Google license key. This is a valid license. Get your own license, by going to www.google.com/api
 
@@ -43,6 +43,7 @@
 				$this->setHttpAdapter($adapter);
 			}
 		}
+
 		
 		public function setHttpAdapter(\HttpAdapter &$adapter){
 
@@ -70,7 +71,9 @@
 
 		public function setQuery($query=NULL) {
 
-			if(empty($query)||is_null($query)) throw (new Exception("Search query must not be null or empty"));
+			if(empty($query)){
+				throw (new Exception("Search query must not be empty"));
+			}
 
 			$this->rawQuery	=	$query;
 
@@ -126,13 +129,11 @@
 
 		}
 
-
 		public function getFullUrl(){
 
 			return $this->fullUrl;
 
 		}
-
 
 		public function doGoogleSearch() { 
 
@@ -162,15 +163,15 @@
 
 			}
 
-			$this->result->pagerUrl = "{$this->pagerUrl}";
-
 			return $this->result;
 
 		}
 
 		public function setAPIVersion ($version=NULL){
 
-			if(empty($version)) throw (new Exception("Version number must no be empty"));
+			if(empty($version)){
+				throw (new Exception("Version number must no be empty"));
+			}
 
 			$this->version	=	$version;
 
@@ -191,7 +192,10 @@
 
 		public function setLanguage ($lang=NULL){
 
-			if(empty($lang)||is_null($lang)||strlen($lang)>2) throw (new Exception("Search language must not be null or empty and must be 2 characters long ->{$lang}<- was given"));
+			if(empty($lang)||is_null($lang)||strlen($lang)>2){
+				throw (new Exception("Search language must not be null or empty and must be 2 characters long ->{$lang}<- was given"));
+			}
+
 			$this->language	=	$lang;
 
 		}
@@ -200,11 +204,13 @@
 
 		public function setGoogleLicenseKey ($glKey=NULL) {
 
-			if(empty($gLKey)||is_null($gLKey)) throw (new Exception("Google License Key  must not be null or empty"));
+			if(empty($gLKey)||is_null($gLKey)){
+				throw (new Exception("Google License Key must not be null or empty"));
+			}
+
 			$this->siteKey	=	NULL;	 
 
 		}
-
 
 
 		public function setResultSize($rsz=NULL)	{
@@ -213,21 +219,17 @@
 
 				case 'big':
 				case 'large':
-				case 'gross':
-				case 'grande':
 					return $this->rsz='large';
 					break;
 
 				case 'tiny':
 				case 'small':
-				case 'klein':
-				case 'chico':
 					return $this->rsz='small';
 					break;
 
 
 				default:
-					throw (new Exception("Invalid Result size provided, valid result sizes: {big,large,gross,grande}  | {tiny,small,klein,chico}"));
+					throw (new Exception("Invalid Result size provided, valid result sizes: {big,large}  | {tiny,small}"));
 					break;
 
 			}
