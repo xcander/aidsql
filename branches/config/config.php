@@ -118,7 +118,10 @@
 		"omit-sites"=>array(
 		),
 		"connect-timeout"=>array(
+		),
+		"log-save"=>array(
 		)
+			
 
 	);
 ?>

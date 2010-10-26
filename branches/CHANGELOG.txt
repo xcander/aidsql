@@ -8,6 +8,8 @@ End luser stuff
 	*Added Googling option, you can now google through this application and look up for sites
 	Check the googling options in the config file (config/config.ini)
 	*Added several configuration options for the crawler
+	*You can now save your logs with the --log-save=mylogfile option, be sure not to append the .log
+	extension since the application already does this by itself.
 	
 For Developers:
 ^^^^^^^^^^^^^^^
@@ -18,6 +20,7 @@ For Developers:
 	*Added an "overlaps-with" parameter to the CmdLineParser this was required for the fact of having
 	the google option overlapping with the --url option, it kind of works, I really have to sit down 
 	and revisit the command line parser.
+	*Added a logging class with coloring capabilities / file saving capabilities
 
 -------------------------------------------------------------------------------------------
 10/20/2010

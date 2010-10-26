@@ -110,19 +110,21 @@
 
 		private $_logArray = array();
 
+		public function setFilename($filename=NULL){
 
-		public function __construct($write=FALSE,$filename=NULL) {
-
-			if(!$write) {
-				return;
+			if(!empty($this->_filename)){
+				$this->endLog();
 			}
 
-			$this->_filename = (is_null($filename)) ? "Log_".date("d-M-Y_H:i:s") : $filename;
-			$this->setWrite($write);
-			$this->openFile();
+			$this->_filename = (empty($filename)) ? "Log_".date("d-M-Y_H:i:s") : $filename;
+
+			if(!$this->openFile()){
+				throw(new \Exception("Unable to log to $filename, please check file permissions!"));
+			}
+
+			return TRUE;
 
 		}
-
 
 		public function setX11Info($boolean=TRUE){
 			$this->_x11Info = (bool)$boolean;
@@ -237,22 +239,22 @@
 			}
 
 
-			if($this->_write) {
+			if(!empty($this->_filename)) {
 
 				$write = TRUE;
 
-				$write &= $this->_fwrite($codigo.$msg."\n");
+				$write &= $this->_fwrite($code.$msg."\n");
 
 				if(!is_null($file)){
-					$write &= $this->_fwrite($codigo."[DD]$date FILE: $file\n");
+					$write &= $this->_fwrite($code."[DD]$date FILE: $file\n");
 				}
 
 				if(!is_null($line)){
-					$write &=$this->_fwrite($codigo."[DD]$date LINE: $line\n");
+					$write &=$this->_fwrite($code."[DD]$date LINE: $line\n");
 				}
 
 				if(!is_null($method)){
-					$write &= $this->_fwrite($codigo."[DD]$date METHOD: $method\n");
+					$write &= $this->_fwrite($code."[DD]$date METHOD: $method\n");
 				}
 
 				return $write;
@@ -318,26 +320,6 @@
 
 		}
 
-		/**
-		 * @method setWrite()
-		 * @param $write bool TRUE Write to file
-		 * @param $write bool FALSE Do NOT write to file
-		 * @return void
-		 */
-
-		public function setWrite($write=TRUE) {
-
-			$this->_write = (bool)$write;
-
-			if(!$this->_write) {
-
-				return $this->setEcho(TRUE);
-
-			}
-
-			return $this->openFile();
-
-		}
 
 		/**
 		* @method endLog() closes pointer to created file

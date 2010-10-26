@@ -61,7 +61,7 @@
 
 	checkPHPVersion();
 
-	$logger			=	new Logger();
+	$logger	=	new Logger();
 	$logger->setEcho(TRUE);
 
 	banner($logger);
@@ -70,18 +70,24 @@
 
 		unset($_SERVER["argv"][0]);
 
-		$save				=	NULL;
 		$sites			=	array();
 		$links			=	array();
+
 		$parameters		=	mergeConfig($_SERVER["argv"],"config/config.ini");
 		$cmdParser		=	new CmdLineParser($config,$parameters);
 		$parsedOptions	=	$cmdParser->getParsedOptions();
+
+		if(isset($parsedOptions["log-save"])){
+			$logger->setFilename($parsedOptions["log-save"]);
+		}
 
 		$logger->setColors($parsedOptions["colors"]);
 
 		if(!empty($parsedOptions["url"])){
 			$sites[0]	=	$parsedOptions["url"]; 
 		}
+
+		//Instance of the http adapter, shared by aggregation through all classes
 
 		$httpAdapter	= 	new $parsedOptions["http-adapter"]();
 
@@ -98,10 +104,6 @@
 		if(isset($parsedOptions["log-prepend-date"])){
 			$logger->useLogDate($parsedOptions["log-prepend-date"]);
 		}
-
-		//Instance of the http adapter, this one has to be shared by aggregation in all classes
-
-		
 
 		//Check if youre bored and you just want to rule the world (?)
 		/////////////////////////////////////////////////////////////////
