@@ -16,6 +16,7 @@
 		private	$errMsg				=	NULL;
 		private	$pagerUrl			=	NULL;
 		private	$httpAdapter		=	NULL;
+		private	$log					=	NULL;
 
 		//protected $gLKey:	Google license key. This is a valid license. Get your own license, by going to www.google.com/api
 
@@ -38,13 +39,37 @@
 		protected $language	=	NULL;
 		protected $start		=	NULL;
 
-		public function __construct(\HttpAdapter &$adapter=NULL){
+		public function __construct(\HttpAdapter &$adapter=NULL,\LogInterface &$log=NULL){
+
+			if(!is_null($log)){
+
+				$this->setLog($log);
+				$this->log("Google search engine started");
+
+			}
+
 			if(!is_null($adapter)){
 				$this->setHttpAdapter($adapter);
 			}
+
 		}
 
-		
+		public function log($msg=NULL){
+
+			if(!is_null($this->log)){
+				call_user_func_array(array($this->log, "log"),func_get_args());
+				return TRUE;
+			}
+
+			return FALSE;
+
+		}
+
+		public function setLog(\LogInterface &$log){
+			$this->log = $log;
+			$log->setPrepend("[Google]");
+		}
+
 		public function setHttpAdapter(\HttpAdapter &$adapter){
 
 			$this->httpAdapter = $adapter;
@@ -75,10 +100,10 @@
 				throw (new Exception("Search query must not be empty"));
 			}
 
+			$this->log("Setting search query to \"$query\"",0,"white");
 			$this->rawQuery	=	$query;
 
 		}
-
 
 
 		private function parseSearchQuery () { 
@@ -137,6 +162,8 @@
 
 		public function doGoogleSearch() { 
 
+			$this->log("Getting results ...",0,"white");
+
 			$this->parseSearchQuery();
 			$this->createFullUrl();
 
@@ -157,7 +184,7 @@
 
 			if ($this->result->responseStatus !== 200) { 
 
-				$dflErr = "[ERROR {$this->result->responseStatus} ]\n [DETAILS] {$this->result->responseDetails}\n [DATA] {$this->result->responseData}\n";
+				$dflErr = "[ERROR {$this->result->responseStatus} ] [DETAILS] {$this->result->responseDetails} [DATA] {$this->result->responseData}";
 				$msg	=	(!$this->errMsg) ? $dflErr : $this->errMsg;
 				throw (new \Exception($msg));
 
@@ -181,6 +208,7 @@
 
 		public function setStart($start=NULL){
 
+			$this->log("Setting start offset to $start",0,"white");
 			$this->start	=	(int)$start;
 
 		}
@@ -192,17 +220,19 @@
 				throw (new Exception("Search language must not be null or empty and must be 2 characters long ->{$lang}<- was given"));
 			}
 
+			$this->log("Setting language to $lang",0,"white");
+
 			$this->language	=	$lang;
 
 		}
-
-
 
 		public function setGoogleLicenseKey ($glKey=NULL) {
 
 			if(empty($gLKey)||is_null($gLKey)){
 				throw (new Exception("Google License Key must not be null or empty"));
 			}
+
+			$this->log("Setting license key to $glKey",0,"white");
 
 			$this->siteKey	=	NULL;	 
 
@@ -215,11 +245,13 @@
 
 				case 'big':
 				case 'large':
+					$this->log("Setting result size to $rsz",0,"white");
 					return $this->rsz='large';
 					break;
 
 				case 'tiny':
 				case 'small':
+					$this->log("Setting result size to $rsz",0,"white");
 					return $this->rsz='small';
 					break;
 

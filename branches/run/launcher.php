@@ -110,28 +110,21 @@
 
 		if(in_array("google",array_keys($parsedOptions))){
 
-			$logger->setPrepend("[G00Gl3]");
-			$logger->log("Googling ...",0,"light_green");
-
-			sleep(2);			
-
-			$google	=	new GoogleSearch($httpAdapter);
-
+			$google	=	new GoogleSearch($httpAdapter,$logger);
 			$google->setQuery($parsedOptions["google"]);
 
 			(isset($parsedOptions["google-language"])) ? $google->setLanguage($parsedOptions["google-language"]) : NULL;
 
-			$start = (isset($parsedOptions["google-offset"])) ? $parsedOptions["google-offset"] : 0;
+			$offset		=	(isset($parsedOptions["google-offset"]))			? $parsedOptions["google-offset"] : 0;
+			$userTotal	=	(isset($parsedOptions["google-max-results"]))	? $parsedOptions["google-max-results"] : 0;
+			
 
-			$google->setStart($start);
+			$sites = googleSearch($google,$offset,$userTotal);
 
-			$sites = googleSearch($google);
-
-			if($parsedOptions["google-shuffle-sites"]){
+			if(isset($parsedOptions["google-shuffle-sites"])){
 				shuffle($sites);
 			}
 
-			$logger->setPrepend("");
 
 		}
 
@@ -140,6 +133,8 @@
 			filterSites($sites,$logger,$parsedOptions["omit-sites"]);
 
 		}
+
+		$logger->setPrepend("");
 
 		//Check if url vars where passed,if not, we crawl the url
 		/////////////////////////////////////////////////////////////////
@@ -193,7 +188,7 @@
 
 				$crawler->crawl();
 
-				$links			= $crawler->getLinks(TRUE);
+				$links	=	$crawler->getLinks(TRUE);
 
 				//Takes away all crawled links without any parameters (useless to us ... to this date)
 				filterLinksWithoutParameters($links);

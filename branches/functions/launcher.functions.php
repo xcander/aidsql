@@ -83,15 +83,21 @@
 
 			$sites	= array();
 
-			$total = 1;
+			$total = 0;
+	
+			do{
 
-			for($i=$offset;$i<$total&&$i<$userTotal;$i+=8){
-
-				$google->setStart($i);
 				$result = $google->doGoogleSearch();
+				$google->setStart($offset);
 
 				if($result->responseData->cursor->estimatedResultCount){
-					$total = $result->responseData->cursor->estimatedResultCount;
+
+					$total = $result->responseData->cursor->estimatedResultCount - $offset;
+
+					if($userTotal==0){
+						$userTotal = $total;
+					}
+
 				}
 
 				foreach($result->responseData->results as $searchResult){
@@ -103,11 +109,14 @@
 					}
 
 				}
-			}
+
+				$offset+=8;
+
+			}while($offset<$total && $offset<$userTotal);
 
 		}catch(Exception $e){
 
-			echo $e->getMessage()."\n";
+			$google->log($e->getMessage(),1,"red");
 			return $sites;
 
 		}

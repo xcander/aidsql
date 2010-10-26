@@ -13,4 +13,4 @@
 
 	[ $? -eq 1 ] && dontHavePHP && exit 1;
 
-	$PHP run/launcher.php $@
+	$PHP run/launcher.php "$@"
