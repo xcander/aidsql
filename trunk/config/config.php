@@ -74,9 +74,54 @@
 		),
 		"immediate-mode"=>array(
 			"values"=>array(
-				"yes",
-				"no"		
+				1,
+				0
 			)
+		),
+		"omit-paths"=>array(
+		),
+		"omit-pages"=>array(
+		),
+		"page-types"=>array(
+		),
+		"lpp"=>array(
+		),
+		"max-links"=> array(
+		),
+		"log-prepend-date"=>array(
+			"values"=>array(
+				1,
+				0
+			)
+		),
+		"colors"=>array(
+			"values"=>array(
+				1,
+				0
+			)
+		),
+		"google"=>array(
+			"overlaps-with"=>array("url")
+		),
+		"google-language"=>array(
+			"requires"=>array("google")
+		),
+		"google-offset"=>array(
+			"requires"=>array("google")
+		),
+		"google-maxpages"=>array(
+			"requires"=>array("google")
+		),
+		"google-shuffle-sites"=>array(
+			"requires"=>array("google")
+		),
+		"omit-sites"=>array(
+		),
+		"connect-timeout"=>array(
+		),
+		"log-save"=>array(
 		)
+			
+
 	);
 ?>
