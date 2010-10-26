@@ -29,7 +29,7 @@
 	if(!checkPHPVersion()){
 
 		echo "Sorry but you need at least version 5.3.0 in order to run aidSQL :(\n";
-		exit 1;
+		exit(1);
 
 	}
 
@@ -77,6 +77,8 @@
 		$cmdParser		=	new CmdLineParser($config,$parameters);
 		$parsedOptions	=	$cmdParser->getParsedOptions();
 
+		$logger->setColors($parsedOptions["colors"]);
+
 		if(!empty($parsedOptions["url"])){
 			$sites[0]	=	$parsedOptions["url"]; 
 		}
@@ -104,7 +106,7 @@
 		//Check if youre bored and you just want to rule the world (?)
 		/////////////////////////////////////////////////////////////////
 
-		if(in_array("im-bored",array_keys($parsedOptions))){
+		if(in_array("google",array_keys($parsedOptions))){
 
 			$logger->setPrepend("[G00Gl3]");
 			$logger->log("Googling ...",0,"light_green");
@@ -113,60 +115,42 @@
 
 			$google	=	new GoogleSearch($httpAdapter);
 
-			$google->setQuery($parsedOptions["im-bored"]);
+			$google->setQuery($parsedOptions["google"]);
 
 			(isset($parsedOptions["google-language"])) ? $google->setLanguage($parsedOptions["google-language"]) : NULL;
+
 			$start = (isset($parsedOptions["google-offset"])) ? $parsedOptions["google-offset"] : 0;
 
 			$google->setStart($start);
 
 			$sites = googleSearch($google);
 
-			if(sizeof($sites)){
-	
-				foreach($sites as $key=>$site){
-
-					if(isset($parsedOptions["omit-sites"])){
-
-						$regex = trim($parsedOptions["omit-sites"]);
-
-						if(preg_match("/$regex/",$site)){
-
-							$logger->log("Not adding ".$site,2,"yellow");
-							unset($sites[$key]);
-
-						}else{
-
-							$logger->log("Site added ".$site,0,"green");
-
-						}
-
-					}else{
-
-						$logger->log("Site added ".$site,0,"green");
-
-					}
-
-				}
-
-
+			if($parsedOptions["google-shuffle-sites"]){
+				shuffle($sites);
 			}
 
 			$logger->setPrepend("");
 
 		}
 
+		if(isset($parsedOptions["omit-sites"])){
+
+			filterSites($sites,$logger,$parsedOptions["omit-sites"]);
+
+		}
 
 		//Check if url vars where passed,if not, we crawl the url
 		/////////////////////////////////////////////////////////////////
 
 		if(!in_array("urlvars",array_keys($parsedOptions))){
 
+			$logger->setPrepend("[Crawler]");
+
 			$httpAdapter->setMethod($parsedOptions["http-method"]);
 
 			if(!sizeof($sites)){
 				$logger->log("No sites :(!",1,"red");
-				die();
+				exit(1);
 			}
 
 			foreach($sites as $site){
@@ -208,31 +192,19 @@
 				$crawler->crawl();
 
 				$links			= $crawler->getLinks(TRUE);
-				$tmpLinks		= array();
 
-				foreach($links as $page=>$variables){
+				//Takes away all crawled links without any parameters (useless to us ... to this date)
+				filterLinksWithoutParameters($links);
 
-					if(sizeof($variables)){
+				$logger->setPrepend("[aidSQL]");
 
-						foreach($variables as $param=>$value){
+				//Test crawled links
+				testLinks($links,$httpAdapter,$cmdParser,$logger);
 
-							if(!isset($tmpLinks[$page])){
-								$tmpLinks[$page]="";
-							}
-
-							$tmpLinks[$page].="$param=$value,";
-
-						}
-
-						$tmpLinks[$page] = substr($tmpLinks[$page],0,-1);
-
-					}
-
-				}
+				$logger->setPrepend("");
 
 			}
 
-			$links = $tmpLinks;
 
 		}else{
 
@@ -248,36 +220,13 @@
 
 	}
 
-
 	if(!sizeof($links)){
 
 		$logger->log("Not enough links / No valid links (i.e no parameters) to perform injection :(");
 		exit(1);
 
 	}
-
-	$logger->log("Amount of links to be tested for injection:".sizeof($links),0,"light_cyan");
-
-	$tmpLinks = array_keys($links);
-
-	foreach($tmpLinks as $lnk){
-		$logger->log($lnk,0,"light_cyan");
-	}
-
-	foreach($links as $path=>$query){
-
-		if($path===0){
-			$cmdParser->setOption("url",$parsedOptions["url"]);
-		} else {
-			$cmdParser->setOption("url",$path);
-		}
-
-		$cmdParser->setOption("urlvars",$query);
-
-		if(isVulnerable($cmdParser,$httpAdapter,$logger)&&(bool)$parsedOptions["immediate-mode"]){
-			break;
-		}
-
-	}
+	
+	testLinks($links,$httpAdapter,$cmdParser,$logger);
 
 ?>

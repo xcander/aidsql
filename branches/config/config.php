@@ -94,14 +94,26 @@
 				0
 			)
 		),
-		"im-bored"=>array(
+		"colors"=>array(
+			"values"=>array(
+				1,
+				0
+			)
+		),
+		"google"=>array(
 			"overlaps-with"=>array("url")
 		),
 		"google-language"=>array(
-			"requires"=>"im-bored"
+			"requires"=>array("google")
+		),
+		"google-offset"=>array(
+			"requires"=>array("google")
 		),
 		"google-maxpages"=>array(
-			"requires"=>"im-bored"
+			"requires"=>array("google")
+		),
+		"google-shuffle-sites"=>array(
+			"requires"=>array("google")
 		),
 		"omit-sites"=>array(
 		),

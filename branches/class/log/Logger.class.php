@@ -212,7 +212,7 @@
 
 						} else {	//Log without coloring
 
-							echo $codigo.$msg."\n";
+							echo $code.$msg."\n";
 
 							if(!is_null($file)){
 								echo $code."[DD]$date FILE: $file"."\033[37m\r\n";

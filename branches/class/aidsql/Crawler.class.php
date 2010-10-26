@@ -605,7 +605,7 @@
 
 						if($this->pageHasValidType($fLink["page"])===FALSE){
 							
-							$this->log("Page \"$fLink[page]\" doesnt matches given page types",1,"yellow");
+							$this->log("Page \"$fLink[page]\" doesnt matches given page types",0,"yellow");
 							continue;
 
 						}else{

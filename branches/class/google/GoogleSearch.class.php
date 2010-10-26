@@ -181,11 +181,7 @@
 
 		public function setStart($start=NULL){
 
-			if(!is_int($start)){
-				throw (new Exception("Start number must be an integer"));
-			}
-
-			$this->start	=	$start;
+			$this->start	=	(int)$start;
 
 		}
 
