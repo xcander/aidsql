@@ -29,11 +29,13 @@
 			"tunnel"		=>0
 		);
 
-		public function __construct($url,$setCurlDefaults=TRUE){
+		public function __construct($url=NULL,$setCurlDefaults=TRUE){
 
 			$this->setHandler(curl_init());
 
-			$this->setUrl($url);
+			if(!is_null($url)){
+				$this->setUrl($url);
+			}
 
 			if($setCurlDefaults === TRUE){
 
@@ -41,6 +43,18 @@
 
 			}
 
+		}
+
+		public function setConnectTimeout($timeout=0){
+
+			$this->setCurlOption('CONNECTTIMEOUT',(int)$timeout);
+			
+		}
+
+		public function getConnectTimeout(){
+
+			return $this->getCurlOption('CONNECTTIMEOUT');
+			
 		}
 
 		public function setCookieFile($cookie="/tmp/cookie"){
@@ -164,6 +178,10 @@
 			//For avoiding https verification
 			$this->setCurlOption("SSL_VERIFYPEER",FALSE);
 			$this->setCurlOption("SSL_VERIFYHOST",FALSE);
+			
+			//Avoid URL caching mechanisms
+			$this->setCurlOption("FORBID_REUSE",TRUE);
+			$this->setCurlOption("FRESH_CONNECT",TRUE);
 
 		}
 
@@ -419,6 +437,10 @@
 				$this->setCurlOption('URL',$this->getFullURL());
 
 			}
+
+			if((int)$this->requestInterval > 0){
+				sleep($this->requestInterval);
+			}
 			
 			$content					= curl_exec($this->handler);
 			$this->transferInfo	= curl_getinfo($this->handler);
@@ -444,7 +466,7 @@
 			$options = $this->getCurlOptions();
 
 			foreach($options as $opt=>$value){
-
+			
 				if($opt == $getCurlOption){
 
 					return $value;
@@ -453,7 +475,7 @@
 
 			}
 
-			return;
+			return NULL;
 
 		}
 

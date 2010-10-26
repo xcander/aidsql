@@ -4,14 +4,49 @@
 
 		class Runner{
 
-			private $_debug					= TRUE;
-			private $_injectionPlugins		= array();	//Contains all plugins
-			private $_vulnerable				= FALSE;		//boolean vulnerable TRUE or not vulnerable FALSE
-			private $_plugin					= NULL;		//Contains the plugin to be used, i.e the vulnerable plugin
+			private $_debug					=	TRUE;
+			private $_injectionPlugins		=	array();	//Contains all plugins
+			private $_vulnerable				=	FALSE;		//boolean vulnerable TRUE or not vulnerable FALSE
+			private $_plugin					=	NULL;		//Contains the plugin to be used, i.e the vulnerable plugin
+			private $_log						=	NULL;		//Log object
+			private $_httpAdapter			=	NULL;
 
-			public function __construct(\CmdLineParser $parser){
+			public function __construct(\CmdLineParser $parser,\HttpAdapter &$adapter,\LogInterface &$log=NULL){
 
+				if(!is_null($log)){
+					$this->setLog($log);
+				}
+
+				$this->setHttpAdapter($adapter);
+				$this->configureHttpAdapter($parser);
 				$this->configure($parser);	
+
+			}
+
+			public function setHttpAdapter(\HttpAdapter &$httpAdapter){
+
+				$this->_httpAdapter = $httpAdapter;
+
+			}
+
+			public function getHttpAdapter(){
+
+				return $this->_httpAdapter;
+
+			}
+
+			public function setLog(\LogInterface &$log){
+				$this->_log = $log;
+			}
+
+			private function log($msg=NULL){
+
+				if(!is_null($this->_log)){
+					call_user_func_array(array($this->_log, "log"),func_get_args());
+					return TRUE;
+				}
+
+				return FALSE;
 
 			}
 
@@ -23,7 +58,7 @@
 
 				foreach($this->_injectionPlugins as $plugin){
 
-					$this->dEcho("Testing ".get_class($plugin)." injection plugin...");
+					$this->log("Testing ".get_class($plugin)." injection plugin...");
 
 					if($plugin->isVulnerable()){
 
@@ -34,7 +69,7 @@
 
 					}
 
-					$this->dEcho("Not vulnerable to this plugin ...");
+					$this->log("Not vulnerable to this plugin ...");
 
 				}
 
@@ -54,8 +89,7 @@
 					throw(new Exception($msg));
 				}
 	
-				$plugin = $this->_plugin;
-
+				$plugin		= $this->_plugin;
 				$database	= $plugin->analyzeInjection($plugin->getDatabase());
 				$database	= $database[0];
 
@@ -65,24 +99,18 @@
 				$dbtables	= $plugin->analyzeInjection($plugin->getTables());
 				$dbtables	= $dbtables[0];
 				
-				$report	= "SITE:";
-				$report  = "BASIC INFORMATION\n";
-				$report .= $this->line();
-				$report .= "DBASE\t:\t\t$database\n";
-				$report .= "DBUSER\t:\t\t$dbuser\n";
-				$report .= "TABLES\t:\t\t$dbtables\n";
+				$this->log("BASIC INFORMATION",0,"cyan");
+				$this->log("---------------------------------",0,"white");
+				$this->log("PLUGIN\t:\t".$plugin->getPluginName(),0,"cyan");
+				$this->log("DBASE\t:\t$database",0,"white");
+				$this->log("USER\t:\t$dbuser",0,"white");
+				$this->log("TABLES\t:\t$dbtables",0,"white");
 
-				return $report;
+				return;
 
-			}
-
-			private function line(){
-				return "-----------------------------------\n";
 			}
 
 			private function configure(\CmdLineParser $parser){
-
-				$adapter = $this->configureHttpAdapter($parser);
 
 				$options = $parser->getParsedOptions();
 
@@ -92,12 +120,12 @@
 
 				if($plugins=="all"){
 
-					$this->loadPlugins($adapter,array(),$verbose);
+					$this->loadPlugins($this->_httpAdapter,array(),$verbose);
 
 				}else{
 
 					$plugins = array_unique(explode(",",$plugins));
-					$this->loadPlugins($adapter,$plugins,$verbose);
+					$this->loadPlugins($this->_httpAdapter,$plugins,$verbose);
 
 				}
 
@@ -109,7 +137,7 @@
 			*throws an exception when a given "wanted plugin" is not found.
 			*/
 
-			public function loadPlugins(\HttpAdapter $adapter, Array $wantedPlugins=array(),$verbose=FALSE){
+			public function loadPlugins(\HttpAdapter &$adapter, Array $wantedPlugins=array(),$verbose=FALSE){
 
 				$pluginsDir		= __CLASSPATH."/plugin";
 				$sizeOfWanted	= sizeof($wantedPlugins);
@@ -133,6 +161,11 @@
 
 						$pluginClass		= 'aidSQL\\plugin\\'.$plugin;
 						$pluginInstance	= new $pluginClass($adapter);
+
+						if(!is_null($this->_log)){
+							$pluginInstance->setLog($this->_log);
+						}
+
 						$pluginInstance->setVerbose($verbose);
 
 						$this->addInjectionPlugin($pluginInstance);
@@ -209,18 +242,9 @@
 			private function configureHttpAdapter(\CmdLineParser $parser){
 
 				$options			= $parser->getParsedOptions();
-				$adapterName	= $options["http-adapter"];
-				$httpMethod		= $options["http-method"];
 
-				if(!file_exists(__CLASSPATH."/http/$adapterName.class.php")){
-					throw(new \Exception("Cannot load adapter $adapterName. Adapter doesnt exists."));		
-				}
-
-				require_once __CLASSPATH."/http/$adapterName.class.php";
-
-				$adapter = new $adapterName($options["url"]);
-
-				$adapter->setMethod($httpMethod);
+				$this->_httpAdapter->setMethod($options["http-method"]);
+				$this->_httpAdapter->setUrl($options["url"]);
 
 				$urlVariables	= explode(",",$options["urlvars"]);
 				$realUrlVars	= array();
@@ -232,30 +256,25 @@
 
 					$var		= explode("=",$urlVar);
 					$value	= (isset($var[1])) ? $var[1] : "";
-					$adapter->addRequestVariable($var[0],$value);
+					$this->_httpAdapter->addRequestVariable($var[0],$value);
 
 				}				
 				
-				if(!is_a($adapter,"HttpAdapter")){
-					throw(new \Exception("Invalid HTTP Adapter specified, $adapterName"));
-				}
-
 				if(!empty($options["proxy-server"])){
 
-					$adapter->setProxyServer($options["proxy-server"]);
-					$adapter->setProxyPort($options["proxy-port"]);
-					$adapter->setProxyType($options["proxy-type"]);
+					$this->_httpAdapter->setProxyServer($options["proxy-server"]);
+					$this->_httpAdapter->setProxyPort($options["proxy-port"]);
+					$this->_httpAdapter->setProxyType($options["proxy-type"]);
+
 				}
 
 				if(!empty($options["proxy-auth"])){
 
-					$adapter->setProxyAuth($options["proxy-auth"]);
-					$adapter->setProxyUser($options["proxy-user"]);
-					$adapter->setProxyPassword($options["proxy-password"]);
+					$this->_httpAdapter->setProxyAuth($options["proxy-auth"]);
+					$this->_httpAdapter->setProxyUser($options["proxy-user"]);
+					$this->_httpAdapter->setProxyPassword($options["proxy-password"]);
 
 				}
-
-				return $adapter;
 
 			}
 
@@ -271,28 +290,8 @@
 
 			}
 
-			private function dEcho($str){
-
-				if(!$this->_debug){
-					return;
-				}
-
-				echo $str."\n";
-
-			}
-
-
-				public function setDebug($boolean=TRUE){
-
-					$this->_debug = (boolean)$boolean;
-
-				}
-
-				public function getDebug(){
-					return $this->_debug;
-				}
-
-
 		}
 
-}
+	}
+
+?>

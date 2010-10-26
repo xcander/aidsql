@@ -10,19 +10,44 @@
 			private $_queryCommentClose				= NULL;
 			private $_table								= NULL;
 			private $_verbose								= FALSE;
+			private $_log									= NULL;
+
 			protected $_httpAdapter						= NULL;
 			protected $_httpCode							= NULL;
 			protected $_affectedVariable				= Array();
 			protected $_injectionAttempts				= 40;
 			protected $_parser							= NULL;
 
-			public final function __construct(\HttpAdapter $adapter){
+
+			public final function __construct(\HttpAdapter $adapter,\LogInterface &$log=NULL){
 
 				if(!$adapter->getRequestVariables()){
 					throw(new \Exception("Unable to perform injection without any request variables set in the http adapter!"));
 				}
 
 				$this->_httpAdapter = $adapter;
+
+				if(!is_null($log)){
+					$this->setLog($log);
+				}
+
+			}
+
+			/* Wrapper */
+
+			public function setLog(\LogInterface &$log){
+				$this->_log = $log;
+			}
+
+			public function log($msg = NULL){
+
+				if(!is_null($this->_log)){
+					call_user_func_array(array($this->_log, "log"),func_get_args());
+					return TRUE;
+				}
+
+
+				return FALSE;
 
 			}
 
@@ -34,7 +59,7 @@
 
 				$this->_httpAdapter->addRequestVariable($variable,$value);
 
-				echo "Fetching ".$this->_httpAdapter->getFullUrl()."\n\n";
+				$this->log("Fetching ".$this->_httpAdapter->getFullUrl());
 
 				$content				=	$this->_httpAdapter->fetch();
 				$this->_httpCode	=	$this->_httpAdapter->getHttpCode();
@@ -46,7 +71,7 @@
 				}
 
 				if($this->_verbose){
-					echo $content;
+					$this->log($content);
 				}
 
 				return $content;

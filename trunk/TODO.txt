@@ -1,13 +1,2 @@
 A) Improve the Command line parser with all the bells and whistles, i.e alias options
-
-B) Try to remove that merge function from the launcher, the launcher should have the minimal
-amount of code possible that function should probably be in the command line parser
-
-C) Improve how the crawler handles depth! The crawler can now sometimes crash due to too much recursion
-
-D) Improve MySQL5 plugin adding methods such as isRoot (when we get a user from the DB) and if so perform
-the getSh3ll method from this plugin, trying to figure out here how we get writable directories. Do
-we just feed the app with a list of well known writable directories ? Or do we make discovery ?
-Or maybe both ? In my opinion I think that doing both things would be best.
-Add these new methods as in the plugin interface hence they will be required for every plugin
-
+B) All plugins should have an isRoot() method plus a getShell() method
