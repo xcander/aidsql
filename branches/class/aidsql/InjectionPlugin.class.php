@@ -4,19 +4,20 @@
 
 		abstract class InjectionPlugin implements InjectionPluginInterface {
 
-			private $_stringEscapeCharacter			= NULL;
-			private $_queryConcatenationCharacter	= NULL;
-			private $_queryCommentOpen					= NULL;
-			private $_queryCommentClose				= NULL;
-			private $_table								= NULL;
-			private $_verbose								= FALSE;
-			private $_log									= NULL;
+			private $_stringEscapeCharacter			=	NULL;
+			private $_queryConcatenationCharacter	=	NULL;
+			private $_queryCommentOpen					=	NULL;
+			private $_queryCommentClose				=	NULL;
+			private $_table								=	NULL;
+			private $_verbose								=	FALSE;
+			private $_log									=	NULL;
 
-			protected $_httpAdapter						= NULL;
-			protected $_httpCode							= NULL;
-			protected $_affectedVariable				= Array();
-			protected $_injectionAttempts				= 40;
-			protected $_parser							= NULL;
+			protected $_httpAdapter						=	NULL;
+			protected $_httpCode							=	NULL;
+			protected $_affectedVariable				=	Array();
+			protected $_injectionAttempts				=	40;
+			protected $_parser							=	NULL;
+			protected $_dbUser							=	NULL;
 
 
 			public final function __construct(\HttpAdapter $adapter,\LogInterface &$log=NULL){

@@ -13,6 +13,8 @@
 			private $_otherSites		=	array();
 			private $_scheme			=	NULL;
 			private $_emails			=	array();
+			private $_documents		=	array();		//PDF, TXT other extensions
+			private $_images			=	array();		//jpg, tiff, etc
 			private $_omitPaths		=	array();
 			private $_omitPages		=	array();
 			private $_pageTypes		=	array();
@@ -182,16 +184,21 @@
 
 			}
 
+			public function isEmailLink($link){
+
+				if(!preg_match("#mailto:.*#",$link)){
+					return FALSE;	
+				}
+
+				return TRUE;
+
+			}
 
 			/**
 			*Adds an email link, if the link is an email link returns TRUE, else it returns false
 			*/
 
 			public function addEmailLink($link){
-
-				if(!preg_match("#mailto:.*#",$link)){
-					return FALSE;	
-				}
 
 				$mail	= substr($link,strpos($link,":"));
 
@@ -261,7 +268,10 @@
 				if(!preg_match("#://#",$url)){
 
 					$scheme	=	"http";
-					$url		=	$scheme."://".$url;
+
+					if(!empty($this->_host)){
+						$url		=	$scheme."://".$this->_host["host"]."/".$url;
+					}
 
 				}else{
 
@@ -409,11 +419,42 @@
 
 			}
 
+			private function fetchImages($content){
+
+				if(empty($content)){
+					return array();
+				}
+
+				$return	=	array();
+				$dom		=	new \DomDocument();
+
+				@$dom->loadHTML($content);
+
+				$images	=	$dom->getElementsByTagName("img");
+
+				$return = array();
+
+				if($images->length > 0){
+
+					foreach($images as $img){
+
+						$src = $img->getAttribute("src");
+						$return[$src] = $this->parseUrl($src);
+
+					}
+
+				}
+
+				$this->log("Got ".sizeof($return)." images ...");
+
+				return $return;
+
+			}
+
 			private function addExternalSite($externalSite){
 
 				if(!in_array($externalSite,$this->_otherSites)){
 
-					$this->log("$externalSite, external site detected adding to other sites list ...");
 					$this->_otherSites[] = $externalSite;
 					return TRUE;
 
@@ -500,6 +541,16 @@
 			}
 
 
+			public function isImageLink($link){
+				
+			}
+
+			public function addImage(Array $image){
+				var_dump($image);	
+			
+				//if(isset($this->_images[$image["path"]]);
+			}
+
 
 			public function crawl($url=NULL,$path=NULL){
 
@@ -553,6 +604,23 @@
 
 				$links	=	$this->fetchLinks($content);
 
+				$images	=	$this->fetchImages($content);
+
+				foreach($images as $img){
+
+					if($this->isExternalSite($img)){
+						$this->log("$externalSite, external site detected adding to other sites list ...");
+						$this->addExternalSite($link);
+						continue;
+					}
+
+					$this->addImage($img);
+
+				}
+				
+				//Images, this is important in order to know where they're stored, if we know where they're stored
+				//then we have a better chance to find writable directories.
+
 				//If links per page was specified, then we call the reduxLinks method
 
 				if($this->_lpp>0){
@@ -579,16 +647,21 @@
 						continue;
 					}
 
-					if($this->addEmailLink($link)){
-						$this->log("Email link found $link",0,"light_green");
+					if($this->isExternalSite($link)){
+						$this->log("$externalSite, external site detected adding to other sites list ...");
+						$this->addExternalSite($link);
 						continue;
 					}
 
-					if($this->isExternalSite($link)){
-
-						$this->addExternalSite($link);
+					if($this->isEmailLink($link)){
+						$this->log("Email link found $link",0,"light_green");
+						$this->addEmailLink($link);
 						continue;
+					}
 
+					if($this->isImage($link)){
+						$this->log("Found image link",0,"light_green");
+						$this->addImage($link);
 					}
 
 					$fLink = $this->getFullLink($link,$path);

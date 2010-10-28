@@ -17,6 +17,8 @@
 			public function getUserPrivileges();
 			public function getVersion();
 			public function isVulnerable();
+			public function isRoot($dbUser=NULL);
+			public function getShell();
 			public function setStringEscapeCharacter($escape);
 			public function getStringEscapeCharacter();
 			public function setQueryConcatenationCharacter($concatChar);

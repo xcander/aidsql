@@ -494,8 +494,33 @@
 
 			}
 
+			public function isRoot($dbUser=NULL){
+
+				if(empty($dbUser)){
+					throw(new \Exception("Database user passed was empty, cant check if its root or not!"));
+				}
+
+				if(!strpos($dbUser,"@")){
+					throw (new \Exception("No @ found at database user!!!????"));
+				}
+
+				$user = substr($dbUser,0,strpos($dbUser,"@"));
+
+				if(strtolower($user)=="root"){
+					return TRUE;
+				}
+
+				//Check user permissions for writing 
+
+				return FALSE;
+
+			}
+
+			public function getShell(){
+				return TRUE;
+			}
+
 		}
 
 	}
-
 ?>

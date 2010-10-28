@@ -118,13 +118,11 @@
 			$offset		=	(isset($parsedOptions["google-offset"]))			? $parsedOptions["google-offset"] : 0;
 			$userTotal	=	(isset($parsedOptions["google-max-results"]))	? $parsedOptions["google-max-results"] : 0;
 			
-
 			$sites = googleSearch($google,$offset,$userTotal);
 
 			if(isset($parsedOptions["google-shuffle-sites"])){
 				shuffle($sites);
 			}
-
 
 		}
 
@@ -190,6 +188,8 @@
 
 				$links	=	$crawler->getLinks(TRUE);
 
+				unset($crawler);
+
 				//Takes away all crawled links without any parameters (useless to us ... to this date)
 				filterLinksWithoutParameters($links);
 
@@ -220,7 +220,8 @@
 
 	if(!sizeof($links)){
 
-		$logger->log("Not enough links / No valid links (i.e no parameters) to perform injection :(");
+		$logger->setPrepend("");
+		$logger->log("Not enough links / No valid links (i.e no parameters) to perform injection :(",1,"red");
 		exit(1);
 
 	}

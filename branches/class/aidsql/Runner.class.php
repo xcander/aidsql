@@ -98,13 +98,31 @@
 
 				$dbtables	= $plugin->analyzeInjection($plugin->getTables());
 				$dbtables	= $dbtables[0];
-				
+
 				$this->log("BASIC INFORMATION",0,"cyan");
 				$this->log("---------------------------------",0,"white");
 				$this->log("PLUGIN\t:\t".$plugin->getPluginName(),0,"cyan");
 				$this->log("DBASE\t:\t$database",0,"white");
 				$this->log("USER\t:\t$dbuser",0,"white");
-				$this->log("TABLES\t:\t$dbtables",0,"white");
+
+				if($plugin->isRoot($dbuser)){
+
+					$this->log("IS ROOT\t:\tYES",0,"white");
+					$this->log("Trying to get Shell ...",1,"light_green");
+					die();
+
+					//Getshell method must return FALSE on error or String path/to/shellLocation
+					$shellLocation = $plugin->getShell();
+
+					if($shellLocation){
+						$this->log("Got Shell!",1,"light_green");
+					}
+
+				}else{
+				
+					$this->log("IS ROOT\t:\tNO",0,"white");
+
+				}
 
 				return;
 
