@@ -542,13 +542,21 @@
 
 
 			public function isImageLink($link){
-				
+				var_dump($link);
+				die();	
 			}
 
+
+			//Add images like a dumb monkey, although, images can be undercover php files ... *ponders*
+
 			public function addImage(Array $image){
-				var_dump($image);	
 			
-				//if(isset($this->_images[$image["path"]]);
+				if(isset($this->_images[$image["path"]])){
+					return FALSE;
+				}
+
+				$this->_images[$image["path"]] = $image;
+
 			}
 
 
@@ -595,7 +603,7 @@
 
 				}else{
 
-					$this->log("200 OK",1,"light_green");;
+					$this->log("200 OK",0,"light_green");;
 
 				}
 
@@ -603,15 +611,18 @@
 				//got all links on the given content.
 
 				$links	=	$this->fetchLinks($content);
-
 				$images	=	$this->fetchImages($content);
 
 				foreach($images as $img){
 
-					if($this->isExternalSite($img)){
-						$this->log("$externalSite, external site detected adding to other sites list ...");
-						$this->addExternalSite($link);
+					if($this->isExternalSite($img["fullUrl"])){
+
+						if($this->addExternalSite($img["fullUrl"])){
+							$this->log("$img[host], external site detected adding to other sites list ...");
+						}
+
 						continue;
+
 					}
 
 					$this->addImage($img);
@@ -648,9 +659,13 @@
 					}
 
 					if($this->isExternalSite($link)){
-						$this->log("$externalSite, external site detected adding to other sites list ...");
-						$this->addExternalSite($link);
+
+						if($this->addExternalSite($link)){
+							$this->log("$link, external site detected adding to other sites list ...");
+						}
+
 						continue;
+
 					}
 
 					if($this->isEmailLink($link)){
@@ -659,9 +674,13 @@
 						continue;
 					}
 
-					if($this->isImage($link)){
-						$this->log("Found image link",0,"light_green");
+					if($this->isImageLink($link)){
+						$this->log("Found image link ... $link",0,"light_green");
 						$this->addImage($link);
+					}
+
+					if($this->isDocument($link)){
+						$this->log("Found document link ... $link",0,"light_green");
 					}
 
 					$fLink = $this->getFullLink($link,$path);
