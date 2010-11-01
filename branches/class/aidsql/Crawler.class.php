@@ -553,6 +553,7 @@
 				}
 
 				$this->_files[$key]	=	$file[$key];
+				return TRUE;
 
 			}
 
@@ -627,7 +628,10 @@
 
 					$fLink	=	$this->getFullLink($img["path"].$img["page"],$path);
 					$file		=	$fLink["path"].$fLink["page"];		
-					$this->addFile($this->whatIs($file));
+
+					if ($this->addFile($this->whatIs($file))){
+						$this->log("Add file $file",0,"light_purple");
+					}
 
 				}
 				
@@ -681,7 +685,7 @@
 					if(is_array($file)){
 
 						if($this->addFile($file)){
-							$this->log("Found document link ... $link",0,"light_green");
+							$this->log("Add file $link ...",0,"light_purple");
 						}
 
 					}

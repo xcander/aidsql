@@ -120,8 +120,9 @@
 		"connect-timeout"=>array(
 		),
 		"log-save"=>array(
+		),
+		"plugin-phpinfo"=>array(
 		)
-			
 
 	);
 ?>

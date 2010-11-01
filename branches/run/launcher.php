@@ -36,6 +36,7 @@
 	//Interfaces
 	require_once "interface/HttpAdapter.interface.php";
 	require_once "interface/InjectionPlugin.interface.php";
+	require_once "interface/InformationPlugin.interface.php";
 	require_once "interface/Parser.interface.php";
 	require_once "interface/Log.interface.php";
 
@@ -185,8 +186,6 @@
 				}
 
 				$crawler->crawl();
-				var_dump($crawler->getFiles());
-				die();
 
 				$links	=	$crawler->getLinks(TRUE);
 

@@ -4,21 +4,21 @@
 
 		class MySQL5 extends InjectionPlugin {
 
-			const		PLUGIN_NAME	= "MySQL5 Standard Plugin by Juan Stange";
+			const		PLUGIN_NAME						= "MySQL5 Standard Plugin by Juan Stange";
 
-			private $_affectedField				= NULL;
-			private $_maxFields					= NULL;
-			private $_table						= NULL;
-			private $_totalRegisters			= 0;				//Total registers found by count(*)
-			private $_step							= 10;				//step LIMIT _currentRegisterStep,_currentRegisterStep+_step
-			private $_currentRegisterStep		= 0;
-			private $_fields						= NULL;			//table fields
-			private $_useConcat					= FALSE;			//Concat values with a tag like <aidsql></aidsql>
-			private $_openTag						= NULL;
-			private $_closeTag					= NULL;
-			private $_terminatingPayloads		= array("LIMIT 1,1", " ORDER BY 1", "LIMIT 1,1 ORDER BY 1");
-			private $_currTerminatingPayload = NULL;
-			private $_commentPayloads			= array("/*","--","#");
+			private	$_affectedField				=	NULL;
+			private	$_maxFields						=	NULL;
+			private	$_table							=	NULL;
+			private	$_totalRegisters				=	0;				//Total registers found by count(*)
+			private	$_step							=	10;			//step LIMIT _currentRegisterStep,_currentRegisterStep+_step
+			private	$_currentRegisterStep		=	0;
+			private	$_fields							=	NULL;			//table fields
+			private	$_useConcat						=	FALSE;		//Concat values with a tag like <aidsql></aidsql>
+			private	$_openTag						=	NULL;
+			private	$_closeTag						=	NULL;
+			private	$_terminatingPayloads		=	array("LIMIT 1,1", " ORDER BY 1", "LIMIT 1,1 ORDER BY 1");
+			private	$_currTerminatingPayload	=	NULL;
+			private	$_commentPayloads				=	array("/*","--","#");
 
 			public function getPluginName(){
 				return self::PLUGIN_NAME;
@@ -516,7 +516,7 @@
 
 			}
 
-			public function getShell(){
+			public function getShell(\InformationPlugin $plugin){
 				return TRUE;
 			}
 
