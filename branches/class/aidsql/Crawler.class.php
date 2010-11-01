@@ -13,8 +13,7 @@
 			private $_otherSites		=	array();
 			private $_scheme			=	NULL;
 			private $_emails			=	array();
-			private $_documents		=	array();		//PDF, TXT other extensions
-			private $_images			=	array();		//jpg, tiff, etc
+			private $_files			=	array();		//PHP, HTM,PDF, TXT other extensions
 			private $_omitPaths		=	array();
 			private $_omitPages		=	array();
 			private $_pageTypes		=	array();
@@ -261,7 +260,11 @@
 
 			}
 
-			public function parseUrl($url){
+			public function parseUrl($url=NULL){
+	
+				if(is_array($url)){
+					throw(new \Exception("URL cant be empty"));
+				}
 
 				$parsedUrl=array();
 
@@ -540,25 +543,22 @@
 
 			}
 
+			public function addFile(Array $file){
 
-			public function isImageLink($link){
-				var_dump($link);
-				die();	
-			}
+				$key		= key($file);
+				$files	=	array_keys($this->_files);
 
-
-			//Add images like a dumb monkey, although, images can be undercover php files ... *ponders*
-
-			public function addImage(Array $image){
-			
-				if(isset($this->_images[$image["path"]])){
+				if(in_array($key,$files)){
 					return FALSE;
 				}
 
-				$this->_images[$image["path"]] = $image;
+				$this->_files[$key]	=	$file[$key];
 
 			}
 
+			public function getFiles(){
+				return $this->_files;
+			}
 
 			public function crawl($url=NULL,$path=NULL){
 
@@ -615,23 +615,22 @@
 
 				foreach($images as $img){
 
-					if($this->isExternalSite($img["fullUrl"])){
+					if($img["host"]!=$this->_host["host"]){
 
-						if($this->addExternalSite($img["fullUrl"])){
-							$this->log("$img[host], external site detected adding to other sites list ...");
+						if($this->addExternalSite($img["host"])){
+							$this->log("$img[host], external site detected adding to other sites list ...",0,"purple");
 						}
 
 						continue;
 
 					}
 
-					$this->addImage($img);
+					$fLink	=	$this->getFullLink($img["path"].$img["page"],$path);
+					$file		=	$fLink["path"].$fLink["page"];		
+					$this->addFile($this->whatIs($file));
 
 				}
 				
-				//Images, this is important in order to know where they're stored, if we know where they're stored
-				//then we have a better chance to find writable directories.
-
 				//If links per page was specified, then we call the reduxLinks method
 
 				if($this->_lpp>0){
@@ -658,32 +657,34 @@
 						continue;
 					}
 
-					if($this->isExternalSite($link)){
-
-						if($this->addExternalSite($link)){
-							$this->log("$link, external site detected adding to other sites list ...");
-						}
-
-						continue;
-
-					}
-
 					if($this->isEmailLink($link)){
 						$this->log("Email link found $link",0,"light_green");
 						$this->addEmailLink($link);
 						continue;
 					}
 
-					if($this->isImageLink($link)){
-						$this->log("Found image link ... $link",0,"light_green");
-						$this->addImage($link);
+					$pLinkUrl	=	$this->parseUrl($link);
+
+					if($pLinkUrl["host"]!=$this->_host["host"]){
+
+						if($this->addExternalSite($pLinkUrl["host"])){
+							$this->log("$pLinkUrl[host], external site detected adding to other sites list ...",0,"purple");
+						}
+
+						continue;
+
 					}
 
-					if($this->isDocument($link)){
-						$this->log("Found document link ... $link",0,"light_green");
-					}
+					$fLink		=	$this->getFullLink($link,$path);
+					$file			=	$this->whatIs($fLink["path"].$fLink["page"]);
 
-					$fLink = $this->getFullLink($link,$path);
+					if(is_array($file)){
+
+						if($this->addFile($file)){
+							$this->log("Found document link ... $link",0,"light_green");
+						}
+
+					}
 
 					if(!empty($fLink["page"])){
 
@@ -697,7 +698,7 @@
 
 						if($this->pageHasValidType($fLink["page"])===FALSE){
 							
-							$this->log("Page \"$fLink[page]\" doesnt matches given page types",0,"yellow");
+							$this->log("\"$fLink[page]\" doesnt matches given file types",0,"yellow");
 							continue;
 
 						}else{
@@ -811,6 +812,31 @@
 
 			}
 
+			private function whatIs($link){
+
+				$bName				=	basename($link);
+				$dotPos				=	strrpos($bName,".");
+				$return				=	array();
+
+				if(!$dotPos){
+					$return[$link] = array("type"=>"path");
+					return $return;
+				}
+
+				$docExt						=	strtolower(substr($bName,$dotPos+1));
+				$return[$link]["type"]	=	$docExt;
+				$argPos						=	strpos($docExt,"?");
+
+				if($argPos){
+
+					$return[$link]["arguments"]	=	substr($docExt,$argPos+1);
+
+				}
+
+				return $return;
+
+			}
+
 			private function isValidLink($link){
 
 				if($link=="#"||preg_match("/javascript:/i",$link)){
@@ -879,7 +905,7 @@
 
 			}
 
-			public function getFullLink($link,$path="/"){
+			private function getFullLink($link,$path="/"){
 
 				//Check if its a full link
 

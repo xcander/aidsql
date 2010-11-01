@@ -185,6 +185,8 @@
 				}
 
 				$crawler->crawl();
+				var_dump($crawler->getFiles());
+				die();
 
 				$links	=	$crawler->getLinks(TRUE);
 
@@ -214,6 +216,7 @@
 	}catch(Exception $e){
 
 		$logger->log($e->getMessage(),1,"light_red");
+		//echo $e->getTraceAsString()."\n";
 		usageShort($logger);
 
 	}
