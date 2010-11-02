@@ -177,7 +177,7 @@
 
 	  					require_once "$pluginsDir/$plugin.plugin.php";
 
-						$pluginClass		= 'aidSQL\\plugin\\'.$plugin;
+						$pluginClass		= 'aidSQL\\plugin\\sqli\\'.$plugin;
 						$pluginInstance	= new $pluginClass($adapter);
 
 						if(!is_null($this->_log)){
@@ -227,13 +227,25 @@
 
 			}
 
-			public function listPlugins(){
+			public function listPlugins($type=NULL){
+
+					if(is_null($type)){
+						throw(new \Exception("Must give a type of plugin to list"));
+					}
 
 					$dir	= __CLASSPATH."/plugin/";
-					$dp	= opendir($dir);
 
-					require_once __CLASSPATH."/aidsql/InjectionPlugin.class.php";
+					if(!is_dir($dir)){
+						throw(new \Exception("Plugins directory doesnt exists!"));	
+					}
 
+					$dir.=trim($type,"/");
+
+					if(!is_dir($dir)){
+						throw(new \Exception("Invalid plugin type specified!"));	
+					}
+
+					$dp			= opendir($dir);
 					$pluginList = array();
 
 					while($file = readdir($dp)){

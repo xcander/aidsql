@@ -1,6 +1,6 @@
 <?php
 
-	namespace aidSQL\plugin {
+	namespace aidSQL\plugin\sqli {
 
 		abstract class InjectionPlugin implements InjectionPluginInterface {
 
