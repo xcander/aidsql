@@ -53,6 +53,9 @@
 			private function log(){
 
 				if(!is_null($this->_log)){
+
+					$this->_log->setPrepend("[".__CLASS__."]");
+
 					call_user_func_array(array($this->_log, "log"),func_get_args());
 					return TRUE;
 				}

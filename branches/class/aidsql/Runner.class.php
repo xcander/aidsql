@@ -4,12 +4,12 @@
 
 		class Runner{
 
-			private $_debug					=	TRUE;
-			private $_injectionPlugins		=	array();	//Contains all plugins
-			private $_vulnerable				=	FALSE;		//boolean vulnerable TRUE or not vulnerable FALSE
-			private $_plugin					=	NULL;		//Contains the plugin to be used, i.e the vulnerable plugin
-			private $_log						=	NULL;		//Log object
-			private $_httpAdapter			=	NULL;
+			private	$_debug			=	TRUE;
+			private	$_vulnerable	=	FALSE;		//boolean vulnerable TRUE or not vulnerable FALSE
+			private	$_log				=	NULL;			//Log object
+			private	$_httpAdapter	=	NULL;
+			private	$_options		=	array();
+			private	$_pLoader		=	NULL;			//Plugin Loader Instance
 
 			public function __construct(\CmdLineParser $parser,\HttpAdapter &$adapter,\LogInterface &$log=NULL){
 
@@ -17,9 +17,14 @@
 					$this->setLog($log);
 				}
 
+				$options				=	$parser->getParsedOptions();
+				$this->_options	=	$options;
+
+				$this->_pLoader	=	new PluginLoader($options["plugins-dir"]);
+				$this->_pLoader->listPlugins();
+
 				$this->setHttpAdapter($adapter);
-				$this->configureHttpAdapter($parser);
-				$this->configure($parser);	
+				$this->configureHttpAdapter($options);
 
 			}
 
@@ -56,7 +61,15 @@
 					return TRUE;
 				}
 
-				foreach($this->_injectionPlugins as $plugin){
+				$plugins	=	$this->_pLoader->getPlugins();
+
+				foreach($plugins["sqli"] as $plugin){
+
+					$this->_pLoader->load($plugin["name"]);
+
+					$plugin	=	"aidSQL\\plugin\\sqli\\$plugin[name]";
+					$plugin	=	new $plugin($this->_httpAdapter);
+					$plugin->setLog($this->_log);
 
 					$this->log("Testing ".get_class($plugin)." injection plugin...");
 
@@ -64,7 +77,6 @@
 
 						$this->_plugin			= clone($plugin);
 						$this->_vulnerable	= TRUE;
-						unset($this->_injectionPlugins);
 						return TRUE;
 
 					}
@@ -128,150 +140,11 @@
 
 			}
 
-			private function configure(\CmdLineParser $parser){
-
-				$options = $parser->getParsedOptions();
-
-				$plugins = $options["plugins"];
-					
-				$verbose = (array_key_exists("verbose",$options)) ? TRUE : FALSE;
-
-				if($plugins=="all"){
-
-					$this->loadPlugins($this->_httpAdapter,array(),$verbose);
-
-				}else{
-
-					$plugins = array_unique(explode(",",$plugins));
-					$this->loadPlugins($this->_httpAdapter,$plugins,$verbose);
-
-				}
-
-			}
-
-			/**
-			*If no plugin specified, it will load all of them,
-			*if given a list of plugins it will load only those specified by $wantedPlugins
-			*throws an exception when a given "wanted plugin" is not found.
-			*/
-
-			public function loadPlugins(\HttpAdapter &$adapter, Array $wantedPlugins=array(),$verbose=FALSE){
-
-				$pluginsDir		= __CLASSPATH."/plugin";
-				$sizeOfWanted	= sizeof($wantedPlugins);
-				$allPlugins		= $this->listPlugins();
-
-				if(!sizeof($allPlugins)){
-
-					throw(new \Exception("No injection plugins found!"));
-
-				}
-
-				$basicPlugin	= __CLASSPATH."/aidsql/InjectionPlugin.class.php";
-
-				require_once "$basicPlugin";
-
-				if(!$sizeOfWanted){ //Load all plugins
-
-					while(list(,$plugin) = each($allPlugins)){
-
-	  					require_once "$pluginsDir/$plugin.plugin.php";
-
-						$pluginClass		= 'aidSQL\\plugin\\sqli\\'.$plugin;
-						$pluginInstance	= new $pluginClass($adapter);
-
-						if(!is_null($this->_log)){
-							$pluginInstance->setLog($this->_log);
-						}
-
-						$pluginInstance->setVerbose($verbose);
-
-						$this->addInjectionPlugin($pluginInstance);
-
-					}
-
-					return TRUE;
-
-				}
-
-				foreach($wantedPlugins as $wanted){
-
-					$isValidPlugin = FALSE;
-
-					$wantedToLower = strtolower($wanted);	
-
-					foreach($allPlugins as $valid){
-
-						$validToLower = strtolower($valid);	
-
-						if($validToLower==$wantedToLower){ //Ok, valid plugin
-
-							require_once "$pluginsDir/$valid.plugin.php";
-
-							$pluginInstance	= new $plugin($adapter);
-							$pluginInstance->setVerbose($verbose);
-
-							$this->addInjectionPlugin($plugin);
-
-							$isValidPlugin = TRUE;
-
-						}
-
-						if(!$isValidPlugin){
-							throw(new \Exception("Unknown plugin specified, $wanted"));
-						}
-
-					}
-
-				}			
-
-			}
-
-			public function listPlugins($type=NULL){
-
-					if(is_null($type)){
-						throw(new \Exception("Must give a type of plugin to list"));
-					}
-
-					$dir	= __CLASSPATH."/plugin/";
-
-					if(!is_dir($dir)){
-						throw(new \Exception("Plugins directory doesnt exists!"));	
-					}
-
-					$dir.=trim($type,"/");
-
-					if(!is_dir($dir)){
-						throw(new \Exception("Invalid plugin type specified!"));	
-					}
-
-					$dp			= opendir($dir);
-					$pluginList = array();
-
-					while($file = readdir($dp)){
-
-						if(is_dir($file)||preg_match("/^[.]/",$file)){
-							continue;
-						}
-
-						$class = substr($file,0,strpos($file,"."));
-						$pluginList[] = $class;
-
-					}
-
-					closedir($dp);
-
-					return $pluginList;
-
-			}
-
 			/**
 			*Loads, instantiates, configures http object
 			*/
 
-			private function configureHttpAdapter(\CmdLineParser $parser){
-
-				$options			= $parser->getParsedOptions();
+			private function configureHttpAdapter(Array $options){
 
 				$this->_httpAdapter->setMethod($options["http-method"]);
 				$this->_httpAdapter->setUrl($options["url"]);

@@ -41,6 +41,7 @@
 	require_once "interface/Log.interface.php";
 
 	//Classes
+	require_once	"class/aidsql/PluginLoader.class.php";
 	require_once	"class/aidsql/InjectionPlugin.class.php";
 	require_once	"class/aidsql/Crawler.class.php";
 	require_once	"class/aidsql/Runner.class.php";

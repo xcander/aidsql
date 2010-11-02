@@ -122,6 +122,8 @@
 		"log-save"=>array(
 		),
 		"plugin-phpinfo"=>array(
+		),
+		"plugins-dir"=>array(
 		)
 
 	);
