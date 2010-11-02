@@ -44,11 +44,10 @@
 
 				if(!is_null($this->_log)){
 
-					$this->_log->setPrepend(__CLASS__);
+					$this->_log->setPrepend("[".get_class($this)."]");
 					call_user_func_array(array($this->_log, "log"),func_get_args());
 					return TRUE;
 				}
-
 
 				return FALSE;
 
