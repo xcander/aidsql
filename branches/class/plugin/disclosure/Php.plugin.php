@@ -1,8 +1,14 @@
 <?php
 
 	namespace aidSQL\plugin\disclosure{
-		class Php{
+
+		class Php implements DisclosurePlugin{
+
+			public function GenerateError(){
+			}
+
 		}
+
 	}
 
 ?>
