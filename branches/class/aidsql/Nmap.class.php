@@ -28,9 +28,7 @@
 
 				foreach($hosts as $host){
 
-					$childNodes	=	$this->_getChildNodes($host);
-					var_dump($childNodes);
-					die();
+					$return[]	=	$this->_getChildNodes($host);
 
 				}
 
@@ -49,20 +47,43 @@
 
 					for($i=0;$i < $childNodes->length;$i++){
 
-						$curNode						=	$childNodes->item($i);
-						$curNodeName				=	$curNode->nodeName;
+						$curNode			=	$childNodes->item($i);
+						$curNodeName	=	$curNode->nodeName;
+						$nodeValue		=	"";
+
+						if($curNodeName == "#text"){
+							continue;
+						}
 
 						$attributes					=	$this->_getNodeAttributes($curNode);
 
-						$tmpArray[$curNodeName]["attributes"]	=	$attributes;
+						if(!empty($nodeValue)){
+							$tmpArray[$curNodeName]["value"]	=	$nodeValue;
+						}
+
+						if(sizeof($attributes)){
+							foreach($attributes as $key=>$value){
+								$tmpArray[$curNodeName][$key]=$value;
+							}
+						}
 
 						if($curNode->hasChildNodes()){
-							$tmpArray[$curNodeName]["childs"] = $this->_getChildNodes($curNode);
+
+							$childs	=	$this->_getChildNodes($curNode);
+
+							foreach($childs as $key=>$value){
+								$tmpArray[$curNodeName][$key]=$value;
+							}
+
 						}
 
 					}
 
 				}else{
+
+					if($curNodeName == "#text"){
+						return $tmpArray;
+					}
 
 					$curNodeName				=	$curNode->nodeName;
 					$tmpArray[$curNodeName]	=	$this->_getNodeAttributes($curNode);
