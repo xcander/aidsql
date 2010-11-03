@@ -3,14 +3,15 @@
 	require_once "interface/HttpAdapter.interface.php";
 	require_once "class/http/eCurl.class.php";
 
-	$url  = $_SERVER["argv"][1];
+	$url	= $_SERVER["argv"][1];
+	$length	= $_SERVER["argv"][2];
 
 	$http = new eCurl();
 	$http->setMethod("GET");
 
 	$value="";
 
-	for($i=0;$i<5000;$i++){
+	for($i=0;$i<$length;$i++){
 		$value.="%00";
 	}
 
