@@ -7,7 +7,7 @@
 	 *
 	 */
 
-	set_include_path("lib/aidsql/".PATH_SEPARATOR.get_include_path());
+	set_include_path("lib/aidSQL/".PATH_SEPARATOR.get_include_path());
 
 	define ("__CLASSPATH","lib/aidsql/class");
 
@@ -36,33 +36,33 @@
 	}
 
 	//Interfaces
-	require_once	"interface/HttpAdapter.interface.php";
-	require_once	"interface/InjectionPlugin.interface.php";
-	require_once	"interface/DisclosurePlugin.interface.php";
 	require_once	"interface/Parser.interface.php";
-	require_once	"interface/Log.interface.php";
+	require_once	"interface/Logger.interface.php";
+	require_once	"interface/http/Adapter.interface.php";
+	require_once	"interface/plugin/Injection.interface.php";
+	require_once	"interface/plugin/Disclosure.interface.php";
 
 	//Classes
-	require_once	"core/String.class.php";
-	require_once	"core/File.class.php";
-	require_once	"core/Runner.class.php";
-	require_once	"core/PluginLoader.class.php";
-	require_once	"core/InjectionPlugin.class.php";
-	require_once	"log/Default.class.php";
-	require_once	"http/adapter/Ecurl.class.php";
-	require_once	"http/crawler/Crowley.class.php";
-	require_once	"http/webservice/bing/Bing.class.php";
-	require_once	"http/webservice/google/Google.class.php";
+	require_once	"class/core/String.class.php";
+	require_once	"class/core/File.class.php";
+	require_once	"class/core/Runner.class.php";
+	require_once	"class/core/PluginLoader.class.php";
+	require_once	"class/core/InjectionPlugin.class.php";
+	require_once	"class/log/StdLog.class.php";
+	require_once	"class/http/adapter/Ecurl.class.php";
+	require_once	"class/http/crawler/Crowley.class.php";
+	require_once	"class/http/webservice/bing/Bing.class.php";
+	require_once	"class/http/webservice/google/Google.class.php";
 	require_once	"config/config.php";
 	
 	//Parsers
-	require_once	"aidsql/parser/CmdLine.parser.php";
-	require_once	"aidsql/parser/Nmap.parser.php";
+	require_once	"class/parser/CmdLine.class.php";
+	require_once	"class/parser/Nmap.class.php";
 
 	//Functions
 	require_once	"functions/launcher.functions.php";
 
-	$logger	=	new Logger();
+	$logger	=	new aidSQL\logger\stdLog();
 	$logger->setEcho(TRUE);
 
 	banner($logger);
@@ -74,8 +74,8 @@
 		$sites			=	array();
 		$links			=	array();
 
-		$parameters		=	mergeConfig($_SERVER["argv"],"config/config.ini");
-		$cmdParser		=	new CmdLineParser($config,$parameters);
+		$parameters		=	mergeConfig($_SERVER["argv"],"etc/aidSQL.conf");
+		$cmdParser		=	new aidSQL\parser\CmdLine($config,$parameters);
 		$parsedOptions	=	$cmdParser->getParsedOptions();
 
 		if(isset($parsedOptions["log-save"])){
@@ -153,7 +153,7 @@
 
 				$httpAdapter->setUrl($site);
 
-				$crawler			=	new aidsql\Crawler($httpAdapter,$logger);
+				$crawler			=	new aidSQL\crawler\Crowley($httpAdapter,$logger);
 
 				if(isset($parsedOptions["lpp"])){
 
