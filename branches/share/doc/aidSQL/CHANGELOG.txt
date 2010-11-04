@@ -1,0 +1,77 @@
+-------------------------------------------------------------------------------------------
+10/26/2010
+-------------------------------------------------------------------------------------------
+
+End luser stuff
+^^^^^^^^^^^^^^^^
+	*Added simple shell script which will run aidSQL and do some checking for PHP
+	*Added Googling option, you can now google through this application and look up for sites
+	Check the googling options in the config file (config/config.ini)
+	*Added several configuration options for the crawler
+	*You can now save your logs with the --log-save=mylogfile option, be sure not to append the .log
+	extension since the application already does this by itself.
+	
+For Developers:
+^^^^^^^^^^^^^^^
+
+	*All of the functions lurking in the launcher.php file were moved to functions/launcher.functions.php
+	*Unique httpAdapter instance, shared by all objects
+	*Unique Logger instance, also, shared by all objects
+	*Added an "overlaps-with" parameter to the CmdLineParser this was required for the fact of having
+	the google option overlapping with the --url option, it kind of works, I really have to sit down 
+	and revisit the command line parser.
+	*Added a logging class with coloring capabilities / file saving capabilities
+
+-------------------------------------------------------------------------------------------
+10/20/2010
+-------------------------------------------------------------------------------------------
+
+End luser stuff
+^^^^^^^^^^^^^^^^
+	*Improved Crawler, now the crawler can accept certain "page types" (extensions) theres a default set in the
+	config/config.ini file however you can change that as much as you want
+
+	*Crawler is not likely to crash due to recursion limits anymore. (Please report any bugs you may find!)
+	
+For Developers:
+^^^^^^^^^^^^^^^
+
+	*Fixed an issue with immediate-mode, it appears that yes in a config file parsed by the PHP native function
+	parse_ini_file will return a 1 instead of the string yes, you'd actually have to quote the string in order 
+	for it to be String(3) yes
+
+	*Added a method which attempts to find mod_rewrite "fuck ups" (as I like to call them)
+	and other URL masking techniques that do seem to exist but they recurse inside, 
+	such as http://host/path/other/path/other/path/other, this previously leaded to infinite recursion 
+	which made the crawler die badly. I'm not saying it will not crash for other causes right now! ;)
+
+	*Changes in code disposition, added more methods to fine tune crawling, methos such as addOmitPath
+	(Which will omit an entire path) and its counter part addOmitPaths which basically takes in an Array
+	and performs addOmitPath on each element.
+
+
+
+-------------------------------------------------------------------------------------------
+10/15/2010 
+-------------------------------------------------------------------------------------------
+
+End luser stuff:
+^^^^^^^^^^^^^^^^
+	*Added crawling capabilities to the application, the application
+	can now be feed with a URL and it will crawl it fetching href's
+	(and other informations possibily of interest in a not so distant future
+
+	*Added an immediate-mode parameter, meaning, that if you crawl a site, 
+	a certain plugin finds a vulnerable spot, it will end right there, not
+	processing other pages involved in the site.
+	
+	*If fed with a non existent page, access forbidden, etc, http code the application
+	will inform you about this
+
+For Developers:
+^^^^^^^^^^^^^^^
+	*Everything remains pretty much the same, except for the addition of the crawler class
+	to class/aidsql/Crawler.class.php and some other slight changes in the httpAdapter interface
+	(getHttpCode), usefull to know if we've hit some place that doesnt exists, etc.
+
+

