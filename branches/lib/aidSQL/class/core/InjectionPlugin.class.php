@@ -36,7 +36,7 @@
 
 			/* Wrapper */
 
-			public function setLog(\LogInterface &$log){
+			public function setLog(\aidSQL\logger\LogInterface &$log){
 				$this->_log = $log;
 			}
 
