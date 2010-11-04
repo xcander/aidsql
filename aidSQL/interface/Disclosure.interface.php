@@ -2,7 +2,7 @@
 
 	namespace aidSQL\plugin {
 
-		interface InformationPlugin{
+		interface Disclosure{
 
 			public function getInfo();
 
