@@ -1,6 +1,6 @@
 <?php
 
-	function usageShort(\LogInterface &$log){
+	function usageShort(aidSQL\logger\LogInterface &$log){
 
 		$info = $log->getX11Info();
 
@@ -69,7 +69,7 @@
 
 	}
 
-	function isVulnerable(cmdLineParser $cmdParser,\HttpAdapter &$httpAdapter,\LogInterface &$log=NULL){
+	function isVulnerable(aidSQL\parser\CmdLine $cmdParser,\HttpAdapter &$httpAdapter,aidSQL\logger\LogInterface &$log=NULL){
 
 			$aidSQL		= new aidSQL\Runner($cmdParser,$httpAdapter,$log);
 
@@ -141,7 +141,7 @@
 
 	}
 
-	function banner(\LogInterface &$log){
+	function banner(aidSQL\logger\LogInterface &$log){
 
 		$log->setX11Info(FALSE);
 
@@ -198,7 +198,7 @@
 
 	}
 
-	function filterSites (Array &$sites,\Logger &$log,$regex=NULL){
+	function filterSites (Array &$sites,aidSQL\logger\LogInterface &$log,$regex=NULL){
 
 		$regex	=	trim($regex,"/");
 		$doRegex	=	!empty($regex);
@@ -223,7 +223,7 @@
 
 	}
 
-	function testLinks(Array $links,\HttpAdapter &$httpAdapter,\CmdLineParser &$cmdParser,\Logger &$log){
+	function testLinks(Array $links,\HttpAdapter &$httpAdapter,aidSQL\parser\CmdLine &$cmdParser,aidSQL\logger\LogInterface &$log){
 
 		$log->log("Amount of links to be tested for injection:".sizeof($links),0,"light_cyan");
 		$parsedOptions	=	$cmdParser->getParsedOptions();

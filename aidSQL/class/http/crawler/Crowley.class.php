@@ -1,8 +1,8 @@
 <?php
 
-	namespace aidsql {
+	namespace aidSQL\crawler {
 
-		class Crawler {
+		class Crowley {
 
 			private $_host				=	NULL;
 			private $_links			=	array();
@@ -21,7 +21,7 @@
 			private $_log				=	NULL;
 			private $_maxLinks		=	0;				//Amount of links desired to crawl
 
-			public function __construct(\HttpAdapter $httpAdapter,\LogInterface $log=NULL){
+			public function __construct(\HttpAdapter $httpAdapter,\aidSQL\logger\LogInterface $log=NULL){
 
 				if(is_null($httpAdapter->getUrl())){
 
@@ -42,7 +42,7 @@
 
 			}
 
-			public function setLog(\LogInterface &$log){
+			public function setLog(\aidSQL\logger\LogInterface &$log){
 
 				$this->_log = $log;
 
