@@ -471,19 +471,40 @@
 					throw (new \Exception("There was a problem processing the request! Got ". $this->_httpCode."!!!"));
 				}
 
-				$parser		= $this->getParser("tagmatcher");
+				return $this->checkInjection($content);
 
-				$parser->setContent($content);
+			}
 
-				$openTag		= $this->getOpenTag();
-				$closeTag	= $this->getCloseTag();
-				
+			private function checkInjection($content){
+
 				$this->log("String identifier is: $openTag - $closeTag",0,"white");
-				
-				$parser->setOpenTag($openTag);
-				$parser->setCloseTag($closeTag);
 
-				return $parser->getResult();
+				$openTag		=	$this->getOpenTag();
+				$closeTag	=	$this->getCloseTag();
+
+				$regex	= '/'.$openTag."+.*".$closeTag.'/';
+
+				$matches = NULL;
+
+				preg_match_all($regex,$content,$matches,PREG_SET_ORDER);
+
+				if(sizeof($matches)){
+
+					$matching = array();
+
+					foreach($matches as $key=>$match){
+
+						$match=$match[0];
+						$match = preg_replace("/^($openTag)/",'',$match);
+						$match = preg_replace("/($closeTag)/",'',$match);
+						$matching[$key]=$match;
+					}
+
+					return $matching;
+
+				}
+
+				return FALSE;
 
 			}
 
