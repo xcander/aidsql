@@ -34,35 +34,31 @@
 	}
 
 	//Interfaces
-	require_once "interface/HttpAdapter.interface.php";
-	require_once "interface/InjectionPlugin.interface.php";
-	require_once "interface/DisclosurePlugin.interface.php";
-	require_once "interface/Parser.interface.php";
-	require_once "interface/Log.interface.php";
+	require_once	"interface/HttpAdapter.interface.php";
+	require_once	"interface/InjectionPlugin.interface.php";
+	require_once	"interface/DisclosurePlugin.interface.php";
+	require_once	"interface/Parser.interface.php";
+	require_once	"interface/Log.interface.php";
 
 	//Classes
-	require_once	"class/aidsql/PluginLoader.class.php";
-	require_once	"class/aidsql/InjectionPlugin.class.php";
-	require_once	"class/aidsql/Crawler.class.php";
-	require_once	"class/aidsql/Runner.class.php";
-	require_once	"class/log/Logger.class.php";
-	require_once	"class/core/CmdLine.class.php";
-	require_once	"class/core/String.class.php";
-	require_once	"class/core/File.class.php";
-	require_once	"class/http/eCurl.class.php";
-	require_once	"class/webservice/google/Google.class.php";
+	require_once	"aidsql/core/String.class.php";
+	require_once	"aidsql/core/File.class.php";
+	require_once	"aidsql/core/Runner.class.php";
+	require_once	"aidsql/core/PluginLoader.class.php";
+	require_once	"aidsql/core/InjectionPlugin.class.php";
+	require_once	"aidsql/log/Default.class.php";
+	require_once	"aidsql/http/adapter/Ecurl.class.php";
+	require_once	"aidsql/http/crawler/Crowley.class.php";
+	require_once	"aidsql/http/webservice/bing/Bing.class.php";
+	require_once	"aidsql/http/webservice/google/Google.class.php";
 	require_once	"config/config.php";
 	
 	//Parsers
-	require_once	"class/parser/Generic.parser.php";
-	require_once	"class/parser/TagMatcher.parser.php";
-	require_once	"class/parser/Dummy.parser.php";
-	require_once	"class/parser/MySQLError.parser.php";
+	require_once	"aidsql/parser/CmdLine.parser.php";
+	require_once	"aidsql/parser/Nmap.parser.php";
 
 	//Functions
 	require_once	"functions/launcher.functions.php";
-
-	checkPHPVersion();
 
 	$logger	=	new Logger();
 	$logger->setEcho(TRUE);
