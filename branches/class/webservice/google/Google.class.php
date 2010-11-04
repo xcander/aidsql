@@ -1,6 +1,7 @@
 <?php
 
 	//CopyRight: Juan Pablo Stange (11-06-2008)
+	//Modified: 04-11-2010	(just added namespaces and changed some other stuff)
 	//3 Clause BSD License
 	//http://code.google.com/p/uoogle
 
