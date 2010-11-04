@@ -1,5 +1,9 @@
 <?php
-	interface LogInterface {
-		public function log($msg=NULL);
+	namespace aidSQL\logger {
+
+		interface LogInterface {
+			public function log($msg=NULL);
+		}
+
 	}
 ?>
