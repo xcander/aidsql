@@ -93,7 +93,7 @@
 
 	}
 
-	function googleSearch(\GoogleSearch &$google,$offset=0,$userTotal=200){
+	function googleSearch(\Google &$google,$offset=0,$userTotal=200){
 
 		try{
 
@@ -103,7 +103,7 @@
 	
 			do{
 
-				$result = $google->doGoogleSearch();
+				$result = $google->search();
 				$google->setStart($offset);
 
 				if($result->responseData->cursor->estimatedResultCount){

@@ -50,7 +50,7 @@
 	require_once	"class/core/String.class.php";
 	require_once	"class/core/File.class.php";
 	require_once	"class/http/eCurl.class.php";
-	require_once	"class/google/GoogleSearch.class.php";
+	require_once	"class/webservice/google/Google.class.php";
 	require_once	"config/config.php";
 	
 	//Parsers
@@ -113,7 +113,7 @@
 
 		if(in_array("google",array_keys($parsedOptions))){
 
-			$google	=	new GoogleSearch($httpAdapter,$logger);
+			$google	=	new aidsql\webservice\Google($httpAdapter,$logger);
 			$google->setQuery($parsedOptions["google"]);
 
 			(isset($parsedOptions["google-language"])) ? $google->setLanguage($parsedOptions["google-language"]) : NULL;
