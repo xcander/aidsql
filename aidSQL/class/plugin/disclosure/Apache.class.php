@@ -1,7 +1,7 @@
 <?php
-	namespace aidSQL\plugin\disclosure {
+	namespace aidSQL\plugin {
 
-		class Apache implements Disclosure {
+		class Apache implements \aidSQL\plugin\Disclosure {
 			public function getInfo(){
 			}
 		}

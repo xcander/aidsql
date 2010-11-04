@@ -477,10 +477,10 @@
 
 			private function checkInjection($content){
 
-				$this->log("String identifier is: $openTag - $closeTag",0,"white");
 
 				$openTag		=	$this->getOpenTag();
 				$closeTag	=	$this->getCloseTag();
+				$this->log("String identifier is: $openTag - $closeTag",0,"white");
 
 				$regex	= '/'.$openTag."+.*".$closeTag.'/';
 
