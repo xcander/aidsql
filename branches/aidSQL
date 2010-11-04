@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!./bin/php
 <?php
 
 	/**
@@ -7,7 +7,9 @@
 	 *
 	 */
 
-	define ("__CLASSPATH","class");
+	set_include_path("lib/aidsql/".PATH_SEPARATOR.get_include_path());
+
+	define ("__CLASSPATH","lib/aidsql/class");
 
 	error_reporting(E_ALL);
 
@@ -41,16 +43,16 @@
 	require_once	"interface/Log.interface.php";
 
 	//Classes
-	require_once	"aidsql/core/String.class.php";
-	require_once	"aidsql/core/File.class.php";
-	require_once	"aidsql/core/Runner.class.php";
-	require_once	"aidsql/core/PluginLoader.class.php";
-	require_once	"aidsql/core/InjectionPlugin.class.php";
-	require_once	"aidsql/log/Default.class.php";
-	require_once	"aidsql/http/adapter/Ecurl.class.php";
-	require_once	"aidsql/http/crawler/Crowley.class.php";
-	require_once	"aidsql/http/webservice/bing/Bing.class.php";
-	require_once	"aidsql/http/webservice/google/Google.class.php";
+	require_once	"core/String.class.php";
+	require_once	"core/File.class.php";
+	require_once	"core/Runner.class.php";
+	require_once	"core/PluginLoader.class.php";
+	require_once	"core/InjectionPlugin.class.php";
+	require_once	"log/Default.class.php";
+	require_once	"http/adapter/Ecurl.class.php";
+	require_once	"http/crawler/Crowley.class.php";
+	require_once	"http/webservice/bing/Bing.class.php";
+	require_once	"http/webservice/google/Google.class.php";
 	require_once	"config/config.php";
 	
 	//Parsers
