@@ -136,17 +136,17 @@
 			private function validateOption($realOption,$realOptionValue){
 
 				if(!$this->isValidOption($realOption)){
-					throw(new Exception("Unknown option specified \"$realOption\""));
+					throw(new \Exception("Unknown option specified \"$realOption\""));
 				}
 
 				$valueRequired = $this->optionRequiresValue($realOption);
 
 				if($valueRequired&&is_null($realOptionValue)){
-					throw(new Exception("Option $realOption requires value"));
+					throw(new \Exception("Option $realOption requires value"));
 				}
 
 				if(!$valueRequired && !is_null($realOptionValue)){
-					throw(new Exception("Option $realOption requires no value"));
+					throw(new \Exception("Option $realOption requires no value"));
 				}	  
 
 				if($valueRequired){
@@ -154,7 +154,7 @@
 
 						$option			= $this->searchOption($realOption);
 						$validValues	= implode($option["values"],",");
-						throw(new Exception("Invalid value specified for option $realOption,(".$realOptionValue."), valid values: $validValues"));
+						throw(new \Exception("Invalid value specified for option $realOption,(".$realOptionValue."), valid values: $validValues"));
 					}
 				}
 
@@ -178,7 +178,7 @@
 						foreach($optConfig["requires"] as $required){
 
 							if(!in_array($required,$parsedOptions)){
-								throw(new Exception("Option $opt requires option $required to be set!"));
+								throw(new \Exception("Option $opt requires option $required to be set!"));
 							}
 
 						}
@@ -201,7 +201,7 @@
 
 							if(in_array($required,$parsedOptions)){
 
-								throw(new Exception("Option $opt overlaps with option $required!"));
+								throw(new \Exception("Option $opt overlaps with option $required!"));
 
 							}else{
 
@@ -239,7 +239,7 @@
 					}
 
 					if(!in_array($option,$givenOptions)&&!in_array($alias,$givenOptions)){
-						throw(new Exception("Option $option is required!"));
+						throw(new \Exception("Option $option is required!"));
 					}
 
 				}

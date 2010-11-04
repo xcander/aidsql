@@ -11,7 +11,7 @@
 			private	$_options		=	array();
 			private	$_pLoader		=	NULL;			//Plugin Loader Instance
 
-			public function __construct(\CmdLineParser $parser,\HttpAdapter &$adapter,\LogInterface &$log=NULL){
+			public function __construct(parser\CmdLine $parser,\HttpAdapter &$adapter,logger\LogInterface &$log=NULL){
 
 				if(!is_null($log)){
 					$this->setLog($log);
@@ -40,7 +40,7 @@
 
 			}
 
-			public function setLog(\LogInterface &$log){
+			public function setLog(logger\LogInterface &$log){
 				$this->_log = $log;
 			}
 
