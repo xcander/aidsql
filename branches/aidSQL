@@ -7,6 +7,8 @@
 	 *
 	 */
 
+	
+	dl("./bin/curl.la");
 	set_include_path("lib/aidSQL/".PATH_SEPARATOR.get_include_path());
 
 	define ("__CLASSPATH","lib/aidsql/class");
