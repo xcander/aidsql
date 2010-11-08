@@ -1,6 +1,6 @@
 <?php
 
-	namespace aidsql\webservice {
+	namespace aidSQL\http\webservice {
 
 		class Bing{
 
@@ -10,7 +10,7 @@
 			private	$_hosts			=	array();
 			private	$_maxPages		=	10;
 			
-			public function setLog(\LogInterface &$log){
+			public function setLog(\aidSQL\LogInterface &$log){
 				$this->_log	=	$log;
 			}
 
@@ -28,7 +28,7 @@
 				return $this->_maxPages;
 			}
 
-			public function __construct(\HttpAdapter &$adapter,\LogInterface &$log=NULL){
+			public function __construct(\aidSQL\http\Adapter &$adapter,\aidSQL\LogInterface &$log=NULL){
 
 				if(!is_null($log)){
 					$this->setLog($log);
@@ -38,7 +38,7 @@
 
 			}
 
-			public function setHttpAdapter(\HttpAdapter $adapter){
+			public function setHttpAdapter(\aidSQL\http\Adapter $adapter){
 				$this->_httpAdapter	=	$adapter;
 			}
 
