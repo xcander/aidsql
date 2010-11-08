@@ -1,14 +1,14 @@
-#!./bin/php
+#!/usr/bin/php
 <?php
 
+	namespace aidSQL;
+	
 	/**
 	 * @todo Implement spl_autoload
 	 * @todo Analyze script performance with xdebug
 	 *
 	 */
 
-	
-	dl("./bin/curl.la");
 	set_include_path("lib/aidSQL/".PATH_SEPARATOR.get_include_path());
 
 	define ("__CLASSPATH","lib/aidsql/class");
@@ -38,36 +38,37 @@
 	}
 
 	//Interfaces
-	require_once	"interface/Parser.interface.php";
-	require_once	"interface/Logger.interface.php";
-	require_once	"interface/http/Adapter.interface.php";
-	require_once	"interface/plugin/Injection.interface.php";
-	require_once	"interface/plugin/Disclosure.interface.php";
+	require	"interface/Parser.interface.php";
+	require	"interface/Log.interface.php";
+	require	"interface/http/Adapter.interface.php";
+	require	"interface/plugin/Injection.interface.php";
+	require	"interface/plugin/Disclosure.interface.php";
 
 	//Classes
-	require_once	"class/core/String.class.php";
-	require_once	"class/core/File.class.php";
-	require_once	"class/core/Runner.class.php";
-	require_once	"class/core/PluginLoader.class.php";
-	require_once	"class/core/InjectionPlugin.class.php";
-	require_once	"class/log/StdLog.class.php";
-	require_once	"class/http/adapter/Ecurl.class.php";
-	require_once	"class/http/crawler/Crowley.class.php";
-	require_once	"class/http/webservice/bing/Bing.class.php";
-	require_once	"class/http/webservice/google/Google.class.php";
-	require_once	"config/config.php";
+	require	"class/core/String.class.php";
+	require	"class/core/File.class.php";
+	require	"class/core/Runner.class.php";
+	require	"class/core/PluginLoader.class.php";
+	require	"class/core/InjectionPlugin.class.php";
+	require	"class/log/StdLog.class.php";
+	require	"class/http/adapter/Ecurl.class.php";
+	require	"class/http/crawler/Crowley.class.php";
+	require	"class/http/webservice/bing/Bing.class.php";
+	require	"class/http/webservice/google/Google.class.php";
+	require	"config/config.php";
 	
 	//Parsers
-	require_once	"class/parser/CmdLine.class.php";
-	require_once	"class/parser/Nmap.class.php";
+	require	"class/parser/CmdLine.class.php";
+	require	"class/parser/Nmap.class.php";
 
 	//Functions
-	require_once	"functions/launcher.functions.php";
+	require	"functions/launcher.functions.php";
 
-	$logger	=	new aidSQL\logger\stdLog();
-	$logger->setEcho(TRUE);
+	$log	=	new Log\StdLog();
+	$log->setEcho(TRUE);
+	$log->setPrepend("[aidSQL]");
 
-	banner($logger);
+	banner($log);
 
 	try {
 
@@ -77,14 +78,14 @@
 		$links			=	array();
 
 		$parameters		=	mergeConfig($_SERVER["argv"],"etc/aidSQL.conf");
-		$cmdParser		=	new aidSQL\parser\CmdLine($config,$parameters);
+		$cmdParser		=	new parser\CmdLine($config,$parameters);
 		$parsedOptions	=	$cmdParser->getParsedOptions();
 
 		if(isset($parsedOptions["log-save"])){
-			$logger->setFilename($parsedOptions["log-save"]);
+			$log->setFilename($parsedOptions["log-save"]);
 		}
 
-		$logger->setColors($parsedOptions["colors"]);
+		$log->setColors($parsedOptions["colors"]);
 
 		if(!empty($parsedOptions["url"])){
 			$sites[0]	=	$parsedOptions["url"]; 
@@ -92,8 +93,9 @@
 
 		//Instance of the http adapter, shared by aggregation through all classes
 
-		$httpAdapter	= 	new $parsedOptions["http-adapter"]();
-
+		$Adapter			=	"\\aidSQL\\http\\Adapter\\".$parsedOptions["http-adapter"];
+		$httpAdapter	=	new $Adapter();
+		
 		if(isset($parsedOptions["connect-timeout"])){
 
 			$httpAdapter->setConnectTimeout($parsedOptions["connect-timeout"]);
@@ -105,7 +107,7 @@
 		}
 
 		if(isset($parsedOptions["log-prepend-date"])){
-			$logger->useLogDate($parsedOptions["log-prepend-date"]);
+			$log->useLogDate($parsedOptions["log-prepend-date"]);
 		}
 
 		//Check if youre bored and you just want to rule the world (?)
@@ -113,7 +115,7 @@
 
 		if(in_array("google",array_keys($parsedOptions))){
 
-			$google	=	new aidsql\webservice\Google($httpAdapter,$logger);
+			$google	=	new aidsql\webservice\Google($httpAdapter,$log);
 			$google->setQuery($parsedOptions["google"]);
 
 			(isset($parsedOptions["google-language"])) ? $google->setLanguage($parsedOptions["google-language"]) : NULL;
@@ -131,23 +133,20 @@
 
 		if(isset($parsedOptions["omit-sites"])){
 
-			filterSites($sites,$logger,$parsedOptions["omit-sites"]);
+			filterSites($sites,$log,$parsedOptions["omit-sites"]);
 
 		}
 
-		$logger->setPrepend("");
 
 		//Check if url vars where passed,if not, we crawl the url
 		/////////////////////////////////////////////////////////////////
 
 		if(!in_array("urlvars",array_keys($parsedOptions))){
 
-			$logger->setPrepend("[Crawler]");
-
 			$httpAdapter->setMethod($parsedOptions["http-method"]);
 
 			if(!sizeof($sites)){
-				$logger->log("No sites :(!",1,"red");
+				$log->log("No sites :(!",1,"red");
 				exit(1);
 			}
 
@@ -155,7 +154,8 @@
 
 				$httpAdapter->setUrl($site);
 
-				$crawler			=	new aidSQL\crawler\Crowley($httpAdapter,$logger);
+				$crawlerName	=	"aidSQL\\http\\crawler\\$parsedOptions[crawler]";
+				$crawler			=	new $crawlerName($httpAdapter,$log);
 
 				if(isset($parsedOptions["lpp"])){
 
@@ -196,12 +196,8 @@
 				//Takes away all crawled links without any parameters (useless to us ... to this date)
 				filterLinksWithoutParameters($links);
 
-				$logger->setPrepend("[aidSQL]");
-
 				//Test crawled links
-				testLinks($links,$httpAdapter,$cmdParser,$logger);
-
-				$logger->setPrepend("");
+				testLinks($links,$httpAdapter,$cmdParser,$log);
 
 			}
 
@@ -214,20 +210,19 @@
 
 		}
 
-	}catch(Exception $e){
+	}catch(\Exception $e){
 
-		$logger->log($e->getMessage(),1,"light_red");
+		$log->log($e->getMessage(),1,"light_red");
 		//echo $e->getTraceAsString()."\n";
-		usageShort($logger);
+		usageShort($log);
 
 	}
 
 	if(!sizeof($links)){
 
-		$logger->setPrepend("");
-		$logger->log("Not enough links / No valid links (i.e no parameters) to perform injection :(",1,"red");
+		$log->log("Not enough links / No valid links (i.e no parameters) to perform injection :(",1,"red");
 		exit(1);
 
 	}
 	
-	testLinks($links,$httpAdapter,$cmdParser,$logger);
+	testLinks($links,$httpAdapter,$cmdParser,$log);

@@ -20,7 +20,7 @@
 			protected $_dbUser							=	NULL;
 
 
-			public final function __construct(\HttpAdapter $adapter,\LogInterface &$log=NULL){
+			public final function __construct(\aidSQL\http\Adapter $adapter,aidSQL\LogInterface &$log=NULL){
 
 				if(!$adapter->getRequestVariables()){
 					throw(new \Exception("Unable to perform injection without any request variables set in the http adapter!"));
@@ -36,7 +36,7 @@
 
 			/* Wrapper */
 
-			public function setLog(\aidSQL\logger\LogInterface &$log){
+			public function setLog(\aidSQL\LogInterface &$log){
 				$this->_log = $log;
 			}
 
@@ -90,7 +90,7 @@
 
 			}
 
-			public function setHttpAdapter(HttpAdapter $adapter){
+			public function setHttpAdapter(aidSQL\http\Adapter $adapter){
 				$this->_httpAdapter = $adapter;
 			}
 

@@ -5,8 +5,8 @@
 		interface InjectionPluginInterface {
 
 			public function getPluginName();
-			public function setLog(\LogInterface &$log);	//Log setter
-			public function log($msg=NULL);					//Log wrapper
+			public function setLog(\aidSQL\LogInterface &$log);	//Log setter
+			public function log($msg=NULL);				//Log wrapper
 			public function select();
 			public function count();
 			public function setTable();
@@ -18,7 +18,7 @@
 			public function getVersion();
 			public function isVulnerable();
 			public function isRoot($dbUser=NULL);
-			public function getShell(\InformationPlugin $plugin);
+			public function getShell(\aidSQL\core\PluginLoader &$ploader);
 			public function setStringEscapeCharacter($escape);
 			public function getStringEscapeCharacter();
 			public function setQueryConcatenationCharacter($concatChar);
@@ -35,6 +35,7 @@
 			public function getVerbose();
 			public function setParser(\aidSQL\parser\ParserInterface $parser);
 			public function getParser();
+			public function getAffectedDatabases();
 
 		}
 

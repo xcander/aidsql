@@ -1,6 +1,6 @@
 <?php
 
-	namespace aidSQL {
+	namespace aidSQL\core {
 
 		class PluginLoader {
 			
@@ -8,7 +8,7 @@
 			private	$_pluginsDir	=	NULL;
 			private	$_plugins		=	array();
 
-			public function __construct($pluginsDir=NULL,\LogInterface &$log=NULL){
+			public function __construct($pluginsDir=NULL,\aidSQL\LogInterface &$log=NULL){
 
 				if(!is_null($log)){
 					$this->setLog($log);
@@ -80,24 +80,22 @@
 						$name	= $this->_normalizePluginName($plugin);
 
 						$_plugin = array(
-							"path"=>dirname($plugin),
-							"file"=>basename($plugin),
-							"name"=>$name
+							"file"=>new \aidSQL\core\File($plugin),
+							"name"=>$name,
+							"type"=>$t
 						);
 
-						$plugins[$t][]	=	$_plugin;
+						$plugins[]	=	$_plugin;
 
 					}
 
 				}
 
-				$this->log("Done!",0,"white");
-
 				return $this->_plugins	=	$plugins;
 
 			}
 
-			public function setLog(\LogInterface &$log){
+			public function setLog(\aidSQL\LogInterface &$log){
 				$this->_log	=	$log;
 			}
 
@@ -115,34 +113,74 @@
 
 			}
 
-			public function load ($load=array()){
+			public function loadType($type=NULL){
 
-				$plugins		=	$this->_plugins;
+				$flag	=	FALSE;
 
-				if(!sizeof($plugins)){
-					throw(new \Exception("Cant load plugins because no plugins where specified!"));
-				}
+				foreach($this->_plugins as $plugin){
 
-				$pluginsDir	=	$this->_pluginsDir;
-
-				foreach($plugins as $type=>$plugin){
-
-					$dir	=	$pluginsDir.DIRECTORY_SEPARATOR.$type.DIRECTORY_SEPARATOR;
-
-					foreach($plugin as $p){
-
-						$this->log("Loading plugin $type => $p[name] ...",0,"white");
-
-						require_once $p["path"].DIRECTORY_SEPARATOR.$p["file"];
-
+					if($plugin["type"]==$type){
+						$flag = TRUE;
+						$this->load($plugin);
 					}
 
 				}
 
+				throw(new \Exception("There where no plugins of type \"$type\" to be loaded!"));
+
+				return $flag;
+
+			}
+
+			public function load (Array $plugin){
+	
+				if(!isset($plugin["file"])&& !is_a($plugin["file"],"\\aidSQL\\core\\File")){
+
+					throw(new \Exception("Couldnt load plugin because it doesnt contains a valid \\aidSQL\\core\\File instance!"));
+				}
+
+				$fileObj	=	$plugin["file"];
+				$load		=	$fileObj->getFile();
+
+				$index	=	$this->getPluginIndex($plugin["type"],$plugin["name"]);
+
+				if($index===FALSE){
+					throw(new \Exception("ERROR OBTAINING PLUGIN INDEX!"));
+				}
+
+				if(isset($this->_plugins[$index]["loaded"])){
+					$this->log("Load $plugin[type] => $plugin[name] ... PVL ",0,"light_green");
+					return TRUE;
+				}
+
+				if((include $load)){
+
+					$this->_plugins[$index]["loaded"]	=	TRUE;
+					$this->log("Load $plugin[type] => $plugin[name] ... OK ",0,"light_green");
+					return TRUE;
+
+				}
+
+				$this->log("Load $plugin[type] => $plugin[name] ... ERROR!",0,"red");
+				return FALSE;
+
+			}
+
+			private function getPluginIndex($type,$name){
+
+				foreach($this->_plugins as $key=>$plugin){
+
+					if($plugin["name"]==$name && $plugin["type"]==$type){
+						return $key;
+					}
+
+				}
+
+				return FALSE;
+
 			}
 
 			private function isValidPlugin(Array $plugin=array()){
-
 
 				$type =	key($plugin);
 				$name	=	$plugin[$type];
