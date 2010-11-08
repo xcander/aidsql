@@ -19,9 +19,14 @@
 			private	$_terminatingPayloads		=	array("LIMIT 1,1", " ORDER BY 1", "LIMIT 1,1 ORDER BY 1");
 			private	$_currTerminatingPayload	=	NULL;
 			private	$_commentPayloads				=	array("/*","--","#");
+			private	$_affectedDatabases			=	array("mysql5");
 
 			public function getPluginName(){
 				return self::PLUGIN_NAME;
+			}
+
+			public function getAffectedDatabases(){
+				return $this->_affectedDatabases;
 			}
 
 			/**
@@ -537,8 +542,25 @@
 
 			}
 
-			public function getShell(\InformationPlugin $plugin){
-				return TRUE;
+			public function getShell(\aidSQL\core\PluginLoader &$pLoader){
+
+				$plugins	=	$pLoader->getPlugins();
+
+				foreach($plugins as $plugin){
+
+					if($plugin["type"]!="disclosure"){
+						continue;
+					}
+
+					$pLoader->load($plugin);
+
+					$disclosurePlugin	=	"\\aidSQL\\plugin\\disclosure\\$plugin[name]";
+					$disclosurePlugin	=	new $disclosurePlugin($this->_httpAdapter,$this->_log);
+
+					$discloserPlugin->getInfo();
+
+				}
+
 			}
 
 		}

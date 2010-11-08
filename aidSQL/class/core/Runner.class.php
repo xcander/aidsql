@@ -1,6 +1,6 @@
 <?php
 
-	namespace aidSQL {
+	namespace aidSQL\core {
 
 		class Runner{
 
@@ -11,7 +11,7 @@
 			private	$_options		=	array();
 			private	$_pLoader		=	NULL;			//Plugin Loader Instance
 
-			public function __construct(parser\CmdLine $parser,\HttpAdapter &$adapter,logger\LogInterface &$log=NULL){
+			public function __construct(\aidSQL\parser\CmdLine $parser,\aidSQL\http\Adapter &$adapter,\aidSQL\LogInterface &$log=NULL){
 
 				if(!is_null($log)){
 					$this->setLog($log);
@@ -20,7 +20,7 @@
 				$options				=	$parser->getParsedOptions();
 				$this->_options	=	$options;
 
-				$this->_pLoader	=	new PluginLoader($options["plugins-dir"]);
+				$this->_pLoader	=	new PluginLoader($options["plugins-dir"],$log);
 				$this->_pLoader->listPlugins();
 
 				$this->setHttpAdapter($adapter);
@@ -28,7 +28,7 @@
 
 			}
 
-			public function setHttpAdapter(\HttpAdapter &$httpAdapter){
+			public function setHttpAdapter(\aidSQL\http\Adapter &$httpAdapter){
 
 				$this->_httpAdapter = $httpAdapter;
 
@@ -40,13 +40,14 @@
 
 			}
 
-			public function setLog(logger\LogInterface &$log){
+			public function setLog(\aidSQL\LogInterface &$log){
 				$this->_log = $log;
 			}
 
 			private function log($msg=NULL){
 
 				if(!is_null($this->_log)){
+					$this->_log->setPrepend('['.__CLASS__.']');
 					call_user_func_array(array($this->_log, "log"),func_get_args());
 					return TRUE;
 				}
@@ -63,15 +64,19 @@
 
 				$plugins	=	$this->_pLoader->getPlugins();
 
-				foreach($plugins["sqli"] as $plugin){
+				foreach($plugins as $plugin){
 
-					$this->_pLoader->load($plugin["name"]);
+					if($plugin["type"]!="sqli"){
+						continue;
+					}
+
+					$this->_pLoader->load($plugin);
 
 					$plugin	=	"aidSQL\\plugin\\sqli\\$plugin[name]";
 					$plugin	=	new $plugin($this->_httpAdapter);
 					$plugin->setLog($this->_log);
 
-					$this->log("Testing ".get_class($plugin)." injection plugin...");
+					$this->log("Testing ".get_class($plugin)." sql injection plugin...",0,"white");
 
 					if($plugin->isVulnerable()){
 
@@ -121,12 +126,12 @@
 
 					$this->log("IS ROOT\t:\tYES",0,"white");
 					$this->log("Trying to get Shell ...",1,"light_green");
-					die();
 
 					//Getshell method must return FALSE on error or String path/to/shellLocation
-					$shellLocation = $plugin->getShell();
 
-					if($shellLocation){
+					$g0tShell = $plugin->getShell($this->_pLoader);
+
+					if($g0tShell){
 						$this->log("Got Shell!",1,"light_green");
 					}
 
@@ -187,8 +192,8 @@
 
 			}
 
-			private function addInjectionPlugin(\aidSQL\plugin\InjectionPluginInterface $plugin){
-
+			private function addInjectionPlugin(\aidSQL\plugin\sqli\InjectionPluginInterface $plugin){
+				$this->log("Adding injection plugin $plugin");
 				$this->_injectionPlugins[] = $plugin;
 
 			}

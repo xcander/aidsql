@@ -124,6 +124,8 @@
 		"plugin-phpinfo"=>array(
 		),
 		"plugins-dir"=>array(
+		),
+		"crawler"=>array(
 		)
 
 	);
