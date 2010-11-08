@@ -1,8 +1,8 @@
 <?php
 
-	namespace aidsql\logger {
+	namespace aidSQL {
 
-		class StdLog implements LogInterface {
+		class stdLog implements LogInterface {
 
 			/**
 			 * @var $colors Array Different colors for console output

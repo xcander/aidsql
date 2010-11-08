@@ -1,5 +1,5 @@
 <?php
-	namespace aidSQL\logger {
+	namespace aidSQL {
 
 		interface LogInterface {
 			public function log($msg=NULL);

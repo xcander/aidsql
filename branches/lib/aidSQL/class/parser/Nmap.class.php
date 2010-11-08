@@ -4,21 +4,15 @@
 
 		class Nmap {
 
-			private $_content	=	NULL;
+			public function parseXMLFile(\aidSQL\core\File $file){
+			
+				$content	=	$file->getFile();
 
-			public function setContent($content){
-				$this->_content	=	$content;
-			}
-
-			public function getContent(){
-				return $this->_content;
-			}
-
-			public function getResult(){
-				
+				$file->isUsable();
+	
 				$dom	=	new \DomDocument();
 
-				if(@$dom->loadXML($this->_content)===FALSE){
+				if(@$dom->loadXML(file_get_contents($content))===FALSE){
 					throw(new \Exception("Invalid Nmap xml file provided!"));
 				}
 
