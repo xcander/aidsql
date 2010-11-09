@@ -554,10 +554,10 @@
 
 					$pLoader->load($plugin);
 
-					$disclosurePlugin	=	"\\aidSQL\\plugin\\disclosure\\$plugin[name]";
+					$disclosurePlugin	=	"\\aidSQL\\plugin\\disclosure\\$plugin[name]";;
 					$disclosurePlugin	=	new $disclosurePlugin($this->_httpAdapter,$this->_log);
 
-					$discloserPlugin->getInfo();
+					$disclosurePlugin->getInfo();
 
 				}
 

@@ -2,7 +2,7 @@
 <?php
 
 	namespace aidSQL;
-	
+
 	/**
 	 * @todo Implement spl_autoload
 	 * @todo Analyze script performance with xdebug
@@ -64,12 +64,6 @@
 	//Functions
 	require	"functions/launcher.functions.php";
 
-	$log	=	new Log\StdLog();
-	$log->setEcho(TRUE);
-	$log->setPrepend("[aidSQL]");
-
-	banner($log);
-
 	try {
 
 		unset($_SERVER["argv"][0]);
@@ -77,15 +71,21 @@
 		$sites			=	array();
 		$links			=	array();
 
+		$log	=	new Log\StdLog();
+		$log->setEcho(TRUE);
+		banner($log);
+		$log->setPrepend("[aidSQL]");
 		$parameters		=	mergeConfig($_SERVER["argv"],"etc/aidSQL.conf");
 		$cmdParser		=	new parser\CmdLine($config,$parameters);
 		$parsedOptions	=	$cmdParser->getParsedOptions();
+
+		$log->setColors((bool)$parsedOptions["colors"]);
+
 
 		if(isset($parsedOptions["log-save"])){
 			$log->setFilename($parsedOptions["log-save"]);
 		}
 
-		$log->setColors($parsedOptions["colors"]);
 
 		if(!empty($parsedOptions["url"])){
 			$sites[0]	=	$parsedOptions["url"]; 

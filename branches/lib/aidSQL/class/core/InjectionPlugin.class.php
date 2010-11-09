@@ -10,8 +10,8 @@
 			private $_queryCommentClose				=	NULL;
 			private $_table								=	NULL;
 			private $_verbose								=	FALSE;
-			private $_log									=	NULL;
-
+			
+			protected $_log								=	NULL;
 			protected $_httpAdapter						=	NULL;
 			protected $_httpCode							=	NULL;
 			protected $_affectedVariable				=	Array();
