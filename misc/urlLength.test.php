@@ -2,14 +2,14 @@
 
 	ini_set("memory_limit",-1);
 
-	require_once "interface/HttpAdapter.interface.php";
-	require_once "class/http/eCurl.class.php";
+	require_once "lib/aidSQL/interface/http/Adapter.interface.php";
+	require_once "lib/aidSQL/class/http/adapter/Ecurl.class.php";
 	
 
 	$url	= $_SERVER["argv"][1];
 	$length	= $_SERVER["argv"][2];
 
-	$http = new eCurl();
+	$http = new \aidSQL\http\adapter\Ecurl();
 	$http->setMethod("GET");
 
 	$value="";
@@ -18,13 +18,11 @@
 		$value.="%00";
 	}
 
-	//$url = rtrim($url,"/")."/".$value;
+	$url = rtrim($url,"/")."/".$value;
 
-	$http->setUrl($url);
-	$http->addRequestVariable($_SERVER["argv"][3],$_SERVER["argv"][4].$value);
-	$http->addRequestVariable("test","penis");
+	echo "URL:".$url."\n";
+	$http->setUrl($url.$value);
 
-	echo $url."\n";
 
 	echo "Making request\n";
 	var_dump($http->fetch());
