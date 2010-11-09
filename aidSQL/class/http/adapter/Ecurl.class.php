@@ -84,7 +84,7 @@
 				$port = (int)$port;
 
 				if(!$port){
-					throw(new Exception("Invalid proxy port specified"));
+					throw(new \Exception("Invalid proxy port specified"));
 				}
 
 				$this->proxy["port"] = $port;
@@ -140,7 +140,7 @@
 						$this->proxy["auth"] = $auth;
 					break;
 					default:
-							throw(new Exception("Invalid authentication method ->$auth<-"));
+							throw(new \Exception("Invalid authentication method ->$auth<-"));
 						break;
 				}
 
@@ -158,7 +158,7 @@
 					break;
 
 					default:
-							throw(new Exception("Invalid proxy type specified ->$type<- should be http or socks5"));
+							throw(new \Exception("Invalid proxy type specified ->$type<- should be http or socks5"));
 					break;
 
 				}
@@ -198,7 +198,7 @@
 
 					default:
 						$msg = "Invalid method specified -> ". var_export ($method) ." <-, method can only be one of POST or GET";
-						throw (new Exception($msg));
+						throw (new \Exception($msg));
 						break;
 
 				}
@@ -221,7 +221,7 @@
 
 				if (is_null($url)||empty($url)){
 
-					throw (new Exception('The specified URL was NULL or empty'));
+					throw (new \Exception('The specified URL was NULL or empty'));
 
 				}
 
@@ -290,7 +290,7 @@
 
 				if(is_null($this->handler)){
 
-					throw (new Exception("Could not set option $option, there's no cURL handler set!"));
+					throw (new \Exception("Could not set option $option, there's no cURL handler set!"));
 
 				}
 
@@ -450,7 +450,7 @@
 
 				if($error){
 
-					throw (new Exception($error));
+					throw (new \Exception($error));
 
 				}
 

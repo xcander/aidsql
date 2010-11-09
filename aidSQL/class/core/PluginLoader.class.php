@@ -137,6 +137,7 @@
 				if(!isset($plugin["file"])&& !is_a($plugin["file"],"\\aidSQL\\core\\File")){
 
 					throw(new \Exception("Couldnt load plugin because it doesnt contains a valid \\aidSQL\\core\\File instance!"));
+
 				}
 
 				$fileObj	=	$plugin["file"];
@@ -148,15 +149,20 @@
 					throw(new \Exception("ERROR OBTAINING PLUGIN INDEX!"));
 				}
 
-				if(isset($this->_plugins[$index]["loaded"])){
+				$pluginConstant	=	"__aidSQL_PLUGIN_".strtoupper($plugin["type"]).
+				'_'.strtoupper($plugin["name"])."__";
+
+				if(defined($pluginConstant)){
+
 					$this->log("Load $plugin[type] => $plugin[name] ... PVL ",0,"light_green");
 					return TRUE;
+					
 				}
 
-				if((include $load)){
+				if(include $load){
 
-					$this->_plugins[$index]["loaded"]	=	TRUE;
 					$this->log("Load $plugin[type] => $plugin[name] ... OK ",0,"light_green");
+					define($pluginConstant,TRUE);
 					return TRUE;
 
 				}

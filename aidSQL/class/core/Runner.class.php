@@ -118,9 +118,10 @@
 
 				$this->log("BASIC INFORMATION",0,"cyan");
 				$this->log("---------------------------------",0,"white");
-				$this->log("PLUGIN\t:\t".$plugin->getPluginName(),0,"cyan");
-				$this->log("DBASE\t:\t$database",0,"white");
-				$this->log("USER\t:\t$dbuser",0,"white");
+				$this->log("PLUGIN\t\t:\t".$plugin->getPluginName(),0,"cyan");
+				$this->log("DBASE\t\t:\t$database",0,"white");
+				$this->log("USER\t\t:\t$dbuser",0,"white");
+				$this->log("TABLES\t\t:\t$dbtables",0,"white");
 
 				if($plugin->isRoot($dbuser)){
 
