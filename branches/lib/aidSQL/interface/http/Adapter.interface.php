@@ -21,6 +21,7 @@
 			public function setProxyAuth($auth);
 			public function setProxyType($type);
 			public function getHttpCode();
+			public function setLog(\aidSQL\LogInterface &$log);
 	
 		}
 

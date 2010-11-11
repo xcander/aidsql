@@ -134,8 +134,8 @@
 
 			public function setQueryCommentOpen($commentOpen=NULL){
 
-				if(empty($commentOpen)){
-					throw(new Exception("Query comment open character cannot be empty!"));
+				if(is_null($commentOpen)){
+					throw(new \Exception("Query comment open character cant be null!"));
 				}
 
 				$this->_queryCommentOpen = $commentOpen;
@@ -148,8 +148,8 @@
 
 			public function setQueryCommentClose($commentClose=NULL){
 
-				if(empty($commentClose)){
-					throw(new Exception("Query comment close character cannot be empty!"));
+				if(is_null($commentClose)){
+					throw(new Exception("Query comment close character cant be NULL!"));
 				}
 
 				$this->_queryCommentClose = $commentClose;

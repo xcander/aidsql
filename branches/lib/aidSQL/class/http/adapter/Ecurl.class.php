@@ -17,6 +17,7 @@
 			private		$requestInterval	= 0;
 			private		$method				= NULL;
 			private		$transferInfo		= NULL;
+			private		$connectRetry		=	20;	//Put in config and interfaces!!!!!
 
 			private		$proxy				= array(
 				"server"		=>NULL,
@@ -27,6 +28,8 @@
 				"type"		=>"HTTP",
 				"tunnel"		=>0
 			);
+
+			private		$log					=	NULL;
 
 			public function __construct($url=NULL,$setCurlDefaults=TRUE){
 
@@ -42,6 +45,20 @@
 
 				}
 
+			}
+
+			public function setConnectRetry($int=20){
+
+				if(!is_int($int)){
+					throw(new \Exception("Connect retry should be an integer"));
+				}
+
+				$this->connectRetry	=	$int;	
+
+			}
+
+			public function getConnectRetry($int=20){
+				return $this->connectRetry;
 			}
 
 			public function setConnectTimeout($timeout=0){
@@ -441,12 +458,25 @@
 					sleep($this->requestInterval);
 				}
 
-				$content					= curl_exec($this->handler);
-				$this->transferInfo	= curl_getinfo($this->handler);
+				$connect	=	0;
 
-				$this->setContent($content);
+				do{
 
-				$error = curl_error($this->handler);
+					$content					= curl_exec($this->handler);
+					$this->transferInfo	= curl_getinfo($this->handler);
+
+					$this->setContent($content);
+
+					$errno	=	curl_errno($this->handler);
+					$error	=	curl_error($this->handler);
+					$connect++;
+
+					if($connect>0&&$errno){
+						$this->log("$error, attempting reconnect ... $connect",1,"red");
+					}
+
+				} while($connect < $this->connectRetry && $errno > 0);
+
 
 				if($error){
 
@@ -475,6 +505,25 @@
 				}
 
 				return NULL;
+
+			}
+
+			public function setLog(\aidSQL\LogInterface &$log){
+
+				$this->_log=$log;
+
+			}
+
+			public function log($msg = NULL){
+
+				if(!is_null($this->_log)){
+
+					$this->_log->setPrepend("[".get_class($this)."]");
+					call_user_func_array(array($this->_log, "log"),func_get_args());
+					return TRUE;
+				}
+
+				return FALSE;
 
 			}
 

@@ -95,6 +95,7 @@
 
 		$Adapter			=	"\\aidSQL\\http\\Adapter\\".$parsedOptions["http-adapter"];
 		$httpAdapter	=	new $Adapter();
+		$httpAdapter->setLog($log);
 		
 		if(isset($parsedOptions["connect-timeout"])){
 
