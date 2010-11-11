@@ -44,51 +44,107 @@
 
 				$this->getBaseURL();
 
-				//Attempt to generate a 404 request
+				$info	=	array("error"=>NULL,"http_code"=>NULL);
 
-				$_404 = $this->generate404();
+				$info = $this->generate404(); //Attempt to generate a 404 request
 
-				if(sizeof($_404)){
+				if(empty($info["error"])&&$info["http_code"]==200){
 
-					$info	=	$_404;
+					$info["mod_rewrite"] = TRUE;
 
-				}else{
+					$extensions	=	array("jpeg","html","php","phtml","cgi");
 
-					//Attempt to generate a 512 request
-					$_512 = $this->generate512();
-					$info	=	$_512;
+					foreach($extensions as $ext){
 
-				}
+						$info	=	$this->generate404(".".$ext);	//Try to generate 404 (URI Length exceeded)
 
-				if(sizeof($info)){
-
-					$isApache	=	FALSE;
-
-					foreach($info as $inf){
-
-						$this->log("Got information $inf!",0,"light_green");
-
-						if(preg_match("#apache#i",$inf)){
-
-							$this->log("Server *seems* to be Apache",0,"light_green");
-							$isApache	=	TRUE;
-
+						if($info["error"]){
+							break;
 						}
 
 					}
 
-					if(!$isApache){
+				}
+
+
+				if(!$info["error"]){
+					$info	=	$this->generate414();	//Try to generate 414 (URI Length exceeded)
+				}
+
+				$apacheInfo	=	array();
+
+				if($info["error"]){
+
+					$this->log("Got banner $info[error]",0,"light_green");
+
+					if(preg_match("#apache#i",$info["error"])){
+
+						$this->log("Server *seems* to be Apache",0,"light_green");
+						$apacheInfo["version"]	=	$this->getApacheVersion($info["error"]);
+						$apacheInfo["os"]			=	$this->getOperatingSystem($info["error"]);
+
+					}else{
 
 						$this->log("Unfortunately this server seems not to be Apache :(",2,"yellow");
-						return FALSE;
 
 					}
 
+				}else{
+
+					$this->log("Couldnt disclose any information regarding to Apache :/",2,"yellow");
+
 				}
+
+				return $apacheInfo;
 
 			}
 
-			public function getOperatingSystem(){
+			public function getApacheVersion($info){
+
+				$token	=	strtok($info," ");
+				$version	=	FALSE;
+
+				while($token!==FALSE){
+
+					$pos	=	strpos($token,"/");
+
+					if($pos!==FALSE){
+
+						$version	=	substr($token,$pos+1);
+						break;
+
+					}
+
+					$token = strtok(" ");
+
+				}
+	
+				return $version;
+
+			}
+
+			public function getOperatingSystem($info){
+
+				$token	=	strtok($info," ");
+				$OS		=	FALSE;
+
+				while($token!==FALSE){
+
+					$pos	=	strpos($token,"(");
+					$pos2	=	strpos($token,")");
+
+					if($pos!==FALSE&&$pos2!==FALSE){
+
+						$OS	=	substr($token,$pos+1,$pos2-1);
+						break;
+
+					}
+
+					$token = strtok(" ");
+
+				}
+	
+				return $OS;
 
 			}
 
@@ -100,93 +156,111 @@
 
 				$url	=	$this->_httpAdapter->getUrl();
 
+				if(empty($url)){
+					throw(new \Exception("Cannot disclose Apache information with an adapter that has no URL set!"));
+				}
+
 				return $this->_url	=	substr($url,strpos($url,"/")+2);
 
 			}
 
-			public function generate404(){
+			public function generate404($extension=NULL){
 
 				$url	=	$this->getBaseUrl();
 
-				$this->log("Trying to generate 404 (NOT FOUND)",0,"white");
-				$this->_httpAdapter->setUrl("http://".$url."/".md5(rand(0,time())));
+				$this->log("Trying to generate 404 (Not Found)",0,"white");
+				$fakeUrl	=	"http://".$url."/".substr(md5(rand(1,time())),0,rand(0,32));
 
-				$result	=	array();
+				if(!is_null($extension)){
+					$fakeUrl.=$extension;
+				}
 
-				if($this->_httpAdapter->getHttpCode()=="404"){	//Who knows!
-					
+				$this->log("Setting URL to $fakeUrl");
+
+				$this->_httpAdapter->setUrl($fakeUrl);
+
+				$result	=	FALSE;
+
+				$this->_httpAdapter->fetch();
+
+				$httpCode	=	$this->_httpAdapter->getHttpCode();
+
+				if($httpCode == 404){
+
+					$this->log("Got 404 :)",0,"light_cyan");
 					$result = $this->parseError($this->_httpAdapter->fetch());
+	
+					if($result==FALSE){
+						$this->log("Couldnt get any banner :(",2,"yellow");
+					}
 
 				}else{
 
-					$this->log("You've just won the lottery or something! ".$this->_httpAdapter->getUrl(),2,"yellow");
+					$this->log("Got $httpCode instead of 404 :/",2,"yellow");
 
 				}
-
-				return $result;
+		
+				return array(
+							"error"=>$result,
+							"http_code"=>$httpCode
+				);
 
 			}
 
-			public function generate512(){
+			public function generate414(){
 
 				$url		=	$this->getBaseUrl();
-				$result	=	array();
+				$result	=	FALSE;
 
-				$this->log("Trying to generate 512",0,"white");
+				$this->log("Trying to generate 414 (URI Length Exceeded)",0,"white");
 
-				try{
+				$start	=	mt_rand(1,1000);
 
-					$start	=	1000;
+				while($start < 5000){
 
-					while($start < 5000){
+					$crap		=	\str_repeat("%00", $start);
+					$start	+=	mt_rand(1,100);
 
-						$this->log("Request length $start ...",0,"white");
+					$fakeUrl	=	"http://".$url."/".$crap;
+					$this->_httpAdapter->setUrl($fakeUrl);
+					$this->log("Request length $start ...",0,"white");
+					$this->_httpAdapter->fetch();
 
-						$crap		=	\str_repeat("%00", $start);
-						$start	+=	100;
+					$httpCode	=	$this->_httpAdapter->getHttpCode();
+					$this->log("Got $httpCode instead of 414 :(",2,"yellow");
+					if($httpCode==414){
 
-						$this->_httpAdapter->setUrl("http://".$url."/".md5(rand(0,time())));
-
-						if($this->_httpAdapter->getHttpCode()=="512"){
-							$result = $this->parseError($this->_httpAdapter->fetch());
-							break;
-						}
+						$this->log("Got 414 :)!",0,"light_cyan");
+						$result = $this->parseError($this->_httpAdapter->fetch());
+						break;
 
 					}
 
-
-				}catch(\Exception $e){
-
-					$this->log($e->getMessage(),0,"rojo");
-
 				}
 
-				return $result;
+				return array(
+							"error"=>$result,
+							"http_code"=>$httpCode
+				);
 
 			}
 
 			private function parseError($errorHTML){
 
-				$items	=	array();
-
+				$item		=	FALSE;
 				$dom		=	new \DomDocument();
+
 				$dom->loadHTML($errorHTML);
 				
 				$server	=	$dom->getElementsByTagName("address");
 
 				if($server->length){
 
-					$i = 0;
-
-					while($item	=	$server->item($i++)){
-
-						$items[]	=	$item->nodeValue;
-
-					}
+					$item	=	$server->item(0)->nodeValue;
 
 				}
 
-				return $items;
+				return $item;
 
 			}
 
