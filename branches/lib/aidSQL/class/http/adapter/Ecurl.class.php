@@ -478,7 +478,7 @@
 				} while($connect < $this->connectRetry && $errno > 0);
 
 
-				if($error){
+				if($errno){
 
 					throw (new \Exception($error));
 
