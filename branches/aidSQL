@@ -9,10 +9,6 @@
 	 *
 	 */
 
-	set_include_path("lib/aidSQL/".PATH_SEPARATOR.get_include_path());
-
-	define ("__CLASSPATH","lib/aidsql/class");
-
 	error_reporting(E_ALL);
 
 	function checkPHPVersion(){
@@ -37,6 +33,12 @@
 
 	}
 
+	define ("__CLASSPATH","lib/aidSQL/");
+
+	set_include_path(__CLASSPATH.PATH_SEPARATOR.get_include_path());
+
+
+
 	//Interfaces
 	require	"interface/Parser.interface.php";
 	require	"interface/Log.interface.php";
@@ -51,6 +53,7 @@
 	require	"class/core/PluginLoader.class.php";
 	require	"class/core/InjectionPlugin.class.php";
 	require	"class/log/StdLog.class.php";
+	require	"class/http/Url.class.php";
 	require	"class/http/adapter/Ecurl.class.php";
 	require	"class/http/crawler/Crowley.class.php";
 	require	"class/http/webservice/bing/Bing.class.php";

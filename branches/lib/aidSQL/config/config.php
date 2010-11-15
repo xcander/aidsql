@@ -123,9 +123,9 @@
 		),
 		"plugin-phpinfo"=>array(
 		),
-		"plugins-dir"=>array(
-		),
 		"crawler"=>array(
+		),
+		"classpath"=>array(
 		)
 
 	);
