@@ -17,23 +17,15 @@
 					$this->setLog($log);
 				}
 
-				if(!class_exists("\aidSQL\http\Fuzzer")){	//This shouldnt be here, its just a temporary fix
+				if(!class_exists("\\aidSQL\\http\\Fuzzer")){	//This shouldnt be here, its just a temporary fix
 
 					$class	=	 __CLASSPATH."class".DIRECTORY_SEPARATOR."http".DIRECTORY_SEPARATOR."Fuzzer.class.php";
 					require $class;
 
 				}
 
-				$this->setHttpFuzzer(new \aidSQL\http\Fuzzer($httpAdapter),$log);
+				$this->_httpFuzzer	=	new \aidSQL\http\Fuzzer($httpAdapter,$log);
 
-			}
-
-			public function setHttpFuzzer(\aidSQL\http\Fuzzer &$fuzzer){
-				$this->_httpFuzzer	=	$fuzzer;
-			}
-
-			public function getHttpFuzzer(){
-				return $this->_httpFuzzer;
 			}
 
 			public function setHttpAdapter(\aidSQL\http\Adapter &$httpAdapter){
@@ -60,31 +52,39 @@
 
 			public function getInfo(){
 
-				$info	=	array("error"=>NULL,"http_code"=>NULL);
+				$info		=	$this->_httpFuzzer->generate404(); //Attempt to generate a 404 request
+				$banner	=	NULL;
 
-				$info = $this->_httpFuzzer->generate404(); //Attempt to generate a 404 request
-
-				if(empty($info["error"])&&$info["http_code"]==200){
+				if($info["http_code"]==200){
 
 					$info["mod_rewrite"] = TRUE;
 
+					//Try some extensions that are probably avoided by .htaccess directives in the server :D
 					$extensions	=	array("jpeg","html","php","phtml","cgi");
 
 					foreach($extensions as $ext){
 
 						$info	=	$this->_httpFuzzer->generate404(".".$ext);	//Try to generate 404 (URI Length exceeded)
 
-						if($info["error"]){
-							break;
+						if($info["http_code"]>=400){
+							$banner	=	$info["error"];
 						}
 
 					}
 
-				}
+				}else{
 
-				if(!$info["error"]){
+					if($info["http_code"]>=400){
+						$banner	=	$info["error"];
+					}
+
+				}	
+
+				if(empty($banner)){
 					$info	=	$this->_httpFuzzer->generate414();	//Try to generate 414 (URI Length exceeded)
 				}
+
+				$info["error"]	=	$this->parseError($info["error"]);
 
 				$apacheInfo	=	array();
 
