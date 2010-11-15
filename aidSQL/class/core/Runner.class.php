@@ -20,7 +20,9 @@
 				$options				=	$parser->getParsedOptions();
 				$this->_options	=	$options;
 
-				$this->_pLoader	=	new PluginLoader($options["plugins-dir"],$log);
+				$pluginsDir	=	__CLASSPATH.DIRECTORY_SEPARATOR."class".DIRECTORY_SEPARATOR."plugin";
+
+				$this->_pLoader	=	new PluginLoader($pluginsDir,$log);
 				$this->_pLoader->listPlugins();
 
 				$this->setHttpAdapter($adapter);
