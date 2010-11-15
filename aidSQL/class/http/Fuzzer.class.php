@@ -41,10 +41,12 @@
 
 			public function generate404($extension=NULL){
 
-				$url	=	$this->_httpAdapter->getBaseUrl();
+				$url		=	new \aidSQL\http\Url($this->_httpAdapter->getUrl());
+				$url		=	$url->getScheme()."://".$url->getHost();
+				$result	=	FALSE;
 
 				$this->log("Trying to generate 404 (Not Found)",0,"white");
-				$fakeUrl	=	"http://".$url."/".substr(md5(rand(1,time())),0,rand(0,32));
+				$fakeUrl	=	$url."/".substr(md5(rand(1,time())),0,rand(0,32));
 
 				if(!is_null($extension)){
 					$fakeUrl.=$extension;
@@ -52,19 +54,15 @@
 
 				$this->log("Setting URL to $fakeUrl");
 
-				$this->setUrl($fakeUrl);
+				$this->_httpAdapter->setUrl($fakeUrl);
 
-				$result	=	FALSE;
-
-				$this->fetch();
-
+				$result		=	$this->_httpAdapter->fetch();
 				$httpCode	=	$this->_httpAdapter->getHttpCode();
 
 				if($httpCode>=400){
 
 					$this->log("Got $httpCode :)",0,"light_cyan");
-					$result = $this->parseError($this->_httpAdapter->fetch());
-	
+
 					if($result==FALSE){
 						$this->log("Couldnt get any banner :(",2,"yellow");
 					}
@@ -80,7 +78,9 @@
 
 			public function generate414(){
 
-				$url		=	$this->_httpAdapter->getBaseUrl();
+				$url	=	new \aidSQL\http\Url($this->_httpAdapter->getUrl());
+				$url	=	$url->getScheme()."://".$url->getHost();
+
 				$result	=	FALSE;
 
 				$this->log("Trying to generate 414 (URI Length Exceeded)",0,"white");
@@ -89,20 +89,20 @@
 
 				while($start < 5000){
 
-					$crap		=	\str_repeat("%00", $start);
+					$crap		=	str_repeat("%00", $start);
 					$start	+=	mt_rand(1,100);
 
-					$fakeUrl	=	"http://".$url."/".$crap;
+					$fakeUrl	=	$url."/".$crap;
 					$this->_httpAdapter->setUrl($fakeUrl);
-					$this->log("Request length $start ...",0,"white");
-					$this->_httpAdapter->fetch();
 
+					$this->log("Request length $start ...",0,"white");
+
+					$result		=	$this->_httpAdapter->fetch();
 					$httpCode	=	$this->_httpAdapter->getHttpCode();
 
 					if($httpCode>=400){
 
 						$this->log("Got $httpCode :)!",0,"light_cyan");
-						$result = $this->parseError($this->_httpAdapter->fetch());
 						break;
 
 					}

@@ -17,19 +17,23 @@
 
 			public function parse($url=NULL){
 	
+				if(is_array($url)){
+					throw(new \Exception("Array given when String was required!"));
+				}
+
 				if(empty($url)){
 					throw(new \Exception("URL cant be empty!"));
 				}
 
-				if(is_array($url)){
-					throw(new \Exception("Array given when String was required!"));
-				}
+				$url	= trim($url);
+				$url	= rtrim($url,'/');
 
 				$parsedUrl=array();
 
 				if(!preg_match("#://#",$url)){
 
 					$scheme	=	"http";
+					$url		=	$scheme."://".$url;
 
 				}else{
 
@@ -146,18 +150,18 @@
 
 			}
 
-			private function parseVariables(Array $variables){
+			private function parseVariables(){
 
 				$vars = "";
 
-				foreach ($variables as $k=>$v){
+				foreach ($this->_variables as $k=>$v){
 
 					if (is_null($v)){
 						$vars .= $k . $this->_separator;
 						continue;
 					}
 
-					$vars .= $k . $this->equalityOperator . urlencode($v) . $this->_separator;
+					$vars .= $k . $this->_equalityOperator . urlencode($v) . $this->_separator;
 
 				}
 
@@ -198,7 +202,31 @@
 			}
 
 			public function getQueryAsString(){
-				return $this->_url["query"];
+				return $this->parseVariables();
+			}
+
+			public function getURLAsString($parameters=TRUE){
+
+				$full	=	$this->_url["scheme"]."://".$this->_url["host"].'/'.$this->_url["page"];
+
+				$full	=	trim($full,'/');
+
+				if(sizeof($this->_variables)&&$parameters){
+
+					$full	.=	'?'.$this->parseVariables();
+
+				}
+
+				return $full;
+				
+			}
+
+			public function getURLAsArray(){
+				return $this->_url;
+			}
+
+			public function getVariables(){
+				return $this->_variables;
 			}
 
 		}
