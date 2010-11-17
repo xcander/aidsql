@@ -57,7 +57,7 @@
 			}
 
 			private function _normalizePluginName($plugin){
-				return basename(strtolower(substr($plugin,0,strpos($plugin,"."))));
+				return substr($plugin,strrpos($plugin,"/")+1);
 			}
 
 			public function listPlugins(){
@@ -69,7 +69,7 @@
 
 				foreach($types as $t){
 
-					$list	=	$this->_list($this->_pluginsDir.DIRECTORY_SEPARATOR.$t,"filesnodots");
+					$list	=	$this->_list($this->_pluginsDir.DIRECTORY_SEPARATOR.$t,"dirsnodots");
 
 					if(!sizeof($list)){
 						continue;
@@ -77,7 +77,8 @@
 
 					foreach($list as $plugin){
 
-						$name	= $this->_normalizePluginName($plugin);
+						$name		= $this->_normalizePluginName($plugin);
+						$plugin	.= DIRECTORY_SEPARATOR.ucwords($name).".class.php";
 
 						$_plugin = array(
 							"file"=>new \aidSQL\core\File($plugin),
@@ -133,7 +134,7 @@
 			}
 
 			public function load (Array $plugin){
-	
+
 				if(!isset($plugin["file"])&& !is_a($plugin["file"],"\\aidSQL\\core\\File")){
 
 					throw(new \Exception("Couldnt load plugin because it doesnt contains a valid \\aidSQL\\core\\File instance!"));

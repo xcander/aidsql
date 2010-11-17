@@ -76,6 +76,9 @@
 
 			}
 
+			public function checkUrl(){
+			}
+
 			public function generate414(){
 
 				$url	=	new \aidSQL\http\Url($this->_httpAdapter->getUrl());
