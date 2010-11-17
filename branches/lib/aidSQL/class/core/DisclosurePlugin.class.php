@@ -1,0 +1,57 @@
+<?php
+
+	namespace aidSQL\plugin\disclosure {
+
+		abstract class DisclosurePlugin implements DisclosurePluginInterface {
+
+			protected	$_httpAdapter	=	NULL;
+			private		$_log				=	NULL;
+			protected	$_config			=	NULL;
+
+			final public function __construct(\aidSQL\http\Adapter &$httpAdapter,\aidSQL\parser\CmdLine &$config, \aidSQL\LogInterface &$log=NULL){
+
+				$this->setHttpAdapter($httpAdapter);
+
+				if(!is_null($log)){
+					$this->setLog($log);
+				}
+
+			}
+
+			public function setConfig(\aidSQL\parser\CmdLine &$config){
+				$this->_config	=	$config;
+			}
+
+			public function setHttpAdapter(\aidSQL\http\Adapter &$httpAdapter){
+				$this->_httpAdapter	=	$httpAdapter;
+			}
+
+			public function setLog(\aidSQL\LogInterface &$log){
+				
+				$this->_log = $log;
+
+			}
+
+			protected function log($msg=NULL){
+				
+				if(!is_null($this->_log)){
+					$this->_log->setPrepend('['.__CLASS__.']');
+					call_user_func_array(array($this->_log, "log"),func_get_args());
+					return TRUE;
+				}
+
+				return FALSE;
+
+			}
+
+			public function getInfo(){
+
+				die($config."\n");
+
+			}
+
+		}
+
+	}
+
+?>
