@@ -66,6 +66,10 @@
 
 				$plugins	=	$this->_pLoader->getPlugins();
 
+				if(!sizeof($plugins)){
+					throw (new \Exception("No plugins found!"));
+				}
+
 				foreach($plugins as $plugin){
 
 					if($plugin["type"]!="sqli"){

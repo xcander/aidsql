@@ -13,7 +13,7 @@
 				if(!is_null($file)){
 
 					if(!file_exists($file)){
-						throw (new Exception ("File $file not found!"));
+						throw (new \Exception ("File $file not found!"));
 					}
 
 					$this->_dirname = dirname($file);
