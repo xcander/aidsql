@@ -542,7 +542,7 @@
 
 			}
 
-			public function getShell(\aidSQL\core\PluginLoader &$pLoader){
+			public function getShell(\aidSQL\core\PluginLoader &$pLoader,Array &$parsedOptions){
 
 				$plugins	=	$pLoader->getPlugins();
 
