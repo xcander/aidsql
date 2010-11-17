@@ -78,7 +78,7 @@
 		$log->setEcho(TRUE);
 		banner($log);
 		$log->setPrepend("[aidSQL]");
-		$parameters		=	mergeConfig($_SERVER["argv"],"etc/aidSQL.conf");
+		$parameters		=	mergeConfig($_SERVER["argv"],"etc/aidSQL/aidSQL.conf");
 		$cmdParser		=	new parser\CmdLine($config,$parameters);
 		$parsedOptions	=	$cmdParser->getParsedOptions();
 
