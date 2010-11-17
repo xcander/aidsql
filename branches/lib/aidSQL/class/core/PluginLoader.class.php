@@ -72,11 +72,15 @@
 					$list	=	$this->_list($this->_pluginsDir.DIRECTORY_SEPARATOR.$t,"dirsnodots");
 
 					if(!sizeof($list)){
-						continue;
+						throw(new \Exception("No $t plugins found!"));
 					}
 
 					foreach($list as $plugin){
+
 						$name			=	$this->_normalizePluginName($plugin);
+
+						$this->log("Found $t => $name...",0,"white");
+
 						$confFile	=	$plugin.DIRECTORY_SEPARATOR.strtolower($name).".conf.php";
 						$iniFile		=	$plugin.DIRECTORY_SEPARATOR.strtolower($name).".ini";
 
@@ -96,7 +100,15 @@
 							throw(new \Exception("Malformed configuration file found for plugin \"$name\""));
 						}
 
-						$confObj		=	new \aidSQL\parser\CmdLine($config,parse_ini_file($iniFile));
+						$this->log("Parsing plugin configuration ...",0,"white");
+						$parsedIni	=	parse_ini_file($iniFile);
+						$iniCfg		=	array();
+
+						foreach($parsedIni as $opt=>$value){
+							$iniCfg[]	=	"--$opt=$value";
+						}
+
+						$confObj		=	new \aidSQL\parser\CmdLine($config,$iniCfg);
 						$plugin		.= DIRECTORY_SEPARATOR.ucwords($name).".class.php";
 
 						$_plugin = array(
