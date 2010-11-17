@@ -78,9 +78,12 @@
 
 					$this->_pLoader->load($plugin);
 
+					$config	=	$plugin["config"];
+
 					$plugin	=	"aidSQL\\plugin\\sqli\\$plugin[name]";
 					$plugin	=	new $plugin($this->_httpAdapter);
 					$plugin->setLog($this->_log);
+					$plugin->setConfig($config);
 
 					$this->log("Testing ".get_class($plugin)." sql injection plugin...",0,"white");
 

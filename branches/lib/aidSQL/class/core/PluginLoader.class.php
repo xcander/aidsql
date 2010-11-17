@@ -76,14 +76,34 @@
 					}
 
 					foreach($list as $plugin){
+						$name			=	$this->_normalizePluginName($plugin);
+						$confFile	=	$plugin.DIRECTORY_SEPARATOR.strtolower($name).".conf.php";
+						$iniFile		=	$plugin.DIRECTORY_SEPARATOR.strtolower($name).".ini";
 
-						$name		= $this->_normalizePluginName($plugin);
-						$plugin	.= DIRECTORY_SEPARATOR.ucwords($name).".class.php";
+						if(!file_exists($confFile)){
+							throw(new \Exception("Config file not found for plugin \"$name\", if youre developing a plugin, please remember that *every* plugin should have a config file, no matter if its empty"));
+						}
+					
+						if(!file_exists($iniFile)){
+							throw(new \Exception("INI file not found for plugin \"$name\", every plugin needs to have a .ini file, no matter if its empty or not! in this case the .ini file should be named $name.ini"));
+						}	
+
+						include $confFile;
+
+						//$config should now be defined by the included config file
+
+						if(!isset($config)||!is_array($config)){
+							throw(new \Exception("Malformed configuration file found for plugin \"$name\""));
+						}
+
+						$confObj		=	new \aidSQL\parser\CmdLine($config,parse_ini_file($iniFile));
+						$plugin		.= DIRECTORY_SEPARATOR.ucwords($name).".class.php";
 
 						$_plugin = array(
 							"file"=>new \aidSQL\core\File($plugin),
 							"name"=>$name,
-							"type"=>$t
+							"type"=>$t,
+							"config"=>$confObj
 						);
 
 						$plugins[]	=	$_plugin;
@@ -143,8 +163,8 @@
 
 				$fileObj	=	$plugin["file"];
 				$load		=	$fileObj->getFile();
-
 				$index	=	$this->getPluginIndex($plugin["type"],$plugin["name"]);
+
 
 				if($index===FALSE){
 					throw(new \Exception("ERROR OBTAINING PLUGIN INDEX!"));

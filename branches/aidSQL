@@ -219,6 +219,7 @@
 		$log->log($e->getMessage(),1,"light_red");
 		//echo $e->getTraceAsString()."\n";
 		usageShort($log);
+		exit(1);
 
 	}
 

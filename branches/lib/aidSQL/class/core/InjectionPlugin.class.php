@@ -18,6 +18,7 @@
 			protected $_injectionAttempts				=	40;
 			protected $_parser							=	NULL;
 			protected $_dbUser							=	NULL;
+			protected $_config							=	NULL;
 
 
 			public final function __construct(\aidSQL\http\Adapter $adapter,aidSQL\LogInterface &$log=NULL){
@@ -32,6 +33,10 @@
 					$this->setLog($log);
 				}
 
+			}
+
+			public function setConfig(\aidSQL\parser\CmdLine $config){
+				$this->_config=$config;
 			}
 
 			/* Wrapper */
