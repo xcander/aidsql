@@ -225,7 +225,6 @@
 			private function parseRequiredOptions(Array $givenOptions){
 
 				$givenOptions = array_keys($givenOptions);
-
 				foreach($this->_options as $option=>$optionConfig){
 
 					if(!isset($optionConfig["required"])){
