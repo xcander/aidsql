@@ -21,6 +21,7 @@
 			private	$_commentPayloads				=	array("/*","--","#");
 			private	$_affectedDatabases			=	array("mysql5");
 
+
 			public function getPluginName(){
 				return self::PLUGIN_NAME;
 			}
