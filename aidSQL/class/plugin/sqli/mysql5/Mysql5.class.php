@@ -543,7 +543,7 @@
 
 			}
 
-			public function getShell(\aidSQL\core\PluginLoader &$pLoader,Array &$parsedOptions){
+			public function getShell(\aidSQL\core\PluginLoader &$pLoader){
 
 				$plugins	=	$pLoader->getPlugins();
 
@@ -556,7 +556,7 @@
 					$pLoader->load($plugin);
 
 					$disclosurePlugin	=	"\\aidSQL\\plugin\\disclosure\\$plugin[name]";;
-					$disclosurePlugin	=	new $disclosurePlugin($this->_httpAdapter,$this->_log);
+					$disclosurePlugin	=	new $disclosurePlugin($this->_httpAdapter,$plugin["config"],$this->_log);
 
 					$disclosurePlugin->getInfo();
 
