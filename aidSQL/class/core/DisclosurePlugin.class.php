@@ -16,6 +16,8 @@
 					$this->setLog($log);
 				}
 
+				$this->setConfig($config);
+
 			}
 
 			public function setConfig(\aidSQL\parser\CmdLine &$config){
@@ -35,7 +37,7 @@
 			protected function log($msg=NULL){
 				
 				if(!is_null($this->_log)){
-					$this->_log->setPrepend('['.__CLASS__.']');
+					$this->_log->setPrepend('['.get_class($this).']');
 					call_user_func_array(array($this->_log, "log"),func_get_args());
 					return TRUE;
 				}
