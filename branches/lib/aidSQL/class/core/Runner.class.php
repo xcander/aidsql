@@ -23,6 +23,13 @@
 				$pluginsDir	=	__CLASSPATH.DIRECTORY_SEPARATOR."class".DIRECTORY_SEPARATOR."plugin";
 
 				$this->_pLoader	=	new PluginLoader($pluginsDir,$log);
+			
+				if(isset($options["plugin-disclosure-load-order"])){
+
+					$this->_pLoader->setDisclosurePluginLoadOrder(explode(',',$options["plugin-disclosure-load-order"]));
+
+				}
+
 				$this->_pLoader->listPlugins();
 
 				$this->setHttpAdapter($adapter);

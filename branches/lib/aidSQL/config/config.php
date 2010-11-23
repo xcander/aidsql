@@ -126,6 +126,9 @@
 		"crawler"=>array(
 		),
 		"classpath"=>array(
+		),
+		
+		"plugin-disclosure-load-order"=>array(
 		)
 
 	);

@@ -558,7 +558,9 @@
 					$disclosurePlugin	=	"\\aidSQL\\plugin\\disclosure\\$plugin[name]";;
 					$disclosurePlugin	=	new $disclosurePlugin($this->_httpAdapter,$plugin["config"],$this->_log);
 
-					$disclosurePlugin->getInfo();
+					if (!is_a($disclosurePlugin->getInfo(),"\\aidSQL\\plugin\\disclosure\\DisclosureResult")){
+						throw(new \Exception("Plugin $plugin[name] should return an instance of \\aidSQL\\plugin\\disclosure\\DisclosureResult"));
+					}
 
 				}
 

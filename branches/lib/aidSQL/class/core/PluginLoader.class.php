@@ -4,9 +4,11 @@
 
 		class PluginLoader {
 			
-			private	$_log				=	NULL;
-			private	$_pluginsDir	=	NULL;
-			private	$_plugins		=	array();
+			private	$_log							=	NULL;
+			private	$_pluginsDir				=	NULL;
+			private	$_plugins					=	array();
+			private	$_disclosureLoadOrder	=	array();
+			private	$_sqliLoadOrder			=	array();
 
 			public function __construct($pluginsDir=NULL,\aidSQL\LogInterface &$log=NULL){
 
@@ -22,6 +24,14 @@
 
 				$this->setPluginsDir($pluginsDir);
 
+			}
+
+			public function setDisclosurePluginLoadOrder(Array $order){
+				$this->_disclosureLoadOrder	=	$order;
+			}
+
+			public function setSQLiPluginLoadOrder(Array $order){
+				$this->_sqliLoadOrder	=	$order;
 			}
 
 			public function setPluginsDir($dir){
@@ -124,7 +134,61 @@
 
 				}
 
+				if(sizeof($this->_disclosureLoadOrder)){
+					$this->_arrangePluginOrder($plugins,$this->_disclosureLoadOrder,"disclosure");
+				}
+
+				if(sizeof($this->_sqliLoadOrder)){
+					$this->_arrangePluginOrder($plugins,$this->_sqliLoadOrder,"sqli");
+				}
+
 				return $this->_plugins	=	$plugins;
+
+			}
+
+			private function _arrangePluginOrder(&$plugins,$order,$type){
+
+				$names		=	array();
+				$newOrder	=	array();
+
+				foreach($plugins as $plugin){
+
+					if($plugin["type"]!==$type){
+						continue;
+					}
+
+					$names[]	=	$plugin["name"];
+
+				}
+
+				foreach($order as $ord){
+					if(!in_array($ord,$names)){
+						throw(new \Exception("Invalid plugin specified into $type plugin load order \"$ord\"!"));
+					}
+				}
+
+				unset($names);
+
+				$this->log("Arranging testing order for $type plugins as in [".implode($order,', ').']',0,"white");
+
+				foreach($order as $ord){
+
+					foreach($plugins as $key=>$plugin){
+
+						if($plugin["type"]!==$type){
+							continue;
+						}
+
+						if($ord==$plugin["name"]){
+							unset($plugins[$key]);
+							$newOrder[]	=	$plugin;
+						}
+
+					}
+
+				}
+
+				$plugins	=	array_merge($newOrder,$plugins);
 
 			}
 
