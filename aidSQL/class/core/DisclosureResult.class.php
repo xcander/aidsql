@@ -2,37 +2,45 @@
 
 	namespace aidSQL\plugin\disclosure {
 
-			class DisclosureResult {
+		class DisclosureResult {
 				
-				private	$_info	=	array();
+			private	$_info	=	array();
 
-				public function __call($method,$args){	
+			public function __call($method,$args){	
 
-					$method		=	strtolower($method);
-					$setGet		=	substr($method,0,3);
-					$property	=	substr($method,3);
+				$method		=	strtolower($method);
+				$setGet		=	substr($method,0,3);
+				$property	=	substr($method,3);
 
-					switch($method){
+				switch($setGet){
 
-						case "set":
+					case "set":
+
+						if(sizeof($args)>1){
+
 							$this->_info[$property]	=	$args;
-							break;
 
-						case "get":
+						}else{
 
-							if(!isset($this->_info[$property])){
-								return NULL;
-							}
+							$this->_info[$property]	=	$args[0];
 
-							return $this->_info[$property];
+						}
 
-							break;
+						break;
 
-					}
+					case "get":
+						if(!isset($this->_info[$property])){
+							return NULL;
+						}
+
+						return $this->_info[$property];
+						break;
 
 				}
 
 			}
+
+		}
 
 	}
 

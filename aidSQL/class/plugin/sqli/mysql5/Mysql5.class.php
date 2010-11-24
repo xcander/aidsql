@@ -558,8 +558,23 @@
 					$disclosurePlugin	=	"\\aidSQL\\plugin\\disclosure\\$plugin[name]";;
 					$disclosurePlugin	=	new $disclosurePlugin($this->_httpAdapter,$plugin["config"],$this->_log);
 
-					if (!is_a($disclosurePlugin->getInfo(),"\\aidSQL\\plugin\\disclosure\\DisclosureResult")){
+					$information		=	$disclosurePlugin->getInfo();
+
+					if (!is_a($information,"\\aidSQL\\plugin\\disclosure\\DisclosureResult")){
 						throw(new \Exception("Plugin $plugin[name] should return an instance of \\aidSQL\\plugin\\disclosure\\DisclosureResult"));
+					}
+
+					$directories	=	$information->getDirectories();
+
+					if(!sizeof($directories)){
+
+						$this->log("Plugin failed to give a list of valid directories to inject a shell :(",2,"red");
+						continue;
+
+					}
+
+					foreach($directories as $key=>$dir){
+						$this->log("Trying to inject shell in directory \"$dir\"",0,"white");
 					}
 
 				}

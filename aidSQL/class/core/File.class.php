@@ -49,6 +49,10 @@
 				return $this->_dirname.DIRECTORY_SEPARATOR.$this->_file;
 			}
 
+			public function getContents(){
+				return file_get_contents($this->_dirname.DIRECTORY_SEPARATOR.$this->_file);
+			}
+
 			public function __toString(){
 
 				return $this->getFile();
