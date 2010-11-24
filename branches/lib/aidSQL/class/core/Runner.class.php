@@ -30,8 +30,6 @@
 
 				}
 
-				$this->_pLoader->listPlugins();
-
 				$this->setHttpAdapter($adapter);
 				$this->configureHttpAdapter($options);
 

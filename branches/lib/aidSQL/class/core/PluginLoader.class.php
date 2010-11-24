@@ -24,6 +24,8 @@
 
 				$this->setPluginsDir($pluginsDir);
 
+				$this->listPlugins();
+
 			}
 
 			public function setDisclosurePluginLoadOrder(Array $order){
@@ -70,12 +72,16 @@
 				return substr($plugin,strrpos($plugin,"/")+1);
 			}
 
-			public function listPlugins(){
+			/**
+			*Builds the whole plugin list of plugins of any type, it also validates plugin configurations
+			*/
+
+			private function listPlugins(){
 
 				$plugins	=	array();
 				$types	=	$this->listPluginTypes();
 
-				$this->log("Building plugin list ...",0,"white");
+				$this->log("Building plugin list ...",0,"light_cyan");
 
 				foreach($types as $t){
 
@@ -210,25 +216,6 @@
 
 			}
 
-			public function loadType($type=NULL){
-
-				$flag	=	FALSE;
-
-				foreach($this->_plugins as $plugin){
-
-					if($plugin["type"]==$type){
-						$flag = TRUE;
-						$this->load($plugin);
-					}
-
-				}
-
-				throw(new \Exception("There where no plugins of type \"$type\" to be loaded!"));
-
-				return $flag;
-
-			}
-
 			public function load (Array $plugin){
 
 				if(!isset($plugin["file"])&& !is_a($plugin["file"],"\\aidSQL\\core\\File")){
@@ -240,7 +227,6 @@
 				$fileObj	=	$plugin["file"];
 				$load		=	$fileObj->getFile();
 				$index	=	$this->getPluginIndex($plugin["type"],$plugin["name"]);
-
 
 				if($index===FALSE){
 					throw(new \Exception("ERROR OBTAINING PLUGIN INDEX!"));
@@ -301,29 +287,31 @@
 			}
 
 			//name must be the normalized name
-			public function getInstance(Array $plugin=array()){
+			public function getPluginInstance($type,$name,\aidSQL\http\Adapter &$httpAdapter,\aidSQL\LogInterface &$log=NULL){
 
-				if(!sizeof($this->_plugins)){
-					throw(new \Exception("You must ".__CLASS__."::listPlugins() before calling this method!"));
+				if(empty($name)||empty($type)){
+					throw(new \Exception("Must specify normalized plugin name and type when using getPlugin!"));
 				}
 
-				if(!sizeof($plugin)){
-					throw (new \Exception("Cannot make instance of plugin, with empty plugin name specified!"));
+				foreach($this->_plugins as $plugin){ 
+
+					if($plugin["type"]!=$type||$plugin["name"]!==$name){ 
+						continue; 
+					} 
+
+					if($this->load($plugin)===FALSE){
+						throw(new \Exception("Cant get instance of plugin $type => $name, plugin doesnt exists!"));
+					}
+
+					$args	=	func_get_args();
+					unset($args[0]);
+					unset($args[1]);
+	
+					$pluginName	=	"aidSQL\\plugin\\$type\\$name";
+
+					return new $pluginName($httpAdapter,$plugin["config"],$log);
+
 				}
-
-				if(!$this->isValidPlugin($plugin)){
-					throw (new \Exception("Invalid plugin specified ".key($plugin)));
-				}
-
-				$args	=	func_get_args();
-				unset($args[0]);
-
-				$type = key($plugin);
-				$name = $plugin[$type];
-
-				$pluginName	=	"aidSQL\\plugin\\$type\\$name";
-
-				return call_user_func_array(array(new $pluginName),func_get_args());
 
 			}
 

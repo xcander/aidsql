@@ -545,37 +545,25 @@
 
 			public function getShell(\aidSQL\core\PluginLoader &$pLoader){
 
-				$plugins	=	$pLoader->getPlugins();
+				$webDefaultsPlugin	=	$pLoader->getPluginInstance("disclosure","defaults",$this->_httpAdapter,$this->_log);
+				$information			=	$webDefaultsPlugin->getInfo();
 
-				foreach($plugins as $plugin){
+				if (!is_a($information,"\\aidSQL\\plugin\\disclosure\\DisclosureResult")){
+					throw(new \Exception("Plugin $plugin[name] should return an instance of \\aidSQL\\plugin\\disclosure\\DisclosureResult"));
+				}
 
-					if($plugin["type"]!="disclosure"){
-						continue;
-					}
+				$directories	=	$information->getDirectories();
 
-					$pLoader->load($plugin);
+				if(!sizeof($directories)){
 
-					$disclosurePlugin	=	"\\aidSQL\\plugin\\disclosure\\$plugin[name]";;
-					$disclosurePlugin	=	new $disclosurePlugin($this->_httpAdapter,$plugin["config"],$this->_log);
+					$this->log("Web defaults Plugin failed to get a valid directory for injecting a shell :(",2,"red");
+					continue;
 
-					$information		=	$disclosurePlugin->getInfo();
+				}
 
-					if (!is_a($information,"\\aidSQL\\plugin\\disclosure\\DisclosureResult")){
-						throw(new \Exception("Plugin $plugin[name] should return an instance of \\aidSQL\\plugin\\disclosure\\DisclosureResult"));
-					}
+				foreach($directories as $key=>$dir){
 
-					$directories	=	$information->getDirectories();
-
-					if(!sizeof($directories)){
-
-						$this->log("Plugin failed to give a list of valid directories to inject a shell :(",2,"red");
-						continue;
-
-					}
-
-					foreach($directories as $key=>$dir){
-						$this->log("Trying to inject shell in directory \"$dir\"",0,"white");
-					}
+					$this->log("Trying to inject shell in directory \"$dir\"",0,"white");
 
 				}
 
