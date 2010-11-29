@@ -208,6 +208,7 @@
 			}
 
 			private function addInjectionPlugin(\aidSQL\plugin\sqli\InjectionPluginInterface $plugin){
+
 				$this->log("Adding injection plugin $plugin");
 				$this->_injectionPlugins[] = $plugin;
 

