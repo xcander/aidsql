@@ -14,7 +14,6 @@
 			public function getColumns();
 			public function getDatabase();
 			public function getUser();
-			public function getUserPrivileges();
 			public function getVersion();
 			public function isVulnerable();
 			public function isRoot($dbUser=NULL);

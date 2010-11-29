@@ -121,7 +121,7 @@
 
 		if(in_array("google",array_keys($parsedOptions))){
 
-			$google	=	new aidsql\webservice\Google($httpAdapter,$log);
+			$google	=	new http\webservice\Google($httpAdapter,$log);
 			$google->setQuery($parsedOptions["google"]);
 
 			(isset($parsedOptions["google-language"])) ? $google->setLanguage($parsedOptions["google-language"]) : NULL;

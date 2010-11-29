@@ -9,19 +9,20 @@
 				$return	=	new \aidSQL\plugin\disclosure\DisclosureResult();
 	
 				$this->log("Trying to discover default directory locations ...",0,"light_cyan");
-	
-				$directories		=	$this->_config->getParsedOptions();
-				$directories		=	explode(',',$directories["directories"]);
-				$possiblyWritable	=	array();
 
-				if(!sizeof($directories)){
-					throw(new \Exception("Cant use defaults plugin with no default location list!"))	;
+				$allDirectories		=	$this->_config->getParsedOptions();
+				$webDirectories		=	explode(',',$allDirectories["web_directories"]);
+
+				$possiblyWritable		=	array();
+
+				if(!sizeof($webDirectories)){
+					throw(new \Exception("Cant use defaults plugin with no web directories default location list!"))	;
 				}
 
 				$url	=	new \aidSQL\http\Url($this->_httpAdapter->getUrl());
 				$url	=	$url->getScheme()."://".$url->getHost();
 
-				foreach($directories as $dir){
+				foreach($webDirectories as $dir){
 
 					$this->log("$url/$dir ...",0,"white");
 					$this->_httpAdapter->setUrl($url.'/'.$dir);
@@ -32,16 +33,18 @@
 					if($httpCode==200||$httpCode==403){
 
 						$possiblyWritable[]	=	$dir;
-						$this->log("Found possible writable directory $dir, got $httpCode!",0,"light_green");
+						$this->log("Found possible web writable directory $dir, got $httpCode!",0,"light_green");
 
 					}
 
 				}
 
-				$return->setDirectories($possiblyWritable);
+				$return->setWebDirectories($possiblyWritable);
+				$return->setUnixDirectories(explode(',',$allDirectories["unix_directories"]));
+				$return->setWindowsDirectories(explode(',',$allDirectories["win_directories"]));
 
 				if(!sizeof($possiblyWritable)){
-					$this->log("No possible default writable location was found :(",2,"yellow");
+					$this->log("No possible default writable web path was found :(",2,"yellow");
 				}
 
 				return $return;

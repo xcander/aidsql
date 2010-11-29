@@ -29,16 +29,16 @@
 
 				}
 
-				$host = $this->parseUrl($httpAdapter->getUrl());
-				$this->_host			=	$host;
+				$url = new \aidSQL\http\URL($httpAdapter->getUrl());
+				$this->_host			=	$url->getUrlAsArray();
 				$this->_httpAdapter	=	$httpAdapter;
 
 				if(!is_null($log)){
 					$this->setLog($log);
 				}
 
-				$this->log("Normalized URL: ".$host["scheme"]."://".$host["host"].$host["path"].$host["page"],"0","light_green");
-				$this->_httpAdapter->setUrl($host["scheme"]."://".$host["host"].$host["path"].$host["page"]);
+				$this->log("Normalized URL: ".$url->getUrlAsString());
+				$this->_httpAdapter->setUrl($url->getUrlAsString());
 
 			}
 
