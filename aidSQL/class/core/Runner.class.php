@@ -139,8 +139,8 @@
 
 				if($plugin->isRoot($dbuser)){
 
-					$this->log("IS ROOT\t:\tYES",0,"white");
-					$this->log("Trying to get Shell ...",1,"light_green");
+					$this->log("IS ROOT\t:\tYES",0,"light_green");
+					$this->log("Trying to get Shell ...",1,"light_cyan");
 
 					//Getshell method must return FALSE on error or String path/to/shellLocation
 

