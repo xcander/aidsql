@@ -147,7 +147,7 @@
 					$g0tShell = $plugin->getShell($this->_pLoader,$this->_options);
 
 					if($g0tShell){
-						$this->log("Got Shell!",1,"light_green");
+						$this->log("Got Shell => $g0tShell",1,"light_green");
 					}
 
 				}else{
