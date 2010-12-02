@@ -30,6 +30,25 @@
 				return $this->_affectedDatabases;
 			}
 
+			private function orderRequestVariables(Array $requestVariables){
+
+				$numVariables	=	array();
+				$strVariables	=	array();
+
+				foreach($requestVariables as $name=>$value){
+
+					if(is_numeric($value)){
+						$numVariables[$name]	=	$value;
+					}else{
+						$strVariables[$name]	=	$value;
+					}
+
+				}
+
+				return array("strings"=>$strVariables,"numeric"=>$intVariables);
+
+			}
+
 			/**
 			*Checkout if the given URL by the HttpAdapter is vulnerable or not
 			*This method combines execution
@@ -37,7 +56,8 @@
 
 			public function isVulnerable(){
 
-				$vars		= $this->_httpAdapter->getRequestVariables();
+				$vars		=	$this->_httpAdapter->getRequestVariables();
+				$vars		=	$this->orderRequestVariables($vars);
 
 				$found	= FALSE;
 
@@ -48,7 +68,7 @@
 
 				$this->setUseConcat(TRUE);
 
-				foreach($vars as $variable=>$value){
+				foreach($vars["numeric"] as $variable=>$value){
 
 					$this->setAffectedVariable($variable,$value);
 
