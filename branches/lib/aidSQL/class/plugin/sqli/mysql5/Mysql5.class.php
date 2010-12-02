@@ -16,9 +16,10 @@
 			private	$_useConcat						=	FALSE;		//Concat values with a tag like <aidsql></aidsql>
 			private	$_openTag						=	NULL;
 			private	$_closeTag						=	NULL;
-			private	$_terminatingPayloads		=	array("LIMIT 1,1", " ORDER BY 1", "LIMIT 1,1 ORDER BY 1");
-			private	$_currTerminatingPayload	=	NULL;
 			private	$_commentPayloads				=	array("/*","--","#");
+			private	$_terminatingPayloads		=	array("LIMIT 1,1", " ORDER BY 1", "LIMIT 1,1 ORDER BY 1");
+			private	$_stringPayloads				=	array("'", "%'","')","%')");
+			private	$_currTerminatingPayload	=	NULL;
 			private	$_affectedDatabases			=	array("mysql5");
 
 
@@ -45,7 +46,7 @@
 
 				}
 
-				return array("strings"=>$strVariables,"numeric"=>$intVariables);
+				return array("strings"=>$strVariables,"numeric"=>$numVariables);
 
 			}
 
@@ -507,7 +508,6 @@
 			}
 
 			private function checkInjection($content){
-
 
 				$openTag		=	$this->getOpenTag();
 				$closeTag	=	$this->getCloseTag();

@@ -207,9 +207,15 @@
 
 			public function getURLAsString($parameters=TRUE){
 
-				$full	=	$this->_url["scheme"]."://".$this->_url["host"].'/'.$this->_url["page"];
+				$full	=	$this->_url["scheme"]."://".$this->_url["host"];
+				$path	=	(isset($this->_url["path"]))	?	'/'.trim($this->_url["path"],'/') : '/';
+				$page	=	(isset($this->_url["page"]))	?	'/'.trim($this->_url["page"],'/') : NULL;
 
-				$full	=	trim($full,'/');
+				if($path=='/'){
+					$path=NULL;
+				}
+
+				$full	.=	$path.$page;
 
 				if(sizeof($this->_variables)&&$parameters){
 

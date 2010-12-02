@@ -270,7 +270,10 @@
 					$vars = "?$vars";
 				}
 
-				return $this->getUrl().$vars;
+				$url	=	new \aidSQL\http\Url($this->getUrl());
+
+				return $url->getUrlAsString().$vars;
+
 			}
 
 			public function parseRequestVariables(){
