@@ -2,7 +2,7 @@
 
 	namespace aidSQL\http\crawler {
 
-		class Crowley {
+		class Crowley implements \aidSQL\http\Crawler {
 
 			private $_host				=	NULL;
 			private $_links			=	array();
@@ -389,6 +389,16 @@
 
 			}
 
+			public function addLink($strURL=NULL){
+
+				if(empty($strURL)){
+					throw(new \Exception("Link to be added cant be empty!"));
+				}
+			
+				$url	=	new \aidSQL\http\URL($strURL);
+				$this->_links[$url->getUrlAsString(FALSE)]["parameters"]	=	$url->getQueryAsArray();
+
+			}
 
 			//Fetches all A elements from a given content
 

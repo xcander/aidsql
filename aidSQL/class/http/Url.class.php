@@ -60,6 +60,10 @@
 					throw(new \Exception("Invalid URL!"));
 				}
 
+				if(strpos($host,'?')){
+					$host	=	substr($host,0,strpos($host,'?'));
+				}
+
 				$parsedUrl["host"]		=	$host;
 
 				$path	=	substr($url,strlen($scheme)+3+strlen($host));
@@ -82,10 +86,6 @@
 
 				$parsedUrl["page"]	=	basename($url);
 
-				if($parsedUrl["page"]==$parsedUrl["host"]){
-					$parsedUrl["page"]="";
-				}
-
 				if(strpos($url,"?")==FALSE){
 
 					$parsedUrl["query"]	=	"";
@@ -99,6 +99,11 @@
 					$parsedUrl["page"]	=	substr($parsedUrl["page"],0,strpos($parsedUrl["page"],"?"));
 
 				}
+
+				if($parsedUrl["page"]==$parsedUrl["host"]){
+					$parsedUrl["page"]="";
+				}
+
 
 				$this->_url	=	$parsedUrl;
 

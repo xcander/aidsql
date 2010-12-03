@@ -10,8 +10,10 @@
 			private	$_httpAdapter	=	NULL;
 			private	$_options		=	array();
 			private	$_pLoader		=	NULL;			//Plugin Loader Instance
+			private	$_crawler		=	NULL;			//This object might contain important information that 
+																//may be used by the plugins.
 
-			public function __construct(\aidSQL\parser\CmdLine $parser,\aidSQL\http\Adapter &$adapter,\aidSQL\LogInterface &$log=NULL){
+			public function __construct(\aidSQL\parser\CmdLine $parser,\aidSQL\http\Adapter &$adapter,\aidSQL\http\crawler &$crawler,\aidSQL\LogInterface &$log=NULL){
 
 				if(!is_null($log)){
 					$this->setLog($log);
@@ -32,7 +34,12 @@
 
 				$this->setHttpAdapter($adapter);
 				$this->configureHttpAdapter($options);
+				$this->setCrawler($crawler);
 
+			}
+
+			public function setCrawler(\aidSQL\http\crawler &$crawler){
+				$this->_crawler	=	$crawler;
 			}
 
 			public function setHttpAdapter(\aidSQL\http\Adapter &$httpAdapter){
