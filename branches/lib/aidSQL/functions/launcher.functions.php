@@ -69,9 +69,9 @@
 
 	}
 
-	function isVulnerable(aidSQL\parser\CmdLine $cmdParser,aidSQL\http\Adapter &$httpAdapter,aidSQL\LogInterface &$log=NULL){
+	function isVulnerable(aidSQL\parser\CmdLine $cmdParser,aidSQL\http\Adapter &$httpAdapter,aidSQL\http\Crawler &$crawler,aidSQL\LogInterface &$log=NULL){
 
-			$aidSQL		= new aidSQL\core\Runner($cmdParser,$httpAdapter,$log);
+			$aidSQL		= new aidSQL\core\Runner($cmdParser,$httpAdapter,$crawler,$log);
 
 			try {
 
@@ -223,7 +223,14 @@
 
 	}
 
-	function testLinks(Array $links,aidSQL\http\Adapter &$httpAdapter,aidSQL\parser\CmdLine &$cmdParser,aidSQL\LogInterface &$log){
+	function testLinks(\aidSQL\http\Crawler &$crawler,aidSQL\http\Adapter &$httpAdapter,aidSQL\parser\CmdLine &$cmdParser,aidSQL\LogInterface &$log){
+
+		$links	=	$crawler->getLinks(TRUE);
+		filterLinksWithoutParameters($links);
+
+		if(!sizeof($links)){
+			return NULL;
+		}
 
 		$log->log("Amount of links to be tested for injection:".sizeof($links),0,"light_cyan");
 		$parsedOptions	=	$cmdParser->getParsedOptions();
@@ -244,7 +251,7 @@
 
 			$cmdParser->setOption("urlvars",$query);
 
-			if(isVulnerable($cmdParser,$httpAdapter,$log)&&(bool)$parsedOptions["immediate-mode"]){
+			if(isVulnerable($cmdParser,$httpAdapter,$crawler,$log)&&(bool)$parsedOptions["immediate-mode"]){
 				break;
 			}
 

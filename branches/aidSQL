@@ -43,6 +43,7 @@
 	require	"interface/Parser.interface.php";
 	require	"interface/Log.interface.php";
 	require	"interface/http/Adapter.interface.php";
+	require	"interface/http/Crawler.interface.php";
 	require	"interface/plugin/Injection.interface.php";
 	require	"interface/plugin/Disclosure.interface.php";
 
@@ -101,6 +102,7 @@
 		$Adapter			=	"\\aidSQL\\http\\Adapter\\".$parsedOptions["http-adapter"];
 		$httpAdapter	=	new $Adapter();
 		$httpAdapter->setLog($log);
+		$httpAdapter->setMethod($parsedOptions["http-method"]);
 		
 		if(isset($parsedOptions["connect-timeout"])){
 
@@ -116,8 +118,8 @@
 			$log->useLogDate($parsedOptions["log-prepend-date"]);
 		}
 
-		//Check if youre bored and you just want to rule the world (?)
-		/////////////////////////////////////////////////////////////////
+
+		//<Google>
 
 		if(in_array("google",array_keys($parsedOptions))){
 
@@ -137,6 +139,8 @@
 
 		}
 
+		//</Google>
+
 		if(isset($parsedOptions["omit-sites"])){
 
 			filterSites($sites,$log,$parsedOptions["omit-sites"]);
@@ -144,75 +148,61 @@
 		}
 
 
-		//Check if url vars where passed,if not, we crawl the url
+		//Check if urlvars where passed,if not, we crawl the url
 		/////////////////////////////////////////////////////////////////
 
-		if(!in_array("urlvars",array_keys($parsedOptions))){
 
-			$httpAdapter->setMethod($parsedOptions["http-method"]);
+		foreach($sites as $site){
 
-			if(!sizeof($sites)){
-				$log->log("No sites :(!",1,"red");
-				exit(1);
+			$httpAdapter->setUrl($site);
+
+			$crawlerName	=	"aidSQL\\http\\crawler\\$parsedOptions[crawler]";
+			$crawler			=	new $crawlerName($httpAdapter,$log);
+
+			if(isset($parsedOptions["lpp"])){
+
+				$crawler->setLinksPerPage($parsedOptions["lpp"]);
+
 			}
 
-			foreach($sites as $site){
+			if(isset($parsedOptions["max-links"])){
 
-				$httpAdapter->setUrl($site);
+				$crawler->setMaxLinks($parsedOptions["max-links"]);
 
-				$crawlerName	=	"aidSQL\\http\\crawler\\$parsedOptions[crawler]";
-				$crawler			=	new $crawlerName($httpAdapter,$log);
+			}
 
-				if(isset($parsedOptions["lpp"])){
+			if(isset($parsedOptions["page-types"])){
 
-					$crawler->setLinksPerPage($parsedOptions["lpp"]);
+				$crawler->addPageTypes(explode(",",$parsedOptions["page-types"]));
 
-				}
+			}
 
-				if(isset($parsedOptions["max-links"])){
+			if(isset($parsedOptions["omit-paths"])){
 
-					$crawler->setMaxLinks($parsedOptions["max-links"]);
+				$omitPaths = explode(",",$parsedOptions["omit-paths"]);
+				$crawler->addOmitPaths($omitPaths);
 
-				}
+			}
 
-				if(isset($parsedOptions["page-types"])){
-					$crawler->addPageTypes(explode(",",$parsedOptions["page-types"]));
-				}
+			if(isset($parsedOptions["omit-pages"])){
 
-				if(isset($parsedOptions["omit-paths"])){
+				$omitPages = explode(",",$parsedOptions["omit-pages"]);
+				$crawler->addOmitPages($omitPages);
 
-					$omitPaths = explode(",",$parsedOptions["omit-paths"]);
-					$crawler->addOmitPaths($omitPaths);
+			}
 
-				}
-
-				if(isset($parsedOptions["omit-pages"])){
-
-					$omitPages = explode(",",$parsedOptions["omit-pages"]);
-					$crawler->addOmitPages($omitPages);
-
-				}
-
+			if(!in_array("urlvars",array_keys($parsedOptions))){
 				$crawler->crawl();
-
-				$links	=	$crawler->getLinks(TRUE);
-
-				unset($crawler);
-
-				//Takes away all crawled links without any parameters (useless to us ... to this date)
-				filterLinksWithoutParameters($links);
-
-				//Test crawled links
-				testLinks($links,$httpAdapter,$cmdParser,$log);
-
+			}else{
+				$crawler->addLink($parsedOptions["url"].'?'.$parsedOptions["urlvars"]);
 			}
 
+			//Test crawled links
+			$result	=	testLinks($crawler,$httpAdapter,$cmdParser,$log);
 
-		}else{
-
-			//If urlvars was specified we will do whatever the user tells us to do
-
-			$links = array($parsedOptions["url"]=>$parsedOptions["urlvars"]);
+			if(!$result){
+				$log->log("Failed to perform injection :(",1,"red");
+			}
 
 		}
 
@@ -225,11 +215,4 @@
 
 	}
 
-	if(!sizeof($links)){
-
-		$log->log("Not enough links / No valid links (i.e no parameters) to perform injection :(",1,"red");
-		exit(1);
-
-	}
-	
-	testLinks($links,$httpAdapter,$cmdParser,$log);
+?>
