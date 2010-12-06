@@ -17,7 +17,7 @@
 			public function getVersion();
 			public function isVulnerable();
 			public function isRoot($dbUser=NULL);
-			public function getShell(\aidSQL\core\PluginLoader &$ploader);
+			public function getShell(\aidSQL\core\PluginLoader &$ploader,\aidSQL\http\crawler $crawler, Array $options);
 			public function setStringEscapeCharacter($escape);
 			public function getStringEscapeCharacter();
 			public function setQueryConcatenationCharacter($concatChar);

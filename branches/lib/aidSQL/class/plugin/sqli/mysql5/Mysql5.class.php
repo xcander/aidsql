@@ -607,9 +607,12 @@
 
 			}
 
-			public function getShell(\aidSQL\core\PluginLoader &$pLoader){
+			public function getShell(\aidSQL\core\PluginLoader &$pLoader,\aidSQL\http\crawler $crawler,Array $options){
 
 				$restoreUrl				=	$this->_httpAdapter->getUrl();
+
+				var_dump($crawler->getFiles());
+				die();
 
 				$webDefaultsPlugin	=	$pLoader->getPluginInstance("disclosure","defaults",$this->_httpAdapter,$this->_log);
 				$information			=	$webDefaultsPlugin->getInfo();
