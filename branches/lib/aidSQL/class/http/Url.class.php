@@ -6,12 +6,14 @@
 
 			private	$_url						=	array();
 			private	$_variables				=	array();
-			private	$_separator				=	"&";
-			private	$_equalityOperator	=	"=";
+			private	$_separator				=	'&';
+			private	$_equalityOperator	=	'=';
+			private	$_queryIndicator		=	'?';
+			private	$_pathSeparator		=	'/';
 
 			public function __construct ($url=NULL){
 
-				$this->parse($url);
+				return $this->parse($url);
 
 			}
 
@@ -60,8 +62,8 @@
 					throw(new \Exception("Invalid URL!"));
 				}
 
-				if(strpos($host,'?')){
-					$host	=	substr($host,0,strpos($host,'?'));
+				if(strpos($host,$this->queryIndicator)){
+					$host	=	substr($host,0,strpos($host,$this->queryIndicator));
 				}
 
 				$parsedUrl["host"]		=	$host;
@@ -80,23 +82,23 @@
 
 				$parsedUrl["path"]	=	$path;
 
-				if(strrpos($path,"?")!==FALSE){
-					$parsedUrl["path"]	=	substr($path,0,strpos($path,"?"));
+				if(strrpos($path,$this->queryIndicator)!==FALSE){
+					$parsedUrl["path"]	=	substr($path,0,strpos($path,$this->queryIndicator));
 				}
 
 				$parsedUrl["page"]	=	basename($url);
 
-				if(strpos($url,"?")==FALSE){
+				if(strpos($url,$this->queryIndicator)==FALSE){
 
 					$parsedUrl["query"]	=	"";
 
 				}else{
 
-					$parsedUrl["query"]	=	substr($url,strpos($url,"?")+1);
+					$parsedUrl["query"]	=	substr($url,strpos($url,$this->queryIndicator)+1);
 
 					$this->addRequestVariables($this->queryStringToArray($parsedUrl["query"]));
 
-					$parsedUrl["page"]	=	substr($parsedUrl["page"],0,strpos($parsedUrl["page"],"?"));
+					$parsedUrl["page"]	=	substr($parsedUrl["page"],0,strpos($parsedUrl["page"],$this->queryIndicator));
 
 				}
 
@@ -104,6 +106,9 @@
 					$parsedUrl["page"]="";
 				}
 
+				if(preg_match("#..#",$parsedUrl["path"])){
+					$parsedUrl["path"]=$this->parseRelativePath($parsedUrl["path"]);
+				}
 
 				$this->_url	=	$parsedUrl;
 
@@ -175,7 +180,7 @@
 			}
 
 			public function getQueryAsArray(){
-				return $this->_variables;
+				return	$this->_variables;
 			}
 
 			public function setSeparator($separator=NULL){
@@ -187,6 +192,18 @@
 			public function setEqualityOperator($char=NULL){
 
 				$this->_equalityOperator = $char;
+
+			}
+
+			public function setPathSeparator($char=NULL){
+
+				$this->_pathSeparator = $char;
+
+			}
+
+			public function setQueryIndicator($char=NULL){
+
+				$this->_queryIndicator = $char;
 
 			}
 
@@ -224,7 +241,7 @@
 
 				if(sizeof($this->_variables)&&$parameters){
 
-					$full	.=	'?'.$this->parseVariables();
+					$full	.=	$this->queryIndicator.$this->parseVariables();
 
 				}
 
@@ -240,7 +257,35 @@
 				return $this->_variables;
 			}
 
-		}
+			private function parseRelativePath($path=NULL){
+
+				$path				=	"/".trim($path,"/");
+				$token			=	strtok($path,"/");
+				$ascendCount	=	0;
+				$cleanPath		=	array();
+				$count			=	0;
+
+				while($token!==FALSE){
+
+					if($token!==".."){
+						$cleanPath[$count++]=$token;
+					}
+
+					$token = strtok("/");
+
+				}
+
+				if(!sizeof($cleanPath)){
+
+					$cleanPath	=	array('/');
+
+				}
+
+				return implode($cleanPath,$this->_pathSeparator);
+
+			}
+
+		}	
 
 	}
 

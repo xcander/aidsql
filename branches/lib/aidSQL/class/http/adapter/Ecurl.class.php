@@ -4,13 +4,9 @@
 
 		class Ecurl implements \aidSQL\http\Adapter{
 
-			protected	$current				= NULL;
-			private		$preSeparator		= '?';
-			private		$separator			= '&';
-			private		$equalityOperator	= '=';
 			private		$cookie				= NULL;
 			private		$curlOptions		= array();
-			private		$url					= NULL;
+			private		$url					= NULL;		//\aidSQL\http\Url Object
 			private		$handler				= NULL;
 			private		$content				= NULL;
 			private		$requestVariables	= array();
@@ -31,19 +27,10 @@
 
 			private		$log					=	NULL;
 
-			public function __construct($url=NULL,$setCurlDefaults=TRUE){
+			public function __construct(){
 
 				$this->setHandler(curl_init());
-
-				if(!is_null($url)){
-					$this->setUrl($url);
-				}
-
-				if($setCurlDefaults === TRUE){
-
-					$this->setCurlDefaults();
-
-				}
+				$this->setCurlDefaults();
 
 			}
 
@@ -234,17 +221,7 @@
 
 			}
 
-			public function setUrl($url=NULL){
-
-				if (is_null($url)||empty($url)){
-
-					throw (new \Exception('The specified URL was NULL or empty'));
-
-				}
-
-				$url=trim($url);
-
-				$ending = substr($url,-1);
+			public function setUrl(\aidSQL\http\Url $url){
 
 				$this->url = $url;
 
@@ -255,46 +232,6 @@
 				return $this->url;
 
 			}
-
-
-			public function getRequestVariables(){
-				return $this->requestVariables;
-			}
-
-
-			function getFullURL(){
-
-				$vars = $this->parseRequestVariables();
-
-				if($vars){
-					$vars = "?$vars";
-				}
-
-				$url	=	new \aidSQL\http\Url($this->getUrl());
-
-				return $url->getUrlAsString().$vars;
-
-			}
-
-			public function parseRequestVariables(){
-
-				$vars = "";
-
-				foreach ($this->requestVariables as $k=>$v){
-
-					if (is_null($v)){
-						$vars .= $k . $this->separator;
-						continue;
-					}
-
-					$vars .= $k . $this->equalityOperator . urlencode($v) . $this->separator;
-
-				}
-
-				return substr($vars,0,-1);
-
-			}
-
 
 			public function setCurlOption ($option=NULL,$value=NULL){
 
@@ -354,12 +291,6 @@
 				return $this->proxy;
 			}
 
-			public function addRequestVariable($var,$value=NULL){
-
-				$this->requestVariables[$var]=$value;
-
-			}
-
 			public function setRequestInterval($interval=0){
 					  $this->requestInterval = $interval;
 			}
@@ -390,14 +321,6 @@
 			public function getContent(){
 
 				return $this->content;
-
-			}
-
-			function addRequestVariables(Array $array){
-
-				foreach($array as $k=>$v){
-					$this->addRequestVariable($k,$v);
-				}
 
 			}
 
@@ -449,11 +372,11 @@
 				if($this->method=="POST"){
 
 					$this->setCurlOption("POSTFIELDS",$this->parseRequestVariables());
-					$this->setCurlOption('URL',$this->getUrl());
+					$this->setCurlOption('URL',$this->url->getUrllala());
 
 				}else{
 
-					$this->setCurlOption('URL',$this->getFullURL());
+					$this->setCurlOption('URL',$this->url->getURLAsString());
 
 				}
 

@@ -18,8 +18,9 @@
 		$subversion	= substr($subversion,0,strpos($subversion,"."));
 
 		if($version != 5 || $subversion < 3){
+
 			return FALSE;
-			
+
 		}
 
 		return TRUE;
@@ -87,15 +88,15 @@
 
 		$log->setColors((bool)$parsedOptions["colors"]);
 
-
 		if(isset($parsedOptions["log-save"])){
 			$log->setFilename($parsedOptions["log-save"]);
 		}
 
 
 		if(!empty($parsedOptions["url"])){
-			$sites[0]	=	$parsedOptions["url"]; 
+			$sites[0]	=	new \aidSQL\http\Url ($parsedOptions["url"]); 
 		}
+
 
 		//Instance of the http adapter, shared by aggregation through all classes
 
@@ -103,19 +104,25 @@
 		$httpAdapter	=	new $Adapter();
 		$httpAdapter->setLog($log);
 		$httpAdapter->setMethod($parsedOptions["http-method"]);
-		
+
 		if(isset($parsedOptions["connect-timeout"])){
 
 			$httpAdapter->setConnectTimeout($parsedOptions["connect-timeout"]);
 
 		}
 
+
 		if(isset($parsedOptions["request-interval"])&&$parsedOptions["request-interval"]>0){
+
 			$httpAdapter->setRequestInterval($parsedOptions["request-interval"]);
+
 		}
 
+
 		if(isset($parsedOptions["log-prepend-date"])){
+
 			$log->useLogDate($parsedOptions["log-prepend-date"]);
+
 		}
 
 
@@ -141,20 +148,33 @@
 
 		//</Google>
 
+
 		if(isset($parsedOptions["omit-sites"])){
 
-			filterSites($sites,$log,$parsedOptions["omit-sites"]);
+			//filterSites($sites,$log,$parsedOptions["omit-sites"]);
 
 		}
 
 
-		//Check if urlvars where passed,if not, we crawl the url
-		/////////////////////////////////////////////////////////////////
+		foreach($sites as $url){
 
+			//<urlconfig>
 
-		foreach($sites as $site){
+			if(isset($parsedOptions["url-var-separator"])){
+				$url->setSeparator=$parsedOptions["url-var-separator"];
+			}
 
-			$httpAdapter->setUrl($site);
+			if(isset($parsedOptions["url-query-indicator"])){
+				$url->setQueryIndicator($parsedOptions["url-query-indicator"]);
+			}
+
+			if(isset($parsedOptions["url-equality-operator"])){
+				$url->setEqualityOperator($parsedOptions["url-equality-operator"]);
+			}
+
+			//</urlconfig>
+
+			$httpAdapter->setUrl($url);
 
 			$crawlerName	=	"aidSQL\\http\\crawler\\$parsedOptions[crawler]";
 			$crawler			=	new $crawlerName($httpAdapter,$log);
@@ -165,17 +185,20 @@
 
 			}
 
+
 			if(isset($parsedOptions["max-links"])){
 
 				$crawler->setMaxLinks($parsedOptions["max-links"]);
 
 			}
 
+
 			if(isset($parsedOptions["page-types"])){
 
 				$crawler->addPageTypes(explode(",",$parsedOptions["page-types"]));
 
 			}
+
 
 			if(isset($parsedOptions["omit-paths"])){
 
@@ -184,6 +207,7 @@
 
 			}
 
+
 			if(isset($parsedOptions["omit-pages"])){
 
 				$omitPages = explode(",",$parsedOptions["omit-pages"]);
@@ -191,11 +215,13 @@
 
 			}
 
-			if(!in_array("urlvars",array_keys($parsedOptions))){
+
+			if(!in_array("crawl",array_keys($parsedOptions))){
 				$crawler->crawl();
 			}else{
-				$crawler->addLink($parsedOptions["url"].'?'.$parsedOptions["urlvars"]);
+				$crawler->addLink($url);
 			}
+
 
 			//Test crawled links
 			$result	=	testLinks($crawler,$httpAdapter,$cmdParser,$log);
@@ -209,7 +235,7 @@
 	}catch(\Exception $e){
 
 		$log->log($e->getMessage(),1,"light_red");
-		//echo $e->getTraceAsString()."\n";
+		echo $e->getTraceAsString()."\n";
 		usageShort($log);
 		exit(1);
 

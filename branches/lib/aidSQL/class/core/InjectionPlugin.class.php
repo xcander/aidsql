@@ -23,7 +23,9 @@
 
 			public final function __construct(\aidSQL\http\Adapter $adapter,aidSQL\LogInterface &$log=NULL){
 
-				if(!$adapter->getRequestVariables()){
+				$url	=	$adapter->getUrl();
+
+				if(!$url->getQueryAsArray()){
 					throw(new \Exception("Unable to perform injection without any request variables set in the http adapter!"));
 				}
 
@@ -64,9 +66,11 @@
 
 			public function execute($variable,$value){
 
-				$this->_httpAdapter->addRequestVariable($variable,$value);
+				$url	=	$this->_httpAdapter->getUrl();
+				$url->addRequestVariable($variable,$value);
+				$this->_httpAdapter->setUrl($url);
 
-				$this->log("Fetching ".$this->_httpAdapter->getFullUrl());
+				$this->log("Fetching ".$url->getURLAsString());
 
 				$content				=	$this->_httpAdapter->fetch();
 				$this->_httpCode	=	$this->_httpAdapter->getHttpCode();
