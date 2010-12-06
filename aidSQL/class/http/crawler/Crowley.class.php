@@ -10,7 +10,7 @@
 			private $_content			=	NULL;
 			private $_pages			=	array();
 			private $_depth			=	5;
-			private $_otherSites		=	array();
+			private $_externalUrls	=	array();
 			private $_scheme			=	NULL;
 			private $_emails			=	array();
 			private $_files			=	array();		//PHP, HTM,PDF, TXT other extensions
@@ -29,16 +29,14 @@
 
 				}
 
-				$url	=	$httpAdapter->getUrl();
-				$this->_host			=	$url->getUrlAsArray();
+				$this->_host			=	$httpAdapter->getUrl();
 				$this->_httpAdapter	=	$httpAdapter;
 
 				if(!is_null($log)){
 					$this->setLog($log);
 				}
 
-				$this->log("Normalized URL: ".$url->getUrlAsString());
-				$this->_httpAdapter->setUrl($url);
+				$this->log("Normalized URL: ".$this->_host->getUrlAsString());
 
 			}
 
@@ -186,6 +184,7 @@
 
 			}
 
+
 			public function isEmailLink($link){
 
 				if(!preg_match("#mailto:.*#",$link)){
@@ -212,6 +211,7 @@
 
 			}
 
+
 			public function setMaxLinks($amount=0){
 				$this->_maxLinks=(int)$amount;
 			}
@@ -228,11 +228,13 @@
 
 			}
 
+
 			public function getEmailLinks($link){
 
 				return $this->_emails;
 
 			}
+
 
 			private function reduxLinks(Array $links){
 
@@ -242,6 +244,7 @@
 					$this->log("No links to reduce");	
 					return $links;
 				}
+
 
 				if($sizeOfLinks < $this->_lpp){
 
@@ -263,83 +266,6 @@
 
 			}
 
-			public function parseUrl($url=NULL){
-	
-				if(is_array($url)){
-					throw(new \Exception("URL cant be empty"));
-				}
-
-				$parsedUrl=array();
-
-				if(!preg_match("#://#",$url)){
-
-					$scheme	=	"http";
-
-					if(!empty($this->_host)){
-						$url		=	$scheme."://".$this->_host["host"]."/".$url;
-					}
-
-				}else{
-
-					$scheme	=	substr($url,0,strpos($url,":"));
-
-				}
-
-				$parsedUrl["fullUrl"]	=	$url;
-				$parsedUrl["scheme"]		=	$scheme;
-
-				$host	=	substr($url,strlen($scheme)+3);
-
-				if(strpos($host,"/")!==FALSE){
-
-					$host	=	substr($host,0,strpos($host,"/"));
-
-				}else{
-
-					$host	=	substr($url,strlen($scheme)+3);
-
-				}
-
-				$parsedUrl["host"]		=	$host;
-
-				$path	=	substr($url,strlen($scheme)+3+strlen($host));
-
-				if(strrpos($path,"/")!==FALSE){
-
-					$path = substr($path,0,strrpos($path,"/")+1);
-
-				}else{
-
-					$path	=	"/";
-
-				}
-
-				$parsedUrl["path"]	=	$path;
-
-				if(strrpos($path,"?")!==FALSE){
-					$parsedUrl["path"]	=	substr($path,0,strpos($path,"?"));
-				}
-
-				$parsedUrl["page"]	=	basename($url);
-
-				if($parsedUrl["page"]==$parsedUrl["host"]){
-					$parsedUrl["page"]="";
-				}
-
-				if(strpos($url,"?")==FALSE){
-
-					$parsedUrl["query"]	=	"";
-
-				}else{
-
-					$parsedUrl["query"]	=	substr($url,strpos($url,"?")+1);
-					$parsedUrl["page"]	=	substr($parsedUrl["page"],0,strpos($parsedUrl["page"],"?"));
-
-				}
-
-				return $parsedUrl;
-
-			}
 
 			public function getOtherSites(){
 				return $this->_otherSites;
@@ -347,19 +273,6 @@
 
 			public function setDepth($depth=5){
 				$this->_depth = $depth;
-			}
-
-			public function setContent($content=NULL){
-
-				if(empty($content)){
-					throw (new \Exception(__CLASS__.": Content is empty!"));
-				}
-				
-			}
-
-			
-			public function getContent(){
-				return $this->_content;
 			}
 
 			public function getLinks($onlyWithParameters=FALSE){
@@ -404,79 +317,18 @@
 
 			}
 
-			//Fetches all A elements from a given content
 
-			private function fetchLinks($content=NULL){
+			private function addExternalSite(\aidSQL\http\Url $extUrl){
 
-				if(empty($content)){
-					return array();
-				}
+				foreach($this->_externalUrls as $ext){
 
-				$return	=	array();
-				$dom		=	new \DomDocument();
+					if($ext->getHost()!=$this->_host->getHost()){
 
-				@$dom->loadHTML($content);
-
-				$links	=	$dom->getElementsByTagName("a");
-
-				$return = array();
-
-				if($links->length > 0){
-
-					foreach($links as $link){
-
-						$href = $link->getAttribute("href");
-						$return[$href] = $this->parseUrl($href);
+						$this->log("External URL detected ".$ext->getFullUrl($parameters=TRUE),0,"green");
+						$this->_externalUrls[$ext->getHost()][] = $ext;
+						return TRUE;
 
 					}
-
-
-				}
-
-				$this->log("Got ".sizeof($return)." links ...");
-
-				return $return;
-
-			}
-
-			private function fetchImages($content){
-
-				if(empty($content)){
-					return array();
-				}
-
-				$return	=	array();
-				$dom		=	new \DomDocument();
-
-				@$dom->loadHTML($content);
-
-				$images	=	$dom->getElementsByTagName("img");
-
-				$return = array();
-
-				if($images->length > 0){
-
-					foreach($images as $img){
-
-						$src = $img->getAttribute("src");
-						$return[$src] = $this->parseUrl($src);
-
-					}
-
-				}
-
-				$this->log("Got ".sizeof($return)." images ...");
-
-				return $return;
-
-			}
-
-			private function addExternalSite($externalSite){
-
-				if(!in_array($externalSite,$this->_otherSites)){
-
-					$this->_otherSites[] = $externalSite;
-					return TRUE;
 
 				}
 
@@ -514,7 +366,7 @@
 
 			/**
 			*Some sites make bad use of mod_rewrite and other server side URL rewriting
-			*techniques which can cause the cralwer to go into deep recursion, hopefully,
+			*techniques which can cause the crawler to go into recursion mayhem, hopefully,
 			*this function will avoid that kind of recursion.
 			*@param String $path only the path, not the hostname
 			*@param Int    $fuckLimit count until fuckLimit is reached
@@ -578,27 +430,36 @@
 				return $this->_files;
 			}
 
-			public function crawl(\aidSQL\http\URL $url=NULL){
 
-				if($this->_maxLinks>0){
-					if(sizeof($this->_links)>$this->_maxLinks){
-						$this->log("Link limit reached!",2,"white");
-						return NULL;
+			private function makeUrls(Array &$uris){
+
+				foreach($uris as $key=>$uri){
+
+					if(!preg_match("#://#",$uri)){	
+
+						//Means that the image is relative to the path
+						//We *have* to normalize the url passing also the host 
+
+						$uris[$key]	=	new \aidSQL\http\URL($this->_host->getScheme()."://"				.
+																		$this->_host->getHost()							.
+																		$this->_host->getPathSeparator()				.
+																		$uri
+											);
+
+					}else{
+
+						$uris[$key]	=	new \aidSQL\http\URL($uri);
+
 					}
+
 				}
 
-				if(empty($path)){
-					$path = $this->_host["path"];
-				}
+			}
 
-				if($this->detectModRewriteFuckUp($path)){
-					$this->log("Possible url rewrite Fuck up detected in $path!");
-					return FALSE;
-				}
+			public function crawl(\aidSQL\http\URL $url=NULL){
 
 				if(!is_null($url)){
 
-					$url	=	new \aidSQL\http\URL($url);
 					$this->_httpAdapter->setURL($url);
 
 				}else{
@@ -607,17 +468,47 @@
 
 				}
 
-				$this->log("Crawling ".$url->getUrlAsString()."...  ",0,"light_green");
+				if($this->isOmittedPath($url->getPath())){
 
-				if($this->isOmittedPath($path)){
-
-					$this->log("*$path is omitted will NOT fetch content from here!");
+					$this->log('*'.$url->getPath()." is omitted will NOT fetch content from here!");
 					return FALSE;
 
 				}
 
-				$this->log("Fetching content ...",0,"light_green");
-				$content	=	$this->_httpAdapter->fetch();
+
+				$this->log("Fetching content from ".$url->getUrlAsString($parameters=TRUE),0,"light_green");
+
+
+				try{
+
+					$this->_content	=	new \aidSQL\core\Dom($this->_httpAdapter->fetch());
+
+				}catch(\Exception $e){
+
+					$this->log($e->getMessage(),1,"red");
+
+				}
+
+
+				if($this->_maxLinks>0){
+
+					if(sizeof($this->_links)>$this->_maxLinks){
+
+						$this->log("Link limit reached!",2,"white");
+						return NULL;
+
+					}
+
+				}
+
+
+				if($this->detectModRewriteFuckUp($url->getPath())){
+
+					$this->log("Possible url rewrite Fuck up detected in $path!");
+					return FALSE;
+
+				}
+
 
 				if(($httpCode = $this->_httpAdapter->getHttpCode()) != 200){
 
@@ -630,119 +521,119 @@
 
 				}
 
+
 				//Fetches all the links, we are through with this page, hence we have effectively
 				//got all links on the given content.
 
-				$links	=	$this->fetchLinks($content);
-				$images	=	$this->fetchImages($content);
+				$images	=	$this->_content->fetchImages();		//Get all the images, image location is important to know
+																				//certain DocumentRoot locations in order to get a shell.
+																				//This is the case of the mysql5 plugin
 
-				foreach($images as $img){
 
-					if($img["host"]!=$this->_host["host"]){
+				$this->makeUrls($images);
+				$this->filterExternalSites($images);
 
-						if($this->addExternalSite($img["host"])){
-							$this->log("$img[host], external site detected adding to other sites list ...",0,"purple");
+	
+				if(sizeof($images)){
+
+					$this->log("Found ".sizeof($images)." images",0,"light_cyan");
+
+					foreach($images as $img){
+
+						$file		=	$img->getPath().$img->getPathSeparator().$img->getPage();
+
+						if ($this->addFile($this->whatIs($file))){
+							$this->log("Add file $file",0,"light_purple");
 						}
 
-						continue;
-
 					}
 
-					$fLink	=	$this->getFullLink($img["path"].$img["page"],$path);
-					$file		=	$fLink["path"].$fLink["page"];		
-
-					if ($this->addFile($this->whatIs($file))){
-						$this->log("Add file $file",0,"light_purple");
-					}
+				}else{
+	
+					$this->log("No images found",2,"yellow");
 
 				}
-				
-				//If links per page was specified, then we call the reduxLinks method
+			
+				//This also returns javascript links and anchors
+				//might want to use them in the future.
+	
+				$links	=	$this->_content->fetchLinks();
+				$links	=	$links["links"];	
 
-				if($this->_lpp>0){
-					$links = $this->reduxLinks($links);
-				}
+				$this->makeUrls($links);	//Foreach URI returned by the content makes a URL Object
+				$this->filterExternalSites($links);	//Foreach made URL object takes away the external sites
 
 				$sizeOfLinks = sizeof($links);
 
 				if(!$sizeOfLinks){
-			
-					$this->log("Couldnt find any links in given URL",0,"yellow");
+
+					$this->log("No links found",2,"yellow");
 					return FALSE;
+
+				}else{
+
+					$this->log("TOTAL Links found: $sizeOfLinks",0,"light_cyan");
 
 				}
 
-				$this->log("Found $sizeOfLinks Links to dig in ...",0,"light_cyan");
+
+				if($sizeOfLinks > $this->_lpp){
+
+					$this->log("Reducing links amount to ".$this->_lpp,0,"yellow");
+					$links = $this->reduxLinks($links);
+
+				}
+
 
 				foreach($links as $link=>$value){
 
-					$linkKey = $this->getLinkKey($link,$path);
+					$linkKey	=	$value->getUrlAsString($parameters=FALSE);
 
-					if(!$this->isValidLink($link)){
-						$this->log("Invalid link found $link",0,"red");
-						continue;
-					}
-
-					if($this->isEmailLink($link)){
-						$this->log("Email link found $link",0,"light_green");
-						$this->addEmailLink($link);
-						continue;
-					}
-
-					$pLinkUrl	=	$this->parseUrl($link);
-
-					if($pLinkUrl["host"]!=$this->_host["host"]){
-
-						if($this->addExternalSite($pLinkUrl["host"])){
-							$this->log("$pLinkUrl[host], external site detected adding to other sites list ...",0,"purple");
-						}
-
-						continue;
-
-					}
-
-					$fLink		=	$this->getFullLink($link,$path);
-					$file			=	$this->whatIs($fLink["path"].$fLink["page"]);
+					$file		=	trim($value->getPath().$value->getPathSeparator().$value->getPage(),'/');
+					$file		=	$this->whatIs($file);
 
 					if(is_array($file)){
 
 						if($this->addFile($file)){
-							$this->log("Add file $link ...",0,"light_purple");
+							$this->log("Add file ".$value->getPage()." ...",0,"light_purple");
 						}
 
 					}
 
-					if(!empty($fLink["page"])){
+					$_empty	=	$value->getPage();
 
-						if($this->isOmittedPage($path.$fLink["page"])){
+					if(!empty($_empty)){
 
-							$page = $path.$fLink["page"];
+						$page	=	$value->getPath().$value->getPathSeparator().$value->getPage();
+
+						if($this->isOmittedPage($page)){
+
 							$this->log("*$page  was meant to be omitted",0);
 							continue;
 
 						}
 
-						if($this->pageHasValidType($fLink["page"])===FALSE){
+						if($this->pageHasValidType($value->getPage())===FALSE){
 							
-							$this->log("\"$fLink[page]\" doesnt matches given file types",0,"yellow");
+							$this->log($value->getPage()." doesnt matches given file types",0,"yellow");
 							continue;
 
 						}else{
 						
-							$this->log("Page \"$fLink[page]\" matches required types ".implode($this->_pageTypes,","),0,"light_green");
+							$this->log("Page \"".$value->getPage()."\" matches required types ".implode($this->_pageTypes,","),0,"light_green");
 
 						}
 
 					}
 
 					//Check if the given Linkkey was already Crawled before, if so, check if there are any
-					//Different parameters that will be usefull to us.
+					//different parameters that will be usefull to us.
 
 					if($this->wasCrawled($linkKey)){
 
 						$this->log("Parsing previously crawled URL, looking for new parameters ...",0,"blue");
 
-						$parameters	=	$this->parseQuery($fLink["query"]);
+						$parameters	=	$value->getQueryAsArray();
 
 						if(sizeof($parameters)){
 
@@ -803,7 +694,7 @@
 							$this->_links[$linkKey]["depth"]++;
 
 							$this->log($this->drawLine($this->_links[$linkKey]["depth"]),0,"light_cyan");
-							$crawlResult = $this->crawl($fLink["fullUrl"],$fLink["path"]);
+							$crawlResult = $this->crawl($value);
 
 							if($crawlResult === FALSE){
 								unset($this->_links[$linkKey]);
@@ -820,6 +711,26 @@
 
 				}
 
+			}
+
+			private function filterExternalSites(Array &$links){
+
+				foreach($links as $key=>$url){
+
+					if($this->isExternalSite($url)){
+
+						if($this->addExternalSite($url)){
+
+							$this->log($url->getHost().", external site detected adding to other sites list ...",0,"purple");
+
+						}
+
+						unset($links[$key]);
+
+					}
+
+				}
+			
 			}
 
 			private function drawLine($depth){
@@ -863,15 +774,6 @@
 
 			}
 
-			private function isValidLink($link){
-
-				if($link=="#"||preg_match("/javascript:/i",$link)){
-					return FALSE;
-				}
-			
-				return TRUE;
-
-			}
 
 			private function parseQuery($query=NULL,$separator="&"){
 
@@ -914,39 +816,19 @@
 
 			}
 
-			public function isExternalSite($link){
+			public function isExternalSite(\aidSQL\http\Url $url){
 
-				if(preg_match("#://#",$link)){
+				$currentHost	=	$this->_host->getHost();
+				$givenHost		=	$url->getHost();
 
-					$thisSite		=	$this->getHostURL(parse_url($link));
-					$currentSite	=	$this->getHostURL($this->_host);
-
-					if($thisSite!==$currentSite){
+				if($currentHost!==$givenHost){
 						return TRUE;
-					}
-
 				}
 
 				return FALSE;
 
 			}
 
-			private function getFullLink($link,$path="/"){
-
-				//Check if its a full link
-
-				if(preg_match("#".$this->_host["host"]."#",$link)){	//Full link
-
-					//$this->log("FULL LINK",0,"green");
-
-					return $this->parseUrl($link);
-
-				}
-
-				//$this->log("RELATIVE!!!!!!!!!!",0,"light_green");
-				return $this->getRelativePath($link,$path);
-
-			}
 
 			private function getRelativePath($link=NULL,$path="/"){
 

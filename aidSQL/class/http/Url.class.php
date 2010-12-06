@@ -58,12 +58,8 @@
 
 				}
 
-				if(empty($host)){
-					throw(new \Exception("Invalid URL!"));
-				}
-
-				if(strpos($host,$this->queryIndicator)){
-					$host	=	substr($host,0,strpos($host,$this->queryIndicator));
+				if(strpos($host,$this->_queryIndicator)){
+					$host	=	substr($host,0,strpos($host,$this->_queryIndicator));
 				}
 
 				$parsedUrl["host"]		=	$host;
@@ -82,23 +78,23 @@
 
 				$parsedUrl["path"]	=	$path;
 
-				if(strrpos($path,$this->queryIndicator)!==FALSE){
-					$parsedUrl["path"]	=	substr($path,0,strpos($path,$this->queryIndicator));
+				if(strrpos($path,$this->_queryIndicator)!==FALSE){
+					$parsedUrl["path"]	=	substr($path,0,strpos($path,$this->_queryIndicator));
 				}
 
 				$parsedUrl["page"]	=	basename($url);
 
-				if(strpos($url,$this->queryIndicator)==FALSE){
+				if(strpos($url,$this->_queryIndicator)==FALSE){
 
 					$parsedUrl["query"]	=	"";
 
 				}else{
 
-					$parsedUrl["query"]	=	substr($url,strpos($url,$this->queryIndicator)+1);
+					$parsedUrl["query"]	=	substr($url,strpos($url,$this->_queryIndicator)+1);
 
 					$this->addRequestVariables($this->queryStringToArray($parsedUrl["query"]));
 
-					$parsedUrl["page"]	=	substr($parsedUrl["page"],0,strpos($parsedUrl["page"],$this->queryIndicator));
+					$parsedUrl["page"]	=	substr($parsedUrl["page"],0,strpos($parsedUrl["page"],$this->_queryIndicator));
 
 				}
 
@@ -107,7 +103,10 @@
 				}
 
 				if(preg_match("#..#",$parsedUrl["path"])){
-					$parsedUrl["path"]=$this->parseRelativePath($parsedUrl["path"]);
+					$parsedUrl["path"]		=	$this->parseRelativePath($parsedUrl["path"]);
+					$parsedUrl["is_relative"]	=	TRUE;
+				}else{
+					$parsedUrl["is_relative"]	=	FALSE;
 				}
 
 				$this->_url	=	$parsedUrl;
@@ -133,6 +132,10 @@
 
 				return $variables;
 
+			}
+
+			public function isRelative(){
+				return $this->_url["is_relative"];
 			}
 
 			public function addRequestVariable($var,$value=NULL){
@@ -201,6 +204,14 @@
 
 			}
 
+
+			public function getPathSeparator($char=NULL){
+
+				return $this->_pathSeparator;
+
+			}
+
+
 			public function setQueryIndicator($char=NULL){
 
 				$this->_queryIndicator = $char;
@@ -227,7 +238,7 @@
 				return $this->parseVariables();
 			}
 
-			public function getURLAsString($parameters=TRUE){
+			public function getUrlAsString($parameters=TRUE){
 
 				$full	=	$this->_url["scheme"]."://".$this->_url["host"];
 				$path	=	(isset($this->_url["path"]))	?	'/'.trim($this->_url["path"],'/') : '/';
@@ -241,7 +252,7 @@
 
 				if(sizeof($this->_variables)&&$parameters){
 
-					$full	.=	$this->queryIndicator.$this->parseVariables();
+					$full	.=	$this->_queryIndicator.$this->parseVariables();
 
 				}
 

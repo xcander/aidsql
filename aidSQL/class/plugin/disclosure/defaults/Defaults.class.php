@@ -19,13 +19,13 @@
 					throw(new \Exception("Cant use defaults plugin with no web directories default location list!"))	;
 				}
 
-				$url	=	new \aidSQL\http\Url($this->_httpAdapter->getUrl());
+				$url	=	$this->_httpAdapter->getUrl();
 				$url	=	$url->getScheme()."://".$url->getHost();
 
 				foreach($webDirectories as $dir){
 
 					$this->log("$url/$dir ...",0,"white");
-					$this->_httpAdapter->setUrl($url.'/'.$dir);
+					$this->_httpAdapter->setUrl(new \aidSQL\http\Url($url.'/'.$dir));
 					$this->_httpAdapter->fetch();
 
 					$httpCode	=	$this->_httpAdapter->getHttpCode();
