@@ -170,33 +170,6 @@
 
 	}
 
-	function filterLinksWithoutParameters(Array &$links){
-
-		$tmpLinks = array();
-
-		foreach($links as $page=>$variables){
-
-			if(sizeof($variables)){
-
-				foreach($variables as $param=>$value){
-
-					if(!isset($tmpLinks[$page])){
-						$tmpLinks[$page]="";
-					}
-
-					$tmpLinks[$page].="$param=$value,";
-
-				}
-
-				$tmpLinks[$page] = substr($tmpLinks[$page],0,-1);
-
-			}
-
-		}
-
-		$links = $tmpLinks;
-
-	}
 
 	function filterSites (Array &$sites,aidSQL\LogInterface &$log,$regex=NULL){
 
@@ -226,7 +199,6 @@
 	function testLinks(\aidSQL\http\Crawler &$crawler,aidSQL\http\Adapter &$httpAdapter,aidSQL\parser\CmdLine &$cmdParser,aidSQL\LogInterface &$log){
 
 		$links	=	$crawler->getLinks(TRUE);
-		filterLinksWithoutParameters($links);
 
 		if(!sizeof($links)){
 			return NULL;

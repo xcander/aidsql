@@ -151,7 +151,7 @@
 
 					//Getshell method must return FALSE on error or String path/to/shellLocation
 
-					$g0tShell = $plugin->getShell($this->_pLoader,$this->_options);
+					$g0tShell = $plugin->getShell($this->_pLoader,$this->_options,$this->_crawler);
 
 					if($g0tShell){
 						$this->log("Got Shell => $g0tShell",0,"light_green");
@@ -174,23 +174,8 @@
 			*/
 
 			private function configureHttpAdapter(Array $options){
-
+				
 				$this->_httpAdapter->setMethod($options["http-method"]);
-				$this->_httpAdapter->setUrl($options["url"]);
-
-				$urlVariables	= explode(",",$options["urlvars"]);
-				$realUrlVars	= array();
-
-				$value	= "";
-				$var		= "";
-
-				foreach($urlVariables as $urlVar){
-
-					$var		= explode("=",$urlVar);
-					$value	= (isset($var[1])) ? $var[1] : "";
-					$this->_httpAdapter->addRequestVariable($var[0],$value);
-
-				}				
 				
 				if(!empty($options["proxy-server"])){
 

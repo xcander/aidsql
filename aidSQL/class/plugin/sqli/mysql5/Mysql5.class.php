@@ -57,7 +57,8 @@
 
 			public function isVulnerable(){
 
-				$vars		=	$this->_httpAdapter->getRequestVariables();
+				$url		=	$this->_httpAdapter->getUrl();
+				$vars		=	$url->getQueryAsArray();
 				$vars		=	$this->orderRequestVariables($vars);
 
 				$found	= FALSE;

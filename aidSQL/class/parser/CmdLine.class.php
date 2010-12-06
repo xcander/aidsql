@@ -161,6 +161,7 @@
 				//Option is OK, add it to the parsed options
 
 				$option=$this->searchOption($realOption);
+
 				$this->_parsedOptions[$realOption] = $realOptionValue;
 
 				return TRUE;
@@ -225,6 +226,7 @@
 			private function parseRequiredOptions(Array $givenOptions){
 
 				$givenOptions = array_keys($givenOptions);
+
 				foreach($this->_options as $option=>$optionConfig){
 
 					if(!isset($optionConfig["required"])){

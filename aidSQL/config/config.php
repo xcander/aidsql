@@ -129,6 +129,13 @@
 		),
 		
 		"plugin-disclosure-load-order"=>array(
+		),
+		"crawl"=>array(
+			"requires"=>array("url"),
+			"values"=>array(
+				1,
+				0
+			)
 		)
 
 	);

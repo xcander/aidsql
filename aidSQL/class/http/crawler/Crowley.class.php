@@ -29,7 +29,7 @@
 
 				}
 
-				$url = new \aidSQL\http\URL($httpAdapter->getUrl());
+				$url	=	$httpAdapter->getUrl();
 				$this->_host			=	$url->getUrlAsArray();
 				$this->_httpAdapter	=	$httpAdapter;
 
@@ -38,7 +38,7 @@
 				}
 
 				$this->log("Normalized URL: ".$url->getUrlAsString());
-				$this->_httpAdapter->setUrl($url->getUrlAsString());
+				$this->_httpAdapter->setUrl($url);
 
 			}
 
@@ -368,7 +368,6 @@
 					return $this->_links;
 				}
 
-
 				if($onlyWithParameters){
 
 					$links = array();
@@ -389,13 +388,18 @@
 
 			}
 
-			public function addLink($strURL=NULL){
+			public function addLink($strURL=NULL,Array $URLVars=NULL){
 
 				if(empty($strURL)){
 					throw(new \Exception("Link to be added cant be empty!"));
 				}
-			
+					
 				$url	=	new \aidSQL\http\URL($strURL);
+
+				if(sizeof($URLVars)){
+					$url->addRequestVariables($URLVars);
+				}
+
 				$this->_links[$url->getUrlAsString(FALSE)]["parameters"]	=	$url->getQueryAsArray();
 
 			}
@@ -574,7 +578,7 @@
 				return $this->_files;
 			}
 
-			public function crawl($url=NULL,$path=NULL){
+			public function crawl(\aidSQL\http\URL $url=NULL){
 
 				if($this->_maxLinks>0){
 					if(sizeof($this->_links)>$this->_maxLinks){
@@ -594,11 +598,16 @@
 
 				if(!is_null($url)){
 
+					$url	=	new \aidSQL\http\URL($url);
 					$this->_httpAdapter->setURL($url);
+
+				}else{
+
+					$url	=	$this->_httpAdapter->getUrl();
 
 				}
 
-				$this->log("Crawling ".$this->_httpAdapter->getUrl()." ...  ",0,"light_green");
+				$this->log("Crawling ".$url->getUrlAsString()."...  ",0,"light_green");
 
 				if($this->isOmittedPath($path)){
 
