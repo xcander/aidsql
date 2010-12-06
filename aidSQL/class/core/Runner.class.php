@@ -151,7 +151,7 @@
 
 					//Getshell method must return FALSE on error or String path/to/shellLocation
 
-					$g0tShell = $plugin->getShell($this->_pLoader,$this->_options,$this->_crawler);
+					$g0tShell = $plugin->getShell($this->_pLoader,$this->_crawler,$this->_options);
 
 					if($g0tShell){
 						$this->log("Got Shell => $g0tShell",0,"light_green");
