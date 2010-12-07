@@ -106,9 +106,10 @@
 
 
 		if(!empty($parsedOptions["url"])){
-			$sites[0]	=	new \aidSQL\http\Url ($parsedOptions["url"]); 
-		}
 
+			$sites[0]	=	new \aidSQL\http\Url ($parsedOptions["url"]); 
+
+		}
 
 		//Instance of the http adapter, shared by aggregation through all classes
 
@@ -198,6 +199,7 @@
 			$httpAdapter->setUrl($url);
 
 			$crawlerName	=	"aidSQL\\http\\crawler\\$parsedOptions[crawler]";
+
 			$crawler			=	new $crawlerName($httpAdapter,$log);
 
 			if(isset($parsedOptions["lpp"])){
@@ -245,7 +247,12 @@
 
 			//Test crawled links
 
-			$links	=	$crawler->getLinks(TRUE);
+			$allLinks										=	array();
+			$allLinks[$url->getUrlAsString(FALSE)] = $url->getQueryAsArray();
+			$links											=	$crawler->getLinks(TRUE);
+
+			$allLinks	=	array_merge($allLinks,$links);
+			$links		=	$allLinks;
 
 			if(!sizeof($links)){
 
