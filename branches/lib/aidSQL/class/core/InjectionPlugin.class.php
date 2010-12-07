@@ -72,7 +72,18 @@
 
 				$this->log("Fetching ".$url->getURLAsString());
 
-				$content				=	$this->_httpAdapter->fetch();
+
+				try{
+
+					$content				=	$this->_httpAdapter->fetch();
+
+				}catch(\Exception $e){
+
+					$this->log($e->getMessage());
+
+				}
+
+
 				$this->_httpCode	=	$this->_httpAdapter->getHttpCode();
 
 				if($this->_httpCode!==200){
@@ -95,7 +106,7 @@
 					throw(new Exception("String escape character cannot be empty!"));
 				}
 
-				$this->_stringEscapeCharacter = $escape;
+				$this->_stringEscapeCharacter	=	$escape;
 
 			}
 

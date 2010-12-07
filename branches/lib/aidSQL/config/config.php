@@ -131,11 +131,15 @@
 		"plugin-disclosure-load-order"=>array(
 		),
 		"crawl"=>array(
-			"requires"=>array("url"),
-			"values"=>array(
-				1,
-				0
-			)
+			"requires"=>array("url")
+		),
+		"url-query-char"=>array(
+		),
+		"url-var-char"=>array(
+		),
+		"url-equality-char"=>array(
+		),
+		"url-path-char"=>array(
 		)
 
 	);

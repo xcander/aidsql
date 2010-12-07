@@ -69,30 +69,6 @@
 
 	}
 
-	function isVulnerable(aidSQL\parser\CmdLine $cmdParser,aidSQL\http\Adapter &$httpAdapter,aidSQL\http\Crawler &$crawler,aidSQL\LogInterface &$log=NULL){
-
-			$aidSQL		= new aidSQL\core\Runner($cmdParser,$httpAdapter,$crawler,$log);
-
-			try {
-
-				if($aidSQL->isVulnerable()){
-
-					$log->log("Site is vulnerable to sql injection!!",0,"light_cyan");
-					$aidSQL->generateReport();
-
-					return TRUE;
-
-				}
-
-			}catch(\Exception $e){
-		
-				$log->log($e->getMessage(),1,"light_red");
-				return FALSE;
-
-			}
-
-	}
-
 	function googleSearch(\aidSQL\http\webservice\Google &$google,$offset=0,$userTotal=200){
 
 		try{
@@ -118,7 +94,7 @@
 
 				foreach($result->responseData->results as $searchResult){
 
-					$url = $searchResult->visibleUrl;
+					$url = new \aidSQL\http\Url($searchResult->visibleUrl);
 
 					if(!in_array($url,$sites)){
 						$sites[] = $url;
@@ -191,41 +167,6 @@
 			}
 
 			$log->log("Site added ".$site,0,"green");
-
-		}
-
-	}
-
-	function testLinks(\aidSQL\http\Crawler &$crawler,aidSQL\http\Adapter &$httpAdapter,aidSQL\parser\CmdLine &$cmdParser,aidSQL\LogInterface &$log){
-
-		$links	=	$crawler->getLinks(TRUE);
-
-		if(!sizeof($links)){
-			return NULL;
-		}
-
-		$log->log("Amount of links to be tested for injection:".sizeof($links),0,"light_cyan");
-		$parsedOptions	=	$cmdParser->getParsedOptions();
-
-		$tmpLinks = array_keys($links);
-
-		foreach($tmpLinks as $lnk){
-			$log->log($lnk,0,"light_cyan");
-		}
-
-		foreach($links as $path=>$query){
-
-			if($path===0){
-				$cmdParser->setOption("url",$parsedOptions["url"]);
-			} else {
-				$cmdParser->setOption("url",$path);
-			}
-
-			$cmdParser->setOption("urlvars",$query);
-
-			if(isVulnerable($cmdParser,$httpAdapter,$crawler,$log)&&(bool)$parsedOptions["immediate-mode"]){
-				break;
-			}
 
 		}
 
