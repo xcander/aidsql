@@ -79,7 +79,9 @@
 				$plugins	=	$this->_pLoader->getPlugins();
 
 				if(!sizeof($plugins)){
+
 					throw (new \Exception("No plugins found!"));
+
 				}
 
 				foreach($plugins as $plugin){
@@ -99,19 +101,28 @@
 
 					$this->log("Testing ".get_class($plugin)." sql injection plugin...",0,"white");
 
-					if($plugin->isVulnerable()){
+					try{
 
-						$this->_plugin			= clone($plugin);
-						$this->_vulnerable	= TRUE;
-						return TRUE;
+						if($plugin->isVulnerable()){
+
+							$this->_plugin			= clone($plugin);
+							$this->_vulnerable	= TRUE;
+							return TRUE;
+
+						}
+
+						$this->log("Not vulnerable to this plugin ...");
+
+					}catch(\Exception $e){
+
+						$this->log($e->getMessage(),1,"red");
+						return FALSE;
 
 					}
 
-					$this->log("Not vulnerable to this plugin ...");
 
 				}
 
-				return FALSE;
 
 			}
 
@@ -121,51 +132,65 @@
 			*/
 
 			public function generateReport(){
+
 	
 				if(is_null($this->_vulnerable)){
+
 					$msg = "Site seems not to be vulnerable or has not been checked for being vulnerable, cannot generate report";
 					throw(new Exception($msg));
+
 				}
-	
-				$plugin		= $this->_plugin;
-				$database	= $plugin->analyzeInjection($plugin->getDatabase());
-				$database	= $database[0];
 
-				$dbuser		= $plugin->analyzeInjection($plugin->getUser());
-				$dbuser		= $dbuser[0];
 
-				$dbtables	= $plugin->analyzeInjection($plugin->getTables());
-				$dbtables	= $dbtables[0];
+				try{	
 
-				$this->log("BASIC INFORMATION",0,"cyan");
-				$this->log("---------------------------------",0,"white");
-				$this->log("PLUGIN\t\t:\t".$plugin->getPluginName(),0,"cyan");
-				$this->log("DBASE\t\t:\t$database",0,"white");
-				$this->log("USER\t\t:\t$dbuser",0,"white");
-				$this->log("TABLES\t\t:\t$dbtables",0,"white");
+					$plugin		= $this->_plugin;
+					$database	= $plugin->analyzeInjection($plugin->getDatabase());
+					$database	= $database[0];
 
-				if($plugin->isRoot($dbuser)){
+					$dbuser		= $plugin->analyzeInjection($plugin->getUser());
+					$dbuser		= $dbuser[0];
 
-					$this->log("IS ROOT\t:\tYES",0,"light_green");
-					$this->log("Trying to get Shell ...",1,"light_cyan");
+					$dbtables	= $plugin->analyzeInjection($plugin->getTables());
+					$dbtables	= $dbtables[0];
 
-					//Getshell method must return FALSE on error or String path/to/shellLocation
+					$this->log("BASIC INFORMATION",0,"cyan");
+					$this->log("---------------------------------",0,"white");
+					$this->log("PLUGIN\t\t:\t".$plugin->getPluginName(),0,"cyan");
+					$this->log("DBASE\t\t:\t$database",0,"white");
+					$this->log("USER\t\t:\t$dbuser",0,"white");
+					$this->log("TABLES\t\t:\t$dbtables",0,"white");
 
-					$g0tShell = $plugin->getShell($this->_pLoader,$this->_crawler,$this->_options);
+					if($plugin->isRoot($dbuser)){
 
-					if($g0tShell){
-						$this->log("Got Shell => $g0tShell",0,"light_green");
+						$this->log("IS ROOT\t:\tYES",0,"light_green");
+						$this->log("Trying to get Shell ...",1,"light_cyan");
+
+						//Getshell method must return FALSE on error or String path/to/shellLocation
+
+						$g0tShell = $plugin->getShell($this->_pLoader,$this->_crawler,$this->_options);
+
+						if($g0tShell){
+							$this->log("Got Shell => $g0tShell",0,"light_green");
+						}else{
+							$this->log("Couldn't get shell :(",2,"yellow");
+						}
+
 					}else{
-						$this->log("Couldn't get shell :(",2,"yellow");
+				
+						$this->log("IS ROOT\t:\tNO",0,"white");
+
 					}
 
-				}else{
-				
-					$this->log("IS ROOT\t:\tNO",0,"white");
+					return TRUE;
+
+				}catch(\Exception $e){
+
+					$this->log($e->getMessage(),1,"red");
+					return FALSE;
 
 				}
 
-				return;
 
 			}
 

@@ -170,7 +170,7 @@
 				$this->parseSearchQuery();
 				$this->createFullUrl();
 
-				$this->httpAdapter->setUrl($this->fullUrl);
+				$this->httpAdapter->setUrl(new \aidSQL\http\Url ($this->fullUrl));
 				$this->httpAdapter->setMethod("GET");
 
 				$result = $this->httpAdapter->fetch();

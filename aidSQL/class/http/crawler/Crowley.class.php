@@ -9,7 +9,8 @@
 			private $_httpAdapter	=	NULL;
 			private $_content			=	NULL;
 			private $_pages			=	array();
-			private $_depth			=	5;
+			private $_depth			=	0;
+			private $_depthCount		=	0;
 			private $_externalUrls	=	array();
 			private $_scheme			=	NULL;
 			private $_emails			=	array();
@@ -301,23 +302,6 @@
 
 			}
 
-			public function addLink($strURL=NULL,Array $URLVars=NULL){
-
-				if(empty($strURL)){
-					throw(new \Exception("Link to be added cant be empty!"));
-				}
-					
-				$url	=	new \aidSQL\http\URL($strURL);
-
-				if(sizeof($URLVars)){
-					$url->addRequestVariables($URLVars);
-				}
-
-				$this->_links[$url->getUrlAsString(FALSE)]["parameters"]	=	$url->getQueryAsArray();
-
-			}
-
-
 			private function addExternalSite(\aidSQL\http\Url $extUrl){
 
 				foreach($this->_externalUrls as $ext){
@@ -431,18 +415,21 @@
 			}
 
 
-			private function makeUrls(Array &$uris){
+			private function makeUrls(Array &$uris,$path=NULL){
 
 				foreach($uris as $key=>$uri){
 
 					if(!preg_match("#://#",$uri)){	
 
-						//Means that the image is relative to the path
+						//Means that the uri is relative to the path
 						//We *have* to normalize the url passing also the host 
+
+						$path	=	(dirname($uri)=='.')	? $path.$this->_host->getPathSeparator() : NULL;
 
 						$uris[$key]	=	new \aidSQL\http\URL($this->_host->getScheme()."://"				.
 																		$this->_host->getHost()							.
 																		$this->_host->getPathSeparator()				.
+																		$path													.
 																		$uri
 											);
 
@@ -458,6 +445,14 @@
 
 			public function crawl(\aidSQL\http\URL $url=NULL){
 
+				$this->log($this->drawLine($this->_depthCount++,0,"light_cyan"));
+
+				if($this->_depth>0){
+					if($this->_depthCount>$this->_depth){
+						return NULL;
+					}
+				}
+
 				if(!is_null($url)){
 
 					$this->_httpAdapter->setURL($url);
@@ -468,13 +463,13 @@
 
 				}
 
+
 				if($this->isOmittedPath($url->getPath())){
 
 					$this->log('*'.$url->getPath()." is omitted will NOT fetch content from here!");
 					return FALSE;
 
 				}
-
 
 				$this->log("Fetching content from ".$url->getUrlAsString($parameters=TRUE),0,"light_green");
 
@@ -530,7 +525,7 @@
 																				//This is the case of the mysql5 plugin
 
 
-				$this->makeUrls($images);
+				$this->makeUrls($images,$url->getPath());
 				$this->filterExternalSites($images);
 
 	
@@ -560,7 +555,7 @@
 				$links	=	$this->_content->fetchLinks();
 				$links	=	$links["links"];	
 
-				$this->makeUrls($links);	//Foreach URI returned by the content makes a URL Object
+				$this->makeUrls($links,$url->getPath());	//Foreach URI returned by the content makes a URL Object
 				$this->filterExternalSites($links);	//Foreach made URL object takes away the external sites
 
 				$sizeOfLinks = sizeof($links);
@@ -577,7 +572,7 @@
 				}
 
 
-				if($sizeOfLinks > $this->_lpp){
+				if($this->_lpp>0&&$sizeOfLinks > $this->_lpp){
 
 					$this->log("Reducing links amount to ".$this->_lpp,0,"yellow");
 					$links = $this->reduxLinks($links);
@@ -595,7 +590,9 @@
 					if(is_array($file)){
 
 						if($this->addFile($file)){
+
 							$this->log("Add file ".$value->getPage()." ...",0,"light_purple");
+
 						}
 
 					}
@@ -664,11 +661,13 @@
 
 						}
 
-					}else{
+					}else{	//if($this->wasCrawled($linkKey))
+					
 
-						if(!empty($fLink["query"])){
+						$parameters	=	$value->getQueryAsArray();
 
-							$parameters	=	$this->parseQuery($fLink["query"]);
+						if(sizeof($parameters)){
+
 
 							if(!empty($parameters)){
 
@@ -684,26 +683,20 @@
 
 						}
 
-						if(!isset($this->_links[$linkKey]["depth"])){
-							$this->_links[$linkKey]["depth"]=0;
-						}
+						if($this->_depth > 0){
 
-
-						if($this->_links[$linkKey]["depth"] < $this->_depth){
-	
-							$this->_links[$linkKey]["depth"]++;
-
-							$this->log($this->drawLine($this->_links[$linkKey]["depth"]),0,"light_cyan");
 							$crawlResult = $this->crawl($value);
+							$this->depthCount	=	0;
 
 							if($crawlResult === FALSE){
 								unset($this->_links[$linkKey]);
 							}
 
-						}else{
+							if(is_null($crawlResult)){
 
-							$this->log("DEPTH LIMIT FOR $linkKey REACHED!",1,"yellow");
-							break;
+								$this->log("DEPTH LIMIT FOR $linkKey REACHED!",1,"yellow");
+
+							}
 
 						}
 
@@ -774,37 +767,6 @@
 
 			}
 
-
-			private function parseQuery($query=NULL,$separator="&"){
-
-				if(empty($query)){
-
-					$this->log("Query to be parsed was empty",1,"red");
-					return NULL;
-
-				}
-
-				$parameters = array();
-
-				$token = strtok($query,$separator);
-
-				while($token!==FALSE){
-
-					if(!strpos($token,"=")){
-						continue;
-					}
-
-					$param = substr($token,0,strpos($token,"="));
-					$value = substr($token,strpos($token,"=")+1);
-					$parameters[$param]=$value;
-
-					$token = strtok($separator);
-
-				}
-
-				return $parameters;
-
-			}
 
 			public function getHostURL($parse_url){
 
