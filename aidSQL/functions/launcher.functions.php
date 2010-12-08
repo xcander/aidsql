@@ -82,7 +82,7 @@
 				$result = $google->search();
 				$google->setStart($offset);
 
-				if($result->responseData->cursor->estimatedResultCount){
+				if(isset($result->responseData->cursor->estimatedResultCount)){
 
 					$total = $result->responseData->cursor->estimatedResultCount - $offset;
 
@@ -156,9 +156,9 @@
 
 			if($doRegex){
 
-				if(preg_match("/$regex/",$site)){
+				if(preg_match("/$regex/",$site->getHost())){
 
-					$log->log("Not adding ".$site,2,"yellow");
+					$log->log("SITE OMITTED ".$site->getHost(),2,"yellow");
 					unset($sites[$key]);
 					continue;
 
@@ -166,7 +166,7 @@
 
 			}
 
-			$log->log("Site added ".$site,0,"green");
+			$log->log("Site added ".$site->getHost(),0,"green");
 
 		}
 
