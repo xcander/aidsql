@@ -164,7 +164,7 @@
 
 		if(isset($parsedOptions["omit-sites"])){
 
-			//filterSites($sites,$log,$parsedOptions["omit-sites"]);
+			filterSites($sites,$log,$parsedOptions["omit-sites"]);
 
 		}
 
