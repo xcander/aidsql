@@ -10,9 +10,101 @@
 			public function __construct($content=NULL){
 
 				$this->setContent($content);
+				
+			}
+			
+			//Fetches all A elements from a given content
+
+			public function fetchLinks(){
+
+				$links	=	$this->fetchTag('a',"href");
+
+				$javascripts	=	Array();
+				$anchors			=	Array();
+				$pureLinks		=	Array();
+				$emails			=	Array();
+
+				foreach($links as $link){
+				
+					if(preg_match("/javascript\:/i",$link)){
+
+						if(!in_array($link,$javascripts)){
+
+							$javascripts[]=$link;
+
+						}
+
+					}elseif(preg_match("/^#.*/",$link)){
+
+							if(!in_array($link,$anchors)){
+
+								$anchors[]=$link;
+
+							}
+
+					}elseif(preg_match("/^mailto\:/i",$link)){
+
+						if(!in_array($link,$emails)){
+
+							$emails[]=$link;
+
+						}
+						
+					}else{
+
+						if(!in_array($link,$pureLinks)){
+
+							$pureLinks[]=$link;
+
+						}
+
+					}
+
+				}
+
+				return array(
+					"javascript"	=>	$javascripts,
+					"anchors"		=>	$anchors,
+					"links"			=>	$pureLinks,
+					"emails"			=>	$emails
+				);
 
 			}
 
+			//Fetches all img elements from a given content
+
+			public function fetchImages(){
+
+				return $this->fetchTag("img","src");
+
+			}
+
+
+			public function fetchTag($tagName,$attrName){
+
+				$return	=	array();
+				$dom		=	new \DomDocument();
+
+				@$dom->loadHTML($this->_content);
+
+				$tags	=	$dom->getElementsByTagName($tagName);
+
+				$return = array();
+
+				if($tags->length > 0){
+
+					foreach($tags as $tag){
+
+						$attrValue	=	$tag->getAttribute($attrName);
+						$return[]	=	$attrValue;
+
+					}
+
+				}
+
+				return $return;
+
+			}
 
 			public function setContent($content=NULL){
 
@@ -24,93 +116,12 @@
 				
 			}
 
-
 			public function getContent(){
-
 				return $this->_content;
-
-			}
-
-
-			public function fetchImages(){
-
-				return $this->getAttributeFromElements("img","src");
-
-			}			
-
-
-			public function fetchLinks(){
-
-				$allLinks	=	array(
-												"links"	=>	array(),
-												"mail"	=>	array()
-				);
-
-				$links		=	$this->getAttributeFromElements("a","href");
-
-				if(!sizeof($links)){
-
-					return $allLinks;
-
-				}
-
-				foreach($links as $link){
-
-					if(preg_match("#mailto:#",$link)){
-
-						$mail					=	substr($link,7);
-
-						if(!in_array($mail,$allLinks["mail"])){
-
-							$allLinks["mail"][]	=	$mail;
-
-						}
-
-					}else{
-
-						if(!in_array($link,$allLinks)){
-
-							$allLinks["links"][]	=	$link;
-
-						}
-
-					}
-
-				}
-
-				return $allLinks;
-
-			}
-
-
-			public function getAttributeFromElements($element,$attribute){
-
-				$return	=	array();
-				$dom		=	new \DomDocument();
-
-				@$dom->loadHTML($this->_content);
-
-				$elements	=	$dom->getElementsByTagName($element);
-
-				$return = array();
-
-				if($elements->length > 0){
-
-					foreach($elements as $element){
-
-						$return[]	=	$element->getAttribute($attribute);
-
-					}
-
-
-				}
-
-				return $return;
-
 			}
 
 		}
 
 	}
-
+	
 ?>
