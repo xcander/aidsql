@@ -138,9 +138,17 @@
 				return $this->_url["is_relative"];
 			}
 
-			public function addRequestVariable($var,$value=NULL){
+			public function addRequestVariable($var,$value=NULL,$urlEncode=TRUE){
 
-				$this->_variables[$var]=$value;
+				if($urlEncode){
+
+					$this->_variables[$var]=urlencode($value);
+
+				}else{
+
+					$this->_variables[$var]=$value;
+
+				}
 
 			}
 
@@ -174,7 +182,7 @@
 						continue;
 					}
 
-					$vars .= $k . $this->_equalityOperator . urlencode($v) . $this->_separator;
+					$vars .= $k . $this->_equalityOperator . $v . $this->_separator;
 
 				}
 

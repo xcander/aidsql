@@ -114,7 +114,7 @@
 	
 			public function setFilename($filename=NULL){
 	
-				if(!empty($this->_filename)){
+			  if(!empty($this->_filename)){
 					$this->endLog();
 				}
 	
@@ -270,8 +270,8 @@
 			}
 	
 			private function _fwrite($msg){
-	
-				$return = @fwrite($this->_fp,$msg);
+
+				$return = fwrite($this->_fp,$msg);
 	
 				if($return === FALSE){
 	
