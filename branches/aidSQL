@@ -306,7 +306,7 @@
 
 					if(!$aidSQL->generateReport()){
 
-						$this->log("Failed to gather necessary data to make report!",1,"red");
+						$log->log("Failed to gather necessary data to make report!",1,"red");
 
 					}
 
