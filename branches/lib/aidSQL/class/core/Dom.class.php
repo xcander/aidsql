@@ -41,7 +41,11 @@
 
 			public function fetchLinks(){
 
-				$allLinks	=	array();
+				$allLinks	=	array(
+												"links"	=>	array(),
+												"mail"	=>	array()
+				);
+
 				$links		=	$this->getAttributeFromElements("a","href");
 
 				if(!sizeof($links)){

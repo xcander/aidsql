@@ -12,12 +12,9 @@
 		class Google { 
 
 			private	$baseUrl				=	'http://ajax.googleapis.com/ajax/services/search/web';
-			private	$rawQuery			=	NULL;
-			private	$pQuery				=	NULL;
+			private	$searchQuery		=	NULL;
 			private	$result				=	NULL;
-			private	$fullUrl				=	NULL;
-			private	$errMsg				=	NULL;
-			private	$pagerUrl			=	NULL;
+			private	$url					=	NULL;
 			private	$httpAdapter		=	NULL;
 			private	$log					=	NULL;
 
@@ -44,6 +41,8 @@
 
 			public function __construct(\aidSQL\http\Adapter &$adapter=NULL,\aidSQL\LogInterface &$log=NULL){
 
+				$this->url	=	new \aidSQL\http\URL($this->baseUrl);
+
 				if(!is_null($log)){
 
 					$this->setLog($log);
@@ -69,8 +68,10 @@
 			}
 
 			public function setLog(\aidSQL\LogInterface &$log){
+
 				$this->log = $log;
-				$log->setPrepend("[Google]");
+				$log->setPrepend('['.__CLASS__.']');
+
 			}
 
 			public function setHttpAdapter(\aidSQL\http\Adapter &$adapter){
@@ -81,21 +82,9 @@
 
 			public function setBaseUrl($url=NULL){
 
-				if(is_null($url)||!preg_match('#^http\:\/\/.*$#',$url)){ 
-					throw (new Exception("Url must begin with HTTP:// and must not be NULL -> {$url} <- Was given"));
-				}
-
-				$this->baseUrl	=	$url;	
+				$this->url	=	new \aidSQL\http\Url($url);	
 
 			}
-
-
-			public function setErrorMessage($booboo=NULL){
-
-				$this->errMsg	=	$booboo;
-
-			}
-
 
 			public function setQuery($query=NULL) {
 
@@ -104,62 +93,13 @@
 				}
 
 				$this->log("Setting search query to \"$query\"",0,"white");
-				$this->rawQuery	=	$query;
+				$this->searchQuery	=	$query;
 
 			}
 
+			public function getUrl(){
 
-			private function parseSearchQuery () { 
-
-				$queryPart	=	explode(' ',$this->rawQuery);
-				$final		=	NULL;
-	
-				foreach($queryPart as $part) {
-
-					$final	.=	urlencode($part) .'+';
-
-				}
-
-				$final	=	substr($final,0,-1);
-
-				$this->pQuery	=	$final;
-
-			}
-
-
-
-			public function getResult(){
-		
-				return $this->result;
-
-			}
-
-
-			private function createFullUrl() {
-
-				$fullUrl	=	NULL;
-
-				$fullUrl =	$this->baseUrl			.											//Base URL
-								'?v='.$this->version	.											//Version
-								'&q='.$this->pQuery	.											//Search Query
-								(($this->language) ? "&hl={$this->language}" : '') .	//Is it language specific?
-								(($this->gLKey)    ? "&key={$this->gLKey}"   : '') .	//Do we have a developer key?
-								(($this->rsz)	    ? "&rsz={$this->rsz}"     : ''); 	//Whats the result size (large | small) ?
-
-
-				//For allowing the pager class to do its thing
-
-				$this->pagerUrl	 =	"{$fullUrl}&start=%s";
-
-				$fullUrl	.= (($this->start)    ? "&start={$this->start}" : '');	//Do we have a start offset ? 
-							
-				return $this->fullUrl	=	$fullUrl;
-
-			}
-
-			public function getFullUrl(){
-
-				return $this->fullUrl;
+				return $this->url;
 
 			}
 
@@ -167,10 +107,16 @@
 
 				$this->log("Getting results ...",0,"white");
 
-				$this->parseSearchQuery();
-				$this->createFullUrl();
+				$this->url->addRequestVariable('v',$this->version);
+				$this->url->addRequestVariable('q',$this->searchQuery,FALSE);
 
-				$this->httpAdapter->setUrl(new \aidSQL\http\Url ($this->fullUrl));
+				($this->language) ?	$this->url->addRequestVariable("hl",$this->language)	:	NULL;
+				($this->gLKey)	 	?	$this->url->addRequestVariable("key",$this->gLKey)		:	NULL;
+				($this->rsz)		?	$this->url->addRequestVariable("rsz",$this->rsz)		:	NULL;
+				($this->start)		?	$this->url->addRequestVariable("start",$this->start)	:	NULL;
+
+
+				$this->httpAdapter->setUrl($this->url);
 				$this->httpAdapter->setMethod("GET");
 
 				$result = $this->httpAdapter->fetch();
@@ -179,16 +125,14 @@
 
 				if (!is_object($this->result)) {
 
-					$dflErr	=	'Couldnt retrieve any result using ' . $this->fullUrl;	
-					$msg	=	(!$this->errMsg) ? $dflErr : $this->errMsg;
+					$msg	=	'Couldnt retrieve any result from ' . $this->fullUrl;	
 					throw (new \Exception($msg));
 
 				}
 
 				if ($this->result->responseStatus !== 200) { 
 
-					$dflErr = "[ERROR {$this->result->responseStatus} ] [DETAILS] {$this->result->responseDetails} [DATA] {$this->result->responseData}";
-					$msg	=	(!$this->errMsg) ? $dflErr : $this->errMsg;
+					$msg = "[ERROR {$this->result->responseStatus} ] [DETAILS] {$this->result->responseDetails} [DATA] {$this->result->responseData}";
 					throw (new \Exception($msg));
 
 				}
@@ -219,11 +163,11 @@
 
 			public function setLanguage ($lang=NULL){
 
-				if(empty($lang)||is_null($lang)||strlen($lang)>2){
-					throw (new Exception("Search language must not be null or empty and must be 2 characters long ->{$lang}<- was given"));
+				if(empty($lang)||is_null($lang)){
+					throw (new Exception("Search language must not be empty"));
 				}
 
-				$this->log("Setting language to $lang",0,"white");
+				$this->log("Setting language to $lang",0,"light_cyan");
 
 				$this->language	=	$lang;
 

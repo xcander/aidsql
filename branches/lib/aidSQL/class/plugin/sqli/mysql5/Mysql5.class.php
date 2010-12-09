@@ -120,7 +120,9 @@
 
 					}
 
-					$this->_httpAdapter->addRequestVariable($variable,$value); //restore value if we couldnt find the vulnerable field
+					$url	=	$this->_httpAdapter->getUrl();
+					$url->addRequestVariable($variable,$value); //restore value if we couldnt find the vulnerable field
+					$this->_httpAdapter->setUrl($url);
 
 				}
 

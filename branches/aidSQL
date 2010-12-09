@@ -10,6 +10,7 @@
 	 */
 
 	error_reporting(E_ALL);
+	ini_set("display_errors","On");
 
 	function checkPHPVersion(){
 
@@ -89,7 +90,7 @@
 
 	}catch(\Exception $e){
 
-		usageShort();
+		usageShort($log);
 		exit(1);
 
 	}
@@ -239,11 +240,14 @@
 			}
 
 			if(isset($parsedOptions["crawl"])){
+
 				$crawler->setDepth($parsedOptions["crawl"]);
+
 			}
 
 
 			$crawler->crawl();
+
 
 			//Test crawled links
 
