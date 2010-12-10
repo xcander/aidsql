@@ -171,12 +171,12 @@
 
 			public function setCurlDefaults(){
 
-				$default = 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)';
+				$default = "Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)";
 				$this->setBrowser($default);
-				$this->setMethod('POST');
-				$this->setCurlOption('FOLLOWLOCATION',TRUE);
-				$this->setCurlOption('HEADER',FALSE);
-				$this->setCurlOption('RETURNTRANSFER',TRUE);
+				$this->setMethod("POST");
+				$this->setCurlOption("FOLLOWLOCATION",TRUE);
+				$this->setCurlOption("HEADER",FALSE);
+				$this->setCurlOption("RETURNTRANSFER",TRUE);
 
 				//For avoiding https verification
 				$this->setCurlOption("SSL_VERIFYPEER",FALSE);
@@ -188,6 +188,14 @@
 
 			}
 
+			public function setFollowRedirects($boolean=TRUE){
+				$this->setCurlOption("FOLLOWLOCATION",$boolean);
+			}
+
+			public function getFollowRedirects(){
+				return $this->getCurlOptions("FOLLOWLOCATION");	
+			}	
+
 
 			//Setea la peticion a POST o GET
 
@@ -195,8 +203,8 @@
 
 				switch ($method=strtoupper(trim($method))){
 
-					case 'POST':
-					case 'GET' :
+					case "POST":
+					case "GET" :
 						$this->method = $method;
 						break;
 

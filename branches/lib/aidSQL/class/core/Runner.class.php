@@ -132,7 +132,6 @@
 			*/
 
 			public function generateReport(){
-
 	
 				if(is_null($this->_vulnerable)){
 
@@ -145,14 +144,10 @@
 				try{	
 
 					$plugin		= $this->_plugin;
-					$database	= $plugin->analyzeInjection($plugin->getDatabase());
-					$database	= $database[0];
 
-					$dbuser		= $plugin->analyzeInjection($plugin->getUser());
-					$dbuser		= $dbuser[0];
-
-					$dbtables	= $plugin->analyzeInjection($plugin->getTables());
-					$dbtables	= $dbtables[0];
+					$database	= $plugin->getDatabase();
+					$dbuser		= $plugin->getUser();
+					$dbtables	= $plugin->getTables();
 
 					$this->log("BASIC INFORMATION",0,"cyan");
 					$this->log("---------------------------------",0,"white");

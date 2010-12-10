@@ -7,7 +7,6 @@
 			public function getPluginName();
 			public function setLog(\aidSQL\LogInterface &$log);	//Log setter
 			public function log($msg=NULL);				//Log wrapper
-			public function select();
 			public function count();
 			public function setTable();
 			public function getTables();
@@ -26,8 +25,6 @@
 			public function getQueryCommentOpen();
 			public function setQueryCommentClose($commentClose);
 			public function getQueryCommentClose();
-			public function execute($variable,$value);
-			public function analyzeInjection($injection);
 			public function setAffectedVariable($var,$value);
 			public function getAffectedVariable();
 			public function setVerbose($boolean);

@@ -107,8 +107,9 @@
 
 				$this->log("Getting results ...",0,"white");
 
+				$searchQuery	=	preg_replace("/ /","%20",$this->searchQuery);
 				$this->url->addRequestVariable('v',$this->version);
-				$this->url->addRequestVariable('q',$this->searchQuery,FALSE);
+				$this->url->addRequestVariable('q',$searchQuery,FALSE);
 
 				($this->language) ?	$this->url->addRequestVariable("hl",$this->language)	:	NULL;
 				($this->gLKey)	 	?	$this->url->addRequestVariable("key",$this->gLKey)		:	NULL;
@@ -120,12 +121,11 @@
 				$this->httpAdapter->setMethod("GET");
 
 				$result = $this->httpAdapter->fetch();
-
 				$this->result	=	json_decode($result);
 
 				if (!is_object($this->result)) {
 
-					$msg	=	'Couldnt retrieve any result from ' . $this->fullUrl;	
+					$msg	=	"Query {$this->searchQuery}  didnt retrieved any results";
 					throw (new \Exception($msg));
 
 				}

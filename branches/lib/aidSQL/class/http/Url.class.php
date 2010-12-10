@@ -304,6 +304,10 @@
 
 			}
 
+			public function __toString(){
+				return $this->getUrlAsString(TRUE);
+			}
+
 		}	
 
 	}

@@ -119,6 +119,12 @@
 		),
 		"connect-timeout"=>array(
 		),
+		"follow-redirects"=>array(
+			"values"=>array(
+				1,
+				0
+			)
+		),
 		"log-save"=>array(
 		),
 		"plugin-phpinfo"=>array(

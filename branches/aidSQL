@@ -114,10 +114,14 @@
 
 		//Instance of the http adapter, shared by aggregation through all classes
 
+		//<httpAdapter>
+
 		$Adapter			=	"\\aidSQL\\http\\Adapter\\".$parsedOptions["http-adapter"];
 		$httpAdapter	=	new $Adapter();
+
 		$httpAdapter->setLog($log);
 		$httpAdapter->setMethod($parsedOptions["http-method"]);
+		$httpAdapter->setFollowRedirects($parsedOptions["follow-redirects"]);
 
 		if(isset($parsedOptions["connect-timeout"])){
 
@@ -138,6 +142,8 @@
 			$log->useLogDate($parsedOptions["log-prepend-date"]);
 
 		}
+
+		//</httpAdapter>
 
 
 		//<Google>
@@ -251,12 +257,19 @@
 
 			//Test crawled links
 
-			$allLinks										=	array();
-			$allLinks[$url->getUrlAsString(FALSE)] = $url->getQueryAsArray();
 			$links											=	$crawler->getLinks(TRUE);
 
-			$allLinks	=	array_merge($allLinks,$links);
-			$links		=	$allLinks;
+			$passedParameters	=	$url->getQueryAsArray();
+
+			if(sizeof($passedParameters)){
+
+				if(isset($links[$url->getUrlAsString(FALSE)])){
+
+					$links[$url->getUrlAsString(FALSE)]	=	$passedParameters;
+
+				}
+
+			}
 
 			if(!sizeof($links)){
 
@@ -270,7 +283,6 @@
 			$linkCount	=	1;
 
 			foreach($links as $url=>$query){
-
 				if(sizeof($query)){
 
 					$log->log($linkCount++.". {".$url."} = [".implode(array_keys($query),',')."]",2,"yellow");

@@ -19,6 +19,7 @@
 			protected $_parser							=	NULL;
 			protected $_dbUser							=	NULL;
 			protected $_config							=	NULL;
+			protected $_isVulnerable					=	FALSE;
 
 
 			public final function __construct(\aidSQL\http\Adapter $adapter,aidSQL\LogInterface &$log=NULL){
@@ -34,6 +35,24 @@
 				if(!is_null($log)){
 					$this->setLog($log);
 				}
+
+			}
+
+			public function setInjectionAttempts($int=0){
+
+				if(!$int){
+
+					throw(new \Exception("Injection attempts has to be greater than 0"));
+
+				}
+
+				$this->_injectionAttempts	=	$int;
+
+			}
+
+			public function getInjectionAttempts(){
+
+				return $this->_injectionAttempts;
 
 			}
 
@@ -64,7 +83,7 @@
 			*Good for decoupling execution with injection string generation
 			*/
 
-			public function execute($variable,$value){
+			protected function execute($variable,$value){
 
 				$url	=	$this->_httpAdapter->getUrl();
 				$url->addRequestVariable($variable,$value);
