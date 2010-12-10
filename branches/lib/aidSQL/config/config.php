@@ -137,7 +137,6 @@
 		"plugin-disclosure-load-order"=>array(
 		),
 		"crawl"=>array(
-			"requires"=>array("url")
 		),
 		"url-query-char"=>array(
 		),

@@ -263,11 +263,7 @@
 
 			if(sizeof($passedParameters)){
 
-				if(isset($links[$url->getUrlAsString(FALSE)])){
-
-					$links[$url->getUrlAsString(FALSE)]	=	$passedParameters;
-
-				}
+				$links[$url->getUrlAsString(FALSE)]	=	$passedParameters;
 
 			}
 
