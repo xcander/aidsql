@@ -49,7 +49,7 @@
 	require	"interface/plugin/Injection.interface.php";
 	require	"interface/plugin/Disclosure.interface.php";
 
-	//Classes
+	//Core
 	require	"class/core/String.class.php";
 	require	"class/core/Dom.class.php";
 	require	"class/core/File.class.php";
@@ -58,12 +58,18 @@
 	require	"class/core/InjectionPlugin.class.php";
 	require	"class/core/DisclosurePlugin.class.php";
 	require	"class/core/DisclosureResult.class.php";
+
+	//Log (should be switched to core ?)
 	require	"class/log/StdLog.class.php";
+
+	//HTTP 
 	require	"class/http/Url.class.php";
 	require	"class/http/adapter/Ecurl.class.php";
 	require	"class/http/crawler/Crowley.class.php";
 	require	"class/http/webservice/bing/Bing.class.php";
 	require	"class/http/webservice/google/Google.class.php";
+
+	//Config 
 	require	"config/config.php";
 	
 	//Parsers
@@ -97,7 +103,6 @@
 
 
 	try {
-
 
 		$log->setColors((bool)$parsedOptions["colors"]);
 
@@ -206,7 +211,6 @@
 			$httpAdapter->setUrl($url);
 
 			$crawlerName	=	"aidSQL\\http\\crawler\\$parsedOptions[crawler]";
-
 			$crawler			=	new $crawlerName($httpAdapter,$log);
 
 			if(isset($parsedOptions["lpp"])){
@@ -278,63 +282,80 @@
 			$urlVars		=	array();
 			$linkCount	=	1;
 
+			//Take away links which have no parameters 
+
 			foreach($links as $url=>$query){
+
 				if(sizeof($query)){
 
 					$log->log($linkCount++.". {".$url."} = [".implode(array_keys($query),',')."]",2,"yellow");
 
 				}else{
 
+					unset($links[$url]);
 					continue;
 
 				}
 
-				foreach($query	as $var=>$value){
+			}
 
-					$urlVars[]	=	$var.$parsedOptions["url-equality-char"].$value;
+			if(sizeof($links)){
 
-				}
+				foreach($links as $url=>$query){
 
-				//@TODO make the crawler directly return a list of urls instead of having to parse this 
-				//in the outside, in this way functionality will be much more transparent.
+					foreach($query	as $var=>$value){
 
-				$vars	=	$parsedOptions["url-query-char"].implode($urlVars,$parsedOptions["url-var-char"]);
-				$url	=	new \aidSQL\http\Url($url.$vars);
-
-				$httpAdapter->setUrl($url);
-
-				//<isvulnerable>
-
-				$aidSQL		=	new \aidSQL\core\Runner($cmdParser,$httpAdapter,$crawler,$log);
-				$result		=	FALSE;
-
-				if($aidSQL->isVulnerable()){
-
-					$log->log("Site is vulnerable to sql injection!!",0,"light_cyan");
-
-					if(!$aidSQL->generateReport()){
-
-						$log->log("Failed to gather necessary data to make report!",1,"red");
+						$urlVars[]	=	$var.$parsedOptions["url-equality-char"].$value;
 
 					}
 
-					$result	=	TRUE;
+					//@TODO make the crawler directly return a list of urls instead of having to parse this 
+					//in the outside, in this way functionality will be much more transparent.
+
+					$vars	=	$parsedOptions["url-query-char"].implode($urlVars,$parsedOptions["url-var-char"]);
+					$url	=	new \aidSQL\http\Url($url.$vars);
+
+					$httpAdapter->setUrl($url);
+
+					//<isvulnerable>
+
+					$aidSQL		=	new \aidSQL\core\Runner($cmdParser,$httpAdapter,$crawler,$log);
+					$result		=	FALSE;
+
+					if($aidSQL->isVulnerable()){
+
+						$log->log("Site is vulnerable to sql injection!!",0,"light_cyan");
+
+						if(!$aidSQL->generateReport()){
+
+							$log->log("Failed to gather necessary data to make report!",1,"red");
+
+						}
+
+						$result	=	TRUE;
+
+					}
+
+					if($result && (bool)$parsedOptions["immediate-mode"]){
+
+						break;
+
+					}
+
+					if(!$result){
+
+						$log->log("Failed to perform injection :(",1,"red");
+
+					}
+
+					//</isvulnerable>
 
 				}
 
-				if($result && (bool)$parsedOptions["immediate-mode"]){
+			}else{ //if(sizeof($links))
 
-					break;
-
-				}
-
-				if(!$result){
-
-					$log->log("Failed to perform injection :(",1,"red");
-
-				}
-
-				//</isvulnerable>
+				$log->setPrepend("[aidSQL]");
+				$log->log("Not enough links to check if the site is vulnerable :/",1,"red");
 
 			}
 
