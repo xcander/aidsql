@@ -91,7 +91,6 @@
 
 				$this->log("Fetching ".$url->getURLAsString());
 
-
 				try{
 
 					$content				=	$this->_httpAdapter->fetch();
