@@ -27,7 +27,11 @@
 
 			private		$log					=	NULL;
 
-			public function __construct(){
+			public function __construct(\aidSQL\http\Url $url=NULL){
+
+				if(!is_null($url)){
+					$this->setUrl($url);
+				}
 
 				$this->setHandler(curl_init());
 				$this->setCurlDefaults();
@@ -386,7 +390,7 @@
 						$post[]  =  "$var".$this->url->getEqualityOperator()."$value";
 					}
 
-					$post =  implode($this->url->getSeparator(),$post);
+					$post =  implode($this->url->getVariableDelimiter(),$post);
 
 					$this->setCurlOption("POSTFIELDS",$post);
 					$this->setCurlOption("URL",$this->url->getUrlAsString(FALSE));

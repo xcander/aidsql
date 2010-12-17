@@ -6,7 +6,7 @@
 
 			private	$_url						=	array();
 			private	$_variables				=	array();
-			private	$_separator				=	'&';
+			private	$_varDelimiter			=	'&';
 			private	$_equalityOperator	=	'=';
 			private	$_queryIndicator		=	'?';
 			private	$_pathSeparator		=	'/';
@@ -15,6 +15,10 @@
 
 				$this->parse($url);
 
+			}
+
+			public function getVariableDelimiter(){
+				return $this->_varDelimiter;
 			}
 
 			public function parse($url=NULL){
@@ -121,7 +125,7 @@
 					return $variables;
 				}
 
-				$tmpQuery	=	explode($this->_separator,$queryString);
+				$tmpQuery	=	explode($this->_varDelimiter,$queryString);
 
 				foreach($tmpQuery as $tmpString){
 
@@ -178,11 +182,11 @@
 				foreach ($this->_variables as $k=>$v){
 
 					if (is_null($v)){
-						$vars .= $k . $this->_separator;
+						$vars .= $k . $this->_varDelimiter;
 						continue;
 					}
 
-					$vars .= $k . $this->_equalityOperator . $v . $this->_separator;
+					$vars .= $k . $this->_equalityOperator . $v . $this->_varDelimiter;
 
 				}
 
@@ -194,9 +198,9 @@
 				return	$this->_variables;
 			}
 
-			public function setSeparator($separator=NULL){
+			public function setVariableDelimiter($delimiter=NULL){
 
-				$this->_separator = $separator;
+				$this->_varDelimiter = $delimiter;
 
 			}
 

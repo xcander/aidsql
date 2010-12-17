@@ -79,8 +79,50 @@
 
 			}
 
+			public function fetchForms(){
 
-			public function fetchTag($tagName,$attrName){
+				$return	=	array();
+				$dom		=	new \DomDocument();
+				$forms	=	$this->fetchTag("form");
+				die();	
+				@$dom->loadHTML($this->_content);
+
+				$forms	=	$dom->getElementsByTagName("form");
+
+				$return = array();
+
+				$length	=	$forms->length;
+
+				if($length > 0){
+
+					for($i=0;$i<$length;$i++){
+
+						$form			=	$forms->item($i);
+						$tmpResult	=	array();
+
+						$tmpResult["method"]			=	$form->getAttribute("method");
+						$tmpResult["action"]			=	$form->getAttribute("action");
+						$tmpResult["enctype"]		=	$form->getAttribute("enctype");
+
+						$postFields						=	$this->getPostFieldsFromInputs($form);
+						//$postFields						=	array_merge($postFields,$this->getPostFieldsFromSelects($form));
+						$tmpResult["post_fields"]	=	$postFields;
+
+						$return[]	=	$tmpResult;
+
+					}
+
+				}
+
+				return $return;
+
+			}
+
+			private function getPostFieldsFromInputs($form){
+
+			}
+
+			public function fetchTag($tagName,$attrName=NULL){
 
 				$return	=	array();
 				$dom		=	new \DomDocument();
@@ -95,8 +137,23 @@
 
 					foreach($tags as $tag){
 
-						$attrValue	=	$tag->getAttribute($attrName);
-						$return[]	=	$attrValue;
+						if(is_null($attrName)){
+
+							$attr			=	$tag->attributes;
+							$attributes	=	array();
+
+							foreach($attr as $attribute=>$value){
+								$attributes[$attribute]	=	$value;
+							}
+
+							$return[]	=	$attributes;
+							var_dump($return);
+
+						}else{
+
+							$return[]	=	$tag->getAttribute($attrName);
+
+						}
 
 					}
 
@@ -104,6 +161,9 @@
 
 				return $return;
 
+			}
+
+			private function getPostFieldsFromSelects(){
 			}
 
 			public function setContent($content=NULL){
@@ -119,6 +179,22 @@
 			public function getContent(){
 				return $this->_content;
 			}
+
+	
+			public function getInnerHTML($node){
+
+				$doc = new \DOMDocument();
+
+				foreach ($node->childNodes as $child){
+
+					$doc->appendChild($doc->importNode($child, true));
+
+				}
+
+				return $doc->saveHTML();
+
+			}
+
 
 		}
 
