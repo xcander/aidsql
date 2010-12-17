@@ -13,7 +13,7 @@
 
 			public function __construct ($url=NULL){
 
-				return $this->parse($url);
+				$this->parse($url);
 
 			}
 

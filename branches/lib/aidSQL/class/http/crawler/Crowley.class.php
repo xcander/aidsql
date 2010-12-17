@@ -663,11 +663,11 @@
 
 					}else{	//if($this->wasCrawled($linkKey))
 					
+						$this->_links[$linkKey]=array();
 
 						$parameters	=	$value->getQueryAsArray();
 
 						if(sizeof($parameters)){
-
 
 							if(!empty($parameters)){
 
@@ -678,7 +678,6 @@
 
 						}else{
 
-							$this->_links[$linkKey]=array();
 							$this->_links[$linkKey]["parameters"]=array();
 
 						}

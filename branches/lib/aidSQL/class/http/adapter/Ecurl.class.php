@@ -379,8 +379,17 @@
 
 				if($this->method=="POST"){
 
-					$this->setCurlOption("POSTFIELDS",$this->parseRequestVariables());
-					$this->setCurlOption('URL',$this->url->getUrllala());
+					$requestVariables =  $this->url->getQueryAsArray();
+					$post             =  array();
+
+					foreach($requestVariables as $var=>$value){
+						$post[]  =  "$var".$this->url->getEqualityOperator()."$value";
+					}
+
+					$post =  implode($this->url->getSeparator(),$post);
+
+					$this->setCurlOption("POSTFIELDS",$post);
+					$this->setCurlOption("URL",$this->url->getUrlAsString(FALSE));
 
 				}else{
 
@@ -403,11 +412,12 @@
 
 					$errno	=	curl_errno($this->handler);
 					$error	=	curl_error($this->handler);
-					$connect++;
 
 					if($connect>0&&$errno){
 						$this->log("$error, attempting reconnect ... $connect",1,"red");
 					}
+
+					$connect++;
 
 				} while($connect < $this->connectRetry && $errno > 0);
 
