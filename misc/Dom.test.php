@@ -22,8 +22,17 @@
 
 		$url	=	new http\Url($_SERVER["argv"][1]);
 		$http	=	new http\adapter\Ecurl($url);
+		$http->setLog($log);
 		$dom	=	new core\Dom($http->fetch());
-		var_dump($dom->fetchForms());
+		$forms	=	$dom->fetchForms();
+
+		foreach($forms as $formName=>$form){
+			$form	=	$form[key($form)];
+			$http->setMethod($form["attributes"]["method"]);
+			var_dump($form);
+				
+
+		}
 
 	}catch (\Exception $e){
 
