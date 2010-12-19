@@ -209,6 +209,7 @@
 
 					case "POST":
 					case "GET" :
+						$this->log("Set method $method ..");
 						$this->method = $method;
 						break;
 
