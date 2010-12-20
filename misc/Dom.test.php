@@ -23,6 +23,7 @@
 		$url	=	new http\Url($_SERVER["argv"][1]);
 		$http	=	new http\adapter\Ecurl($url);
 		$http->setLog($log);
+
 		$dom	=	new core\Dom($http->fetch());
 		$forms	=	$dom->fetchForms();
 
