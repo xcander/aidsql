@@ -4,18 +4,18 @@
 
 		class Ecurl implements \aidSQL\http\Adapter{
 
-			private		$cookie				= NULL;
-			private		$curlOptions		= array();
-			private		$url					= NULL;		//\aidSQL\http\Url Object
-			private		$handler				= NULL;
-			private		$content				= NULL;
-			private		$requestVariables	= array();
-			private		$requestInterval	= 0;
-			private		$method				= NULL;
-			private		$transferInfo		= NULL;
+			private		$cookie				=	NULL;
+			private		$curlOptions		=	array();
+			private		$url					=	NULL;		//\aidSQL\http\Url Object
+			private		$handler				=	NULL;
+			private		$content				=	NULL;
+			private		$requestVariables	=	array();
+			private		$requestInterval	=	0;
+			private		$method				=	NULL;
+			private		$transferInfo		=	NULL;
 			private		$connectRetry		=	20;	//Put in config and interfaces!!!!!
 
-			private		$proxy				= array(
+			private		$proxy				=	array(
 				"server"		=>NULL,
 				"port"		=>80,
 				"user"		=>"",
@@ -459,16 +459,16 @@
 
 			public function setLog(\aidSQL\LogInterface &$log){
 
-				$this->_log=$log;
+				$this->log=$log;
 
 			}
 
 			public function log($msg = NULL){
 
-				if(!is_null($this->_log)){
+				if(!is_null($this->log)){
 
-					$this->_log->setPrepend("[".get_class($this)."]");
-					call_user_func_array(array($this->_log, "log"),func_get_args());
+					$this->log->setPrepend("[".get_class($this)."]");
+					call_user_func_array(array($this->log, "log"),func_get_args());
 					return TRUE;
 				}
 

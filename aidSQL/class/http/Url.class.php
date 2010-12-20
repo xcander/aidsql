@@ -210,6 +210,12 @@
 
 			}
 
+			public function getEqualityOperator(){
+
+				return $this->_equalityOperator;
+
+			}
+
 			public function setPathSeparator($char=NULL){
 
 				$this->_pathSeparator = $char;
@@ -227,6 +233,12 @@
 			public function setQueryIndicator($char=NULL){
 
 				$this->_queryIndicator = $char;
+
+			}
+
+			public function getQueryIndicator(){
+
+				return $this->_queryIndicator;
 
 			}
 
