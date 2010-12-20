@@ -280,21 +280,26 @@
 
 			//Take away links which have no parameters 
 
-			foreach($links as $url=>$query){
+			$allLinks	=	array();
+
+			foreach($links as $key=>$link){
+
+				$url		=	key($link);
+				$query	=	$link[$url];
+
 				$log->log($linkCount++.' {'.$url."} = [".implode(array_keys($query["parameters"]),',')."]\t<$query[method]>",2,"yellow");
+				$allLinks[$url]	=	$query;
+
 
 			}
 
-			var_dump($links);
-			die();
-
-			$links	=	array_merge($links["GET"],$links["POST"]);
+			$links	=	$allLinks;
 
 			if(sizeof($links)){
 
 				foreach($links as $url=>$query){
 
-					foreach($query	as $var=>$value){
+					foreach($query["parameters"]	as $var=>$value){
 
 						$urlVars[]	=	$var.$parsedOptions["url-equality-char"].$value;
 
@@ -306,6 +311,7 @@
 					$vars	=	$parsedOptions["url-query-char"].implode($urlVars,$parsedOptions["url-var-char"]);
 					$url	=	new \aidSQL\http\Url($url.$vars);
 					$httpAdapter->setUrl($url);
+					$httpAdapter->setMethod($query["method"]);
 
 					//<isvulnerable>
 
