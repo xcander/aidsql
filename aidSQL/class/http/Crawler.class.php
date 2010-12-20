@@ -278,7 +278,19 @@
 			}
 
 			public function getAllRequests($withParameters=TRUE){
-				return array($this->getRequests($withParameters,"GET"),$this->getRequests($withParameters,"POST"));
+
+				$return	=	array();
+
+				if($get	=	$this->getRequests($withParameters,"GET")){
+					$return["GET"]	=	$get;
+				}
+
+				if($get	=	$this->getRequests($withParameters,"POST")){
+					$return["POST"]	=	$get;
+				}
+
+				return $return;
+
 			}
 
 			public function getPOSTRequests($parameters=TRUE){
@@ -475,9 +487,9 @@
 
 				$method	=	(isset($form["attributes"])&&isset($form["attributes"]["method"]))	?	$form["attributes"]["method"]	:	"GET";
 
-				if(isset($form["action"])){
+				if(isset($form["attributes"]["action"])){
 
-					$action	=	$url->getPath().$url->getPathSeparator().trim($form["action"],$url->getPathSeparator());
+					$action	=	$url->getPath().$url->getPathSeparator().trim($form["attributes"]["action"],$url->getPathSeparator());
 
 				}else{
 
@@ -486,6 +498,7 @@
 				}
 
 				$action	=	$url->getPath().trim($action,$url->getPathSeparator());
+
 				$query	=	array();
 
 				foreach($form["elements"] as $formElement){
@@ -541,10 +554,12 @@
 				$this->log("Found ".sizeof($forms)." forms ...",0,"light_cyan");
 
 				$formLinks	=	array();	
+
 				foreach($forms as $key=>$form){
 
 					$frmKey		=	key($forms[$key]);
 					$method		=	(isset($forms[$key][$frmKey]["attributes"]["method"]))	?	$forms[$key][$frmKey]["attributes"]["method"]	:	"GET";
+
 					$frmUrl		=	$this->makeUrlFromForm($form,$url);
 
 					if($this->isExternalSite($frmUrl)){
