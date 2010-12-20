@@ -45,7 +45,6 @@
 	require	"interface/Parser.interface.php";
 	require	"interface/Log.interface.php";
 	require	"interface/http/Adapter.interface.php";
-	require	"interface/http/Crawler.interface.php";
 	require	"interface/plugin/Injection.interface.php";
 	require	"interface/plugin/Disclosure.interface.php";
 
@@ -65,7 +64,7 @@
 	//HTTP 
 	require	"class/http/Url.class.php";
 	require	"class/http/adapter/Ecurl.class.php";
-	require	"class/http/crawler/Crowley.class.php";
+	require	"class/http/Crawler.class.php";
 	require	"class/http/webservice/bing/Bing.class.php";
 	require	"class/http/webservice/google/Google.class.php";
 
@@ -210,8 +209,7 @@
 
 			$httpAdapter->setUrl($url);
 
-			$crawlerName	=	"aidSQL\\http\\crawler\\$parsedOptions[crawler]";
-			$crawler			=	new $crawlerName($httpAdapter,$log);
+			$crawler			=	new http\Crawler($httpAdapter);
 
 			if(isset($parsedOptions["lpp"])){
 
@@ -255,13 +253,11 @@
 
 			}
 
-
 			$crawler->crawl();
-
 
 			//Test crawled links
 
-			$links											=	$crawler->getLinks(TRUE);
+			$links				=	$crawler->getAllRequests(TRUE);
 
 			$passedParameters	=	$url->getQueryAsArray();
 
@@ -285,19 +281,14 @@
 			//Take away links which have no parameters 
 
 			foreach($links as $url=>$query){
-
-				if(sizeof($query)){
-
-					$log->log($linkCount++.". {".$url."} = [".implode(array_keys($query),',')."]",2,"yellow");
-
-				}else{
-
-					unset($links[$url]);
-					continue;
-
-				}
+				$log->log($linkCount++.' {'.$url."} = [".implode(array_keys($query["parameters"]),',')."]\t<$query[method]>",2,"yellow");
 
 			}
+
+			var_dump($links);
+			die();
+
+			$links	=	array_merge($links["GET"],$links["POST"]);
 
 			if(sizeof($links)){
 
@@ -314,7 +305,6 @@
 
 					$vars	=	$parsedOptions["url-query-char"].implode($urlVars,$parsedOptions["url-var-char"]);
 					$url	=	new \aidSQL\http\Url($url.$vars);
-
 					$httpAdapter->setUrl($url);
 
 					//<isvulnerable>

@@ -1,26 +1,27 @@
 <?php
 
-	namespace aidSQL\http\crawler {
+	namespace aidSQL\http {
 
-		class Crowley implements \aidSQL\http\Crawler {
+		class Crawler {
 
-			private $_host				=	NULL;
-			private $_links			=	array();
-			private $_httpAdapter	=	NULL;
-			private $_content			=	NULL;
-			private $_pages			=	array();
-			private $_depth			=	0;
-			private $_depthCount		=	0;
-			private $_externalUrls	=	array();
-			private $_scheme			=	NULL;
-			private $_emails			=	array();
-			private $_files			=	array();		//PHP, HTM,PDF, TXT other extensions
-			private $_omitPaths		=	array();
-			private $_omitPages		=	array();
-			private $_pageTypes		=	array();
-			private $_lpp				=	0;				//Links per page
-			private $_log				=	NULL;
-			private $_maxLinks		=	0;				//Amount of links desired to crawl
+			private	$_host				=	NULL;
+			private	$_get					=	array();
+			private	$_post				=	array();
+			private	$_httpAdapter		=	NULL;
+			private	$_content			=	NULL;
+			private	$_pages				=	array();
+			private	$_depth				=	0;
+			private	$_depthCount		=	0;
+			private	$_externalUrls		=	array();
+			private	$_scheme				=	NULL;
+			private	$_emails				=	array();
+			private	$_files				=	array();		//PHP, HTM,PDF, TXT other extensions
+			private	$_omitPaths			=	array();
+			private	$_omitPages			=	array();
+			private	$_pageTypes			=	array();
+			private	$_lpp					=	0;				//Links per page
+			private	$_log					=	NULL;
+			private	$_maxLinks			=	0;				//Amount of links desired to crawl
 
 			public function __construct(\aidSQL\http\Adapter $httpAdapter,\aidSQL\LogInterface $log=NULL){
 
@@ -276,20 +277,49 @@
 				$this->_depth = $depth;
 			}
 
-			public function getLinks($onlyWithParameters=FALSE){
+			public function getAllRequests($withParameters=TRUE){
+				return array($this->getRequests($withParameters,"GET"),$this->getRequests($withParameters,"POST"));
+			}
 
-				if(!sizeof($this->_links)){
-					return $this->_links;
+			public function getPOSTRequests($parameters=TRUE){
+
+				return $this->getRequests($parameters,"POST");
+
+			}
+
+			public function getGETRequests($parameters=TRUE){
+				return $this->getRequests($parameters,"GET");
+			}
+
+			public function getRequests($onlyWithParameters=FALSE,$method="GET"){
+
+				if($method=="GET"){
+
+					$requests	=	$this->_get;
+
+				}elseif($method=="POST"){
+
+					$requests	=	$this->_post;
+
+				}
+
+				if(!sizeof($requests)){
+
+					return array();
+
 				}
 
 				if($onlyWithParameters){
 
 					$links = array();
 
-					foreach($this->_links as $link=>$params){
+					foreach($requests as $link=>$params){
 
-						if(isset($params["parameters"])){
-							$links[$link] = $params["parameters"];
+						if(isset($params["parameters"])&&sizeof($params["parameters"])){
+
+							$links[$link]["parameters"]	=	$params["parameters"];
+							$links[$link]["method"]			=	$method;
+
 						}
 
 					}
@@ -298,7 +328,7 @@
 
 				}
 
-				return $this->_links;
+				return $requests;
 
 			}
 
@@ -322,30 +352,12 @@
 
 			public function wasCrawled($linkKey){
 
-				if(isset($this->_links[$linkKey])){
+				if(isset($this->_get[$linkKey])){
 					return TRUE;
 				}
 
 				return FALSE;
 				
-			}
-
-			public function getLinkKey($link,$path){
-
-				$fLink = $this->getFullLink($link,$path);
-
-				if(trim($fLink["path"],"/")==trim($fLink["page"],"/")){
-
-					$linkKey	=	trim($fLink["scheme"]."://".$fLink["host"].$fLink["path"],"/");
-
-				}else{
-
-					$linkKey	=	trim($fLink["scheme"]."://".$fLink["host"].$fLink["path"].$fLink["page"],"/");
-
-				}
-
-				return $linkKey;
-
 			}
 
 			/**
@@ -415,35 +427,154 @@
 			}
 
 
+			private function makeUrl($uri,$path=NULL){
+
+				$url	=	array();
+
+				if(!preg_match("#://#",$uri)){	
+
+					//Means that the uri is relative to the path
+					//We *have* to normalize the url passing also the host 
+
+					$path	=	(dirname($uri)=='.')	? $path.$this->_host->getPathSeparator() : NULL;
+
+					$url				=	new \aidSQL\http\URL($this->_host->getScheme()."://"				.
+																	$this->_host->getHost()							.
+																	$this->_host->getPathSeparator()				.
+																	$path													.
+																	$uri
+										);
+
+				}else{
+
+					$url	=	new \aidSQL\http\URL($uri);
+
+				}
+
+				return $url;
+
+			}
+
 			private function makeUrls(Array &$uris,$path=NULL){
 
 				foreach($uris as $key=>$uri){
 
-					if(!preg_match("#://#",$uri)){	
-
-						//Means that the uri is relative to the path
-						//We *have* to normalize the url passing also the host 
-
-						$path	=	(dirname($uri)=='.')	? $path.$this->_host->getPathSeparator() : NULL;
-
-						$uris[$key]	=	new \aidSQL\http\URL($this->_host->getScheme()."://"				.
-																		$this->_host->getHost()							.
-																		$this->_host->getPathSeparator()				.
-																		$path													.
-																		$uri
-											);
-
-					}else{
-
-						$uris[$key]	=	new \aidSQL\http\URL($uri);
-
-					}
+					$uris[$key]	=	$this->makeUrl($uri,$path);
 
 				}
 
 			}
 
-			public function crawl(\aidSQL\http\URL $url=NULL){
+			private function makeUrlFromForm(Array $form,$url){
+
+				$form	=	$form[key($form)];
+
+				if(!isset($form["elements"])){
+					return FALSE;
+				}
+
+				$method	=	(isset($form["attributes"])&&isset($form["attributes"]["method"]))	?	$form["attributes"]["method"]	:	"GET";
+
+				if(isset($form["action"])){
+
+					$action	=	$url->getPath().$url->getPathSeparator().trim($form["action"],$url->getPathSeparator());
+
+				}else{
+
+					$action	=	$url->getPath().$url->getPath().$url->getPathSeparator().$url->getPage();
+
+				}
+
+				$action	=	$url->getPath().trim($action,$url->getPathSeparator());
+				$query	=	array();
+
+				foreach($form["elements"] as $formElement){
+
+					$formElement	=	$formElement[key($formElement)];
+					$name				=	$formElement["attributes"]["name"];
+
+					if(isset($formElement["attributes"]["value"])){
+
+						//Ok, has value
+						$value	=	$formElement["attributes"]["value"];
+
+					}elseif(isset($formElement["attributes"]["values"])){
+
+						//Choose a random value
+						$value	=	$formElement["attributes"]["values"][mt_rand(0,sizeof($formElement["attributes"]["values"])-1)];
+
+					}else{	//Seems like the field is for setting user data into it
+
+						//Generate some content
+						if(isset($formElement["attributes"]["maxlength"])){
+
+							$length	=	$formElement["attributes"]["maxlength"];
+
+						}else{
+
+							$length	=	mt_rand(1,5);
+
+						}
+
+						$value	=	substr(time(),0,$length);
+
+					}
+
+					$query[]	=	$name.$this->_host->getEqualityOperator().$value;
+
+				} //foreach($form["elements"] as $formElement)
+
+				$url	=	$action.$url->getQueryIndicator().implode($query,$url->getVariableDelimiter());
+
+				return $this->makeUrl($url,NULL,$method);
+
+			}
+
+			private function searchForms($url){
+
+				$forms	=	$this->_content->fetchForms();
+
+				if(!sizeof($forms)){
+					return array();
+				}
+
+				$this->log("Found ".sizeof($forms)." forms ...",0,"light_cyan");
+
+				$formLinks	=	array();	
+				foreach($forms as $key=>$form){
+
+					$frmKey		=	key($forms[$key]);
+					$method		=	(isset($forms[$key][$frmKey]["attributes"]["method"]))	?	$forms[$key][$frmKey]["attributes"]["method"]	:	"GET";
+					$frmUrl		=	$this->makeUrlFromForm($form,$url);
+
+					if($this->isExternalSite($frmUrl)){
+
+						$this->addExternalSite($frmUrl);
+
+					}else{
+
+						$linkKey		=	$frmUrl->getUrlAsString($parameters=FALSE);
+
+						switch(strtoupper($method)){
+
+							case "GET":
+								$this->_get[$linkKey]["parameters"]		=	$frmUrl->getQueryAsArray();
+							break;
+
+							case "POST":
+								$this->_post[$linkKey]["parameters"]	=	$frmUrl->getQueryAsArray();
+							break;
+
+						}
+
+					}
+
+				}
+
+
+			}
+
+			public function crawl(\aidSQL\http\Url $url=NULL){
 
 				$this->log($this->drawLine($this->_depthCount++,0,"light_cyan"));
 
@@ -487,7 +618,7 @@
 
 				if($this->_maxLinks>0){
 
-					if(sizeof($this->_links)>$this->_maxLinks){
+					if(sizeof($this->_get)>$this->_maxLinks){
 
 						$this->log("Link limit reached!",2,"white");
 						return NULL;
@@ -499,7 +630,7 @@
 
 				if($this->detectModRewriteFuckUp($url->getPath())){
 
-					$this->log("Possible url rewrite Fuck up detected in $path!");
+					$this->log("Possible url rewrite Fuck up detected in ".$url->getPath());
 					return FALSE;
 
 				}
@@ -507,12 +638,12 @@
 
 				if(($httpCode = $this->_httpAdapter->getHttpCode()) != 200){
 
-					$this->log("Got $httpCode",1,"red");;
+					$this->log("Got $httpCode",1,"red");
 					return FALSE;
 
 				}else{
 
-					$this->log("200 OK",0,"light_green");;
+					$this->log("200 OK",0,"light_green");
 
 				}
 
@@ -526,8 +657,8 @@
 
 
 				$this->makeUrls($images,$url->getPath());
-				$this->filterExternalSites($images);
 
+				$this->filterExternalSites($images);
 	
 				if(sizeof($images)){
 
@@ -553,10 +684,12 @@
 				//might want to use them in the future.
 	
 				$links	=	$this->_content->fetchLinks();
-				$links	=	$links["links"];	
+				$links	=	$links["links"];
 
-				$this->makeUrls($links,$url->getPath());	//Foreach URI returned by the content makes a URL Object
-				$this->filterExternalSites($links);	//Foreach made URL object takes away the external sites
+				$this->searchForms($url);
+				$this->makeUrls($links,$url->getPath(),"GET");	//Foreach URI returned by the content makes a URL Object
+
+				$this->filterExternalSites($links);					//Foreach made URL object takes away the external sites
 
 				$sizeOfLinks = sizeof($links);
 
@@ -570,7 +703,6 @@
 					$this->log("TOTAL Links found: $sizeOfLinks",0,"light_cyan");
 
 				}
-
 
 				if($this->_lpp>0&&$sizeOfLinks > $this->_lpp){
 
@@ -634,7 +766,7 @@
 
 						if(sizeof($parameters)){
 
-							$storedParameters		=	array_keys($this->_links[$linkKey]["parameters"]);
+							$storedParameters		=	array_keys($this->_get[$linkKey]["parameters"]);
 							$sizeOfStoredParams	=	sizeof($storedParameters);
 
 							foreach($parameters as $parameter=>$value){
@@ -651,7 +783,7 @@
 								}
 
 								$this->log("Detected new parameter \"$parameter\"!",0,"cyan");
-								$this->_links[$linkKey]["parameters"][$parameter] = $value;
+								$this->_get[$linkKey]["parameters"][$parameter] = $value;
 
 							}
 
@@ -663,7 +795,7 @@
 
 					}else{	//if($this->wasCrawled($linkKey))
 					
-						$this->_links[$linkKey]=array();
+						$this->_get[$linkKey]				=	array();
 
 						$parameters	=	$value->getQueryAsArray();
 
@@ -671,24 +803,23 @@
 
 							if(!empty($parameters)){
 
-								$key = key($parameters);
-								$this->_links[$linkKey]["parameters"][$key] = $parameters[$key];
+								$this->_get[$linkKey]["parameters"] = $parameters;
 
 							}
 
 						}else{
 
-							$this->_links[$linkKey]["parameters"]=array();
+							$this->_get[$linkKey]["parameters"]=array();
 
 						}
 
 						if($this->_depth > 0){
 
-							$crawlResult = $this->crawl($value);
+							$crawlResult		=	$this->crawl($value);
 							$this->depthCount	=	0;
 
 							if($crawlResult === FALSE){
-								unset($this->_links[$linkKey]);
+								unset($this->_get[$linkKey]);
 							}
 
 							if(is_null($crawlResult)){

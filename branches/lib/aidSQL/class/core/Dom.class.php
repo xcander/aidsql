@@ -97,8 +97,7 @@
 
 						$form			=	$forms->item($i);
 						$formName	=	$form->getAttribute("name");
-						$formName	=	(isset($formName)) ? $formName : "form_$i";
-
+						$formName	=	(!empty($formNname)) ? $formName : "form_$i";
 						$curForm					=	array();
 						$curForm[$formName]	=	array();
 
@@ -173,10 +172,11 @@
 												if($formElement["attributes"]["name"]	==	$tmpChild[$nodeName]["attributes"]["name"]){
 	
 													$tmpChildValue		=	$tmpChild[$nodeName]["attributes"]["value"];
-													$formElementValue	=	$formElement["attributes"]["value"];
 
 													if(!isset($curForm[$formName]["elements"][$key][$formElementName]["attributes"]["values"])){
 														unset($curForm[$formName]["elements"][$key][$formElementName]["attributes"]["value"]);
+
+														$formElementValue	=	$formElement["attributes"]["value"];
 
 														$curForm[$formName]["elements"]
 														[$key][$formElementName]["attributes"]
