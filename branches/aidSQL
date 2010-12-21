@@ -93,6 +93,7 @@
 	}catch(\Exception $e){
 
 		usageShort($log);
+		$log->log($e->getMessage(),1,"red");
 		exit(1);
 
 	}
@@ -206,8 +207,12 @@
 
 			$httpAdapter->setUrl($url);
 
-			$crawler			=	new http\Crawler($httpAdapter);
-			$crawler->setLog($log);
+			$crawler			=	new http\Crawler($httpAdapter,$log);
+
+			//URL WITH CMDLINE PARAMETERS
+			if(sizeof($url->getQueryAsArray())){
+				$crawler->addUrl($url);
+			}
 
 			if(isset($parsedOptions["lpp"])){
 
@@ -253,68 +258,38 @@
 
 			$parsedOptions	=	$cmdParser->getParsedOptions();
 
-			$urlVars		=	array();
-			$linkCount	=	1;
+			if(!in_array("no-crawl",array_keys($parsedOptions))){
+				$crawler->crawl();
+			}
 
-			$passedParameters	=	$url->getQueryAsArray();
 
-			if(sizeof($passedParameters)){
+			$urls	=	$crawler->getUrlList(TRUE);
 
-				$log->log("0. {".$url->getUrlAsString(FALSE)."} = [".implode(",",array_keys($passedParameters))."]\t<".$httpAdapter->getMethod().">",2,"yellow");
+			$count	=	1;
 
-				$result	=	isVulnerable($cmdParser,$httpAdapter,$crawler,$log);
+			foreach($urls as $key=>$_url){
 
-				if($result && (bool)$parsedOptions["immediate-mode"]){
+				if(sizeof($_url["url"]->getQueryAsArray())){
 
-					exit(0);
+					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan");
 
 				}else{
 
-					$log->log("Failed to perform injection :(",1,"red");
-					exit(1);
+					unset($urls[$key]);
 
 				}
 
 			}
 
 
-			$crawler->crawl();
+			if(sizeof($urls)){
 
-			//Test crawled links
+				//Test crawled links
 
-			$links				=	$crawler->getAllRequests(TRUE);
+				foreach($urls as $_url){
 
-			if(sizeof($links)){
-
-				$allLinks	=	array();
-
-				foreach($links as $key=>$link){
-
-					$linkURL		=	key($link);
-					$query		=	$link[$linkURL];
-
-					$log->log($linkCount++.'. {'.$linkURL."} = [".implode(array_keys($query["parameters"]),',')."]\t<$query[method]>",2,"yellow");
-					$allLinks[$linkURL]	=	$query;
-
-				}
-
-				foreach($allLinks as $url=>$request){
-
-					foreach($request["parameters"] as $var=>$value){
-
-						$urlVars[]	=	$var.$parsedOptions["url-equality-char"].$value;
-
-					}
-
-					//@TODO make the crawler directly return a list of urls instead of having to parse this 
-					//in the outside, in this way functionality will be much more transparent.
-
-					$vars	=	$parsedOptions["url-query-char"].implode($urlVars,$parsedOptions["url-var-char"]);
-					$url	=	new \aidSQL\http\Url($url.$vars);
-					$httpAdapter->setUrl($url);
-					$httpAdapter->setMethod($query["method"]);
-
-					//<isvulnerable>
+					$httpAdapter->setUrl($_url["url"]);
+					$httpAdapter->setMethod($_url["method"]);
 
 					$result	=	isVulnerable($cmdParser,$httpAdapter,$crawler,$log);
 
@@ -327,8 +302,6 @@
 						$log->log("Failed to perform injection :(",1,"red");
 
 					}
-
-					//</isvulnerable>
 
 				}
 

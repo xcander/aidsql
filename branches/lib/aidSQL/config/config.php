@@ -136,6 +136,9 @@
 		),
 		"crawl"=>array(
 		),
+		"no-crawl"=>array(
+			"novalue"=>TRUE
+		),
 		"url-query-char"=>array(
 		),
 		"url-var-char"=>array(
