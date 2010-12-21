@@ -5,8 +5,6 @@
 		class Crawler {
 
 			private	$_host				=	NULL;
-			private	$_get					=	array();
-			private	$_post				=	array();
 			private	$_httpAdapter		=	NULL;
 			private	$_content			=	NULL;
 			private	$_pages				=	array();
@@ -22,8 +20,9 @@
 			private	$_lpp					=	0;				//Links per page
 			private	$_log					=	NULL;
 			private	$_maxLinks			=	0;				//Amount of links desired to crawl
+			private	$_urlList			=	array();		//Holds all the urls
 
-			public function __construct(\aidSQL\http\Adapter $httpAdapter,\aidSQL\Log $log=NULL){
+			public function __construct(\aidSQL\http\Adapter $httpAdapter,\aidSQL\core\Logger &$log){
 
 				if(is_null($httpAdapter->getUrl())){
 
@@ -33,34 +32,15 @@
 
 				$this->_host			=	$httpAdapter->getUrl();
 				$this->_httpAdapter	=	$httpAdapter;
+				$this->setLog($log);
 
-				if(!is_null($log)){
-					$this->setLog($log);
-				}
-
-				$this->log("Normalized URL: ".$this->_host->getUrlAsString());
+				$this->_log->log("Normalized URL: ".$this->_host->getUrlAsString());
 
 			}
 
 			public function setLog(\aidSQL\core\Logger &$log){
 
 				$this->_log = $log;
-
-			}
-
-			/* Wrapper */
-
-			private function log($msg=NULL){
-
-				if(!is_null($this->_log)){
-
-					$this->_log->setPrepend("[".__CLASS__."]");
-
-					call_user_func_array(array($this->_log, "log"),func_get_args());
-					return TRUE;
-				}
-
-				return FALSE;
 
 			}
 
@@ -243,19 +223,19 @@
 				$sizeOfLinks = sizeof($links);
 
 				if(!$sizeOfLinks){
-					$this->log("No links to reduce");	
+					$this->_log->log("No links to reduce");	
 					return $links;
 				}
 
 
 				if($sizeOfLinks < $this->_lpp){
 
-					$this->log("Amount of links not enough to perform redux!");
+					$this->_log->log("Amount of links not enough to perform redux!");
 					return $links;
 
 				}
 
-				$this->log("Shuffling Links ...");
+				$this->_log->log("Shuffling Links ...");
 
 				$shuffled = array_keys($links);
 				shuffle($shuffled);
@@ -277,70 +257,11 @@
 				$this->_depth = $depth;
 			}
 
-			public function getAllRequests($withParameters=TRUE){
+			public function getUrlList($withParameters=TRUE){
 
-				$return	=	array();
 
-				if($get	=	$this->getRequests($withParameters,"GET")){
-					$return["GET"]	=	$get;
-				}
-
-				if($get	=	$this->getRequests($withParameters,"POST")){
-					$return["POST"]	=	$get;
-				}
-
-				return $return;
-
-			}
-
-			public function getPOSTRequests($parameters=TRUE){
-
-				return $this->getRequests($parameters,"POST");
-
-			}
-
-			public function getGETRequests($parameters=TRUE){
-				return $this->getRequests($parameters,"GET");
-			}
-
-			public function getRequests($onlyWithParameters=FALSE,$method="GET"){
-
-				if($method=="GET"){
-
-					$requests	=	$this->_get;
-
-				}elseif($method=="POST"){
-
-					$requests	=	$this->_post;
-
-				}
-
-				if(!sizeof($requests)){
-
-					return array();
-
-				}
-
-				if($onlyWithParameters){
-
-					$links = array();
-
-					foreach($requests as $link=>$params){
-
-						if(isset($params["parameters"])&&sizeof($params["parameters"])){
-
-							$links[$link]["parameters"]	=	$params["parameters"];
-							$links[$link]["method"]			=	$method;
-
-						}
-
-					}
-
-					return $links;
-
-				}
-
-				return $requests;
+				return $this->_urlList;
+//urls;
 
 			}
 
@@ -350,7 +271,7 @@
 
 					if($ext->getHost()!=$this->_host->getHost()){
 
-						$this->log("External URL detected ".$ext->getFullUrl($parameters=TRUE),0,"green");
+						$this->_log->log("External URL detected ".$ext->getFullUrl($parameters=TRUE),0,"green");
 						$this->_externalUrls[$ext->getHost()][] = $ext;
 						return TRUE;
 
@@ -362,10 +283,22 @@
 
 			}
 
-			public function wasCrawled($linkKey){
+			/**
+			*@return int  Crawled, Array position of the url in the urlList
+			*@return bool FALSE not crawled
+			*/
 
-				if(isset($this->_get[$linkKey])){
-					return TRUE;
+			public function wasCrawled(\aidSQL\http\Url $url,$method=NULL){
+
+				foreach($this->_urlList as $index=>$_url){
+
+					$equalUrls	= (!strcasecmp($_url["url"]->getUrlAsString($parameters=FALSE),$url->getUrlAsString($parameters=FALSE)));
+					$sameMethod	= !strcasecmp($_url["method"],strtoupper($method));
+
+					if($equalUrls&&$sameMethod){
+						return $index;
+					}
+
 				}
 
 				return FALSE;
@@ -440,8 +373,6 @@
 
 
 			private function makeUrl($uri,$path=NULL){
-
-				$url	=	array();
 
 				if(!preg_match("#://#",$uri)){	
 
@@ -538,60 +469,162 @@
 				} //foreach($form["elements"] as $formElement)
 
 				$url	=	$action.$url->getQueryIndicator().implode($query,$url->getVariableDelimiter());
+				$url	=	$this->makeUrl($url,NULL,$method);
 
-				return $this->makeUrl($url,NULL,$method);
+				return $url;
 
 			}
 
-			private function searchForms($url){
+			private function searchForms(\aidSQL\http\Url $url,\aidSQL\core\Dom &$dom){
 
-				$forms	=	$this->_content->fetchForms();
+				$forms	=	$dom->fetchForms();
 
 				if(!sizeof($forms)){
 					return array();
 				}
 
-				$this->log("Found ".sizeof($forms)." forms ...",0,"light_cyan");
+				$this->_log->log("Found ".sizeof($forms)." forms ...",0,"light_cyan");
 
 				$formLinks	=	array();	
 
 				foreach($forms as $key=>$form){
 
 					$frmKey		=	key($forms[$key]);
-					$method		=	(isset($forms[$key][$frmKey]["attributes"]["method"]))	?	$forms[$key][$frmKey]["attributes"]["method"]	:	"GET";
+					$method		=	isset($forms[$key][$frmKey]["attributes"]["method"])&&!empty($forms[$key][$frmKey]["attributes"]["method"]);
 
-					$frmUrl		=	$this->makeUrlFromForm($form,$url);
+					if($method){
 
-					if($this->isExternalSite($frmUrl)){
+						$method	=	strtoupper($forms[$key][$frmKey]["attributes"]["method"]);
 
-						$this->addExternalSite($frmUrl);
+						if(!($method=="POST"||$method=="GET")){
+
+							$method	=	"GET";
+		
+						}
 
 					}else{
 
-						$linkKey		=	$frmUrl->getUrlAsString($parameters=FALSE);
+							$method	=	"GET";
 
-						switch(strtoupper($method)){
+					}
 
-							case "GET":
-								$this->_get[$linkKey]["parameters"]		=	$frmUrl->getQueryAsArray();
-							break;
+					$frmUrl		=	$this->makeUrlFromForm($form,$url);
 
-							case "POST":
-								$this->_post[$linkKey]["parameters"]	=	$frmUrl->getQueryAsArray();
-							break;
+					if($frmUrl===FALSE){	//Form has no elements
+						continue;
+					}
 
-						}
+					if($this->isExternalSite($frmUrl)){
+
+						$this->addExternalSite($frmUrl,$method);
+
+					}else{
+					
+						$this->addUrl($frmUrl,$method);
 
 					}
 
 				}
 
+			}
+
+			public function addUrl(\aidSQL\http\Url $url=NULL,$method=NULL){
+
+				$method	=	(empty($method))	?	"GET"	:	trim(strtoupper($method));
+
+				if($method!=="POST"&&$method!=="GET"){
+					$method	=	"GET";
+				}
+
+				$_empty	=	$url->getPage();
+
+				if(!empty($_empty)){
+
+					$page	=	$url->getPath().$url->getPathSeparator().$url->getPage();
+
+					if($this->isOmittedPage($page)){
+
+						$this->_log->log("*$page  was meant to be omitted",0);
+						return FALSE;
+
+					}
+
+					if($this->pageHasValidType($url->getPage())===FALSE){
+							
+						$this->_log->log($url->getPage()." doesnt matches given file types",0,"yellow");
+						return FALSE;
+
+					}else{
+						
+						$this->_log->log("Page \"".$url->getPage()."\" matches required types ".implode($this->_pageTypes,","),0,"light_green");
+
+					}
+	
+				}
+
+				$urlListIndex	=	$this->wasCrawled($url,$method);
+
+				if($urlListIndex!==FALSE){
+
+					$this->_log->log("Parsing previously crawled URL, looking for new parameters ...",0,"white");
+
+					$parameters	=	$url->getQueryAsArray();
+
+					if(sizeof($parameters)){
+
+						$storedParameters		=	$this->_urlList[$urlListIndex]["url"]->getQueryAsArray();
+
+						if(sizeof($storedParameters)){
+
+							$sizeOfStoredParams	=	sizeof($storedParameters);
+
+							foreach($parameters as $parameter=>$value){
+
+									if(in_array($parameter,array_keys($storedParameters))){
+
+										$this->_log->log("Parameter $parameter was already inside",0,"yellow");
+										continue;
+
+									}else{
+
+										$this->_log->log("Adding new parameter \"$parameter\"!",0,"cyan");
+										$this->_urlList[$urlListIndex]["url"]->addRequestVariable($parameter,$value);
+
+									}
+
+							}
+
+						}else{
+
+							foreach($parameters as $parameter=>$value){
+
+								$this->_log->log("Adding new parameter \"$parameter\"!",0,"cyan");
+								$this->_urlList[$urlListIndex]["url"]->addRequestVariable($parameter,$value);
+
+							}
+						
+						}
+
+					}else{
+	
+								$this->_log->log("No parameters found");
+								return FALSE;
+
+					}
+
+				}else{
+
+					$this->_log->log("Add URL \"$url\"!",0,"cyan");
+					$this->_urlList[]	=	array("url"=>$url,"method"=>$method);
+					return TRUE;
+
+				}
 
 			}
 
 			public function crawl(\aidSQL\http\Url $url=NULL){
 
-				$this->log($this->drawLine($this->_depthCount++,0,"light_cyan"));
+				$this->_log->log($this->drawLine($this->_depthCount++,0,"light_cyan"));
 
 				if($this->_depth>0){
 					if($this->_depthCount>$this->_depth){
@@ -612,24 +645,24 @@
 
 				if($this->isOmittedPath($url->getPath())){
 
-					$this->log('*'.$url->getPath()." is omitted will NOT fetch content from here!");
+					$this->_log->log('*'.$url->getPath()." is omitted will NOT fetch content from here!");
 					return FALSE;
 
 				}
 
-				$this->log("Fetching content from ".$url->getUrlAsString($parameters=TRUE),0,"light_green");
+				$this->_log->log("Fetching content from ".$url->getUrlAsString($parameters=TRUE),0,"light_green");
 
 
 				try{
 
 					$requestContent	=	$this->_httpAdapter->fetch();
-					$this->_content	=	new \aidSQL\core\Dom($requestContent);
+					$dom					=	new \aidSQL\core\Dom($requestContent);
 
 					if($this->_maxLinks>0){
 
-						if(sizeof($this->_get)>$this->_maxLinks){
+						if(sizeof($this->_urlList)>$this->_maxLinks){
 
-							$this->log("Link limit reached!",2,"white");
+							$this->_log->log("Link limit reached!",2,"white");
 							return NULL;
 
 						}
@@ -638,7 +671,7 @@
 
 					if($this->detectModRewriteFuckUp($url->getPath())){
 
-						$this->log("Possible url rewrite Fuck up detected in ".$url->getPath());
+						$this->_log->log("Possible url rewrite Fuck up detected in ".$url->getPath());
 						return FALSE;
 
 					}
@@ -646,12 +679,12 @@
 
 					if(($httpCode = $this->_httpAdapter->getHttpCode()) != 200){
 
-						$this->log("Got $httpCode",1,"red");
+						$this->_log->log("Got $httpCode",1,"red");
 						return FALSE;
 
 					}else{
 
-						$this->log("200 OK",0,"light_green");
+						$this->_log->log("200 OK",0,"light_green");
 
 					}
 
@@ -659,181 +692,92 @@
 					//Fetches all the links, we are through with this page, hence we have effectively
 					//got all links on the given content.
 
-					$images	=	$this->_content->fetchImages();		//Get all the images, image location is important to know
-																					//certain DocumentRoot locations in order to get a shell.
-																					//This is the case of the mysql5 plugin
-
+					$images	=	$dom->fetchImages();		//Get all the images, image location is important to know
+																	//certain DocumentRoot locations in order to get a shell.
+																	//This is the case of the mysql5 plugin
 
 					$this->makeUrls($images,$url->getPath());
+
 
 					$this->filterExternalSites($images);
 	
 					if(sizeof($images)){
 
-						$this->log("Found ".sizeof($images)." images",0,"light_cyan");
+						$this->_log->log("Found ".sizeof($images)." images",0,"light_cyan");
 
 						foreach($images as $img){
 
 							$file		=	$img->getPath().$img->getPathSeparator().$img->getPage();
 
 							if ($this->addFile($this->whatIs($file))){
-								$this->log("Add file $file",0,"light_purple");
+								$this->_log->log("Add file $file",0,"light_purple");
 							}
 
 						}
 
 					}else{
 	
-						$this->log("No images found",2,"yellow");
+						$this->_log->log("No images found",2,"yellow");
 
 					}
 				
 					//This also returns javascript links and anchors
 					//might want to use them in the future.
 	
-					$links	=	$this->_content->fetchLinks();
-					$links	=	$links["links"];
+					$urls	=	$dom->fetchLinks();
+					$urls	=	$urls["links"];
 
-					$this->searchForms($url);
-					$this->makeUrls($links,$url->getPath(),"GET");	//Foreach URI returned by the content makes a URL Object
+					if($this->_lpp>0 && $sizeOfLinks > $this->_lpp){
 
-					$this->filterExternalSites($links);					//Foreach made URL object takes away the external sites
+						$this->_log->log("Reducing links amount to ".$this->_lpp,0,"yellow");
+						$urls = $this->reduxLinks($urls);
 
-					$sizeOfLinks = sizeof($links);
+					}
 
-					if(!$sizeOfLinks){
+					$this->makeUrls($urls,$url->getPath(),"GET");	//Foreach URI returned by the content makes a URL Object
+					$this->searchForms($url,$dom);
 
-						$this->log("No links found",2,"yellow");
+
+					$this->filterExternalSites($urls);					//Foreach made URL object takes away the external sites
+
+					$amountOfUrls = sizeof($urls);
+
+					if(!$amountOfUrls){
+
+						$this->_log->log("No links found",2,"yellow");
 						return FALSE;
 
 					}else{
 
-						$this->log("TOTAL Links found: $sizeOfLinks",0,"light_cyan");
+						$this->_log->log("TOTAL URL's found: $amountOfUrls",0,"light_cyan");
 
 					}
 
-					if($this->_lpp>0&&$sizeOfLinks > $this->_lpp){
+					foreach($urls as $key=>$_url){
 
-						$this->log("Reducing links amount to ".$this->_lpp,0,"yellow");
-						$links = $this->reduxLinks($links);
-	
-					}
-
-					foreach($links as $link=>$value){
-
-						$linkKey	=	$value->getUrlAsString($parameters=FALSE);
-
-						$file		=	trim($value->getPath().$value->getPathSeparator().$value->getPage(),'/');
+						$file		=	trim($_url->getPath().$_url->getPathSeparator().$_url->getPage(),'/');
 						$file		=	$this->whatIs($file);
 
 						if(is_array($file)){
 
 							if($this->addFile($file)){
 
-								$this->log("Add file ".$value->getPage()." ...",0,"light_purple");
+								$this->_log->log("Add file ".$_url->getPage()." ...",0,"light_purple");
 
 							}
 
 						}
 
-						$_empty	=	$value->getPage();
+						$addUrl	=	$this->addUrl($_url,"GET");
 
-						if(!empty($_empty)){
-
-							$page	=	$value->getPath().$value->getPathSeparator().$value->getPage();
-
-							if($this->isOmittedPage($page)){
-
-								$this->log("*$page  was meant to be omitted",0);
-								continue;
-
-							}
-
-							if($this->pageHasValidType($value->getPage())===FALSE){
-							
-								$this->log($value->getPage()." doesnt matches given file types",0,"yellow");
-								continue;
-
-							}else{
-						
-								$this->log("Page \"".$value->getPage()."\" matches required types ".implode($this->_pageTypes,","),0,"light_green");
-
-							}
+						if($this->_depth > 0 && $addUrl){
 	
-						}
+							$crawlResult		=	$this->crawl($_url);
+							$this->depthCount	=	0;
 
-						//Check if the given Linkkey was already Crawled before, if so, check if there are any
-						//different parameters that will be usefull to us.
+							if(is_null($crawlResult)){
 
-						if($this->wasCrawled($linkKey)){
-
-							$this->log("Parsing previously crawled URL, looking for new parameters ...",0,"blue");
-
-							$parameters	=	$value->getQueryAsArray();
-
-							if(sizeof($parameters)){
-
-								$storedParameters		=	array_keys($this->_get[$linkKey]["parameters"]);
-								$sizeOfStoredParams	=	sizeof($storedParameters);
-
-								foreach($parameters as $parameter=>$value){
-	
-									if($sizeOfStoredParams){
-
-										if(in_array($parameter,$storedParameters)){
-
-											$this->log("Parameter $parameter was already inside",0,"yellow");
-											continue;
-
-										}
-
-									}
-
-									$this->log("Detected new parameter \"$parameter\"!",0,"cyan");
-									$this->_get[$linkKey]["parameters"][$parameter] = $value;
-
-								}
-
-							}else{
-	
-								$this->log("No parameters found");
-
-							}
-
-						}else{	//if($this->wasCrawled($linkKey))
-						
-							$this->_get[$linkKey]				=	array();
-
-							$parameters	=	$value->getQueryAsArray();
-
-							if(sizeof($parameters)){
-
-								if(!empty($parameters)){
-
-									$this->_get[$linkKey]["parameters"] = $parameters;
-
-								}
-
-							}else{
-
-								$this->_get[$linkKey]["parameters"]=array();
-
-							}
-
-							if($this->_depth > 0){
-	
-								$crawlResult		=	$this->crawl($value);
-								$this->depthCount	=	0;
-
-								if($crawlResult === FALSE){
-									unset($this->_get[$linkKey]);
-								}
-
-								if(is_null($crawlResult)){
-
-									$this->log("DEPTH LIMIT FOR $linkKey REACHED!",1,"yellow");
-
-								}
+								$this->_log->log("DEPTH LIMIT REACHED!",1,"yellow");
 
 							}
 
@@ -843,7 +787,7 @@
 
 				}catch(\Exception $e){
 
-					$this->log($e->getMessage(),1,"red");
+					$this->_log->log($e->getMessage(),1,"red");
 					return NULL;
 
 				}
@@ -858,7 +802,7 @@
 
 						if($this->addExternalSite($url)){
 
-							$this->log($url->getHost().", external site detected adding to other sites list ...",0,"purple");
+							$this->_log->log($url->getHost().", external site detected adding to other sites list ...",0,"purple");
 
 						}
 
@@ -953,7 +897,6 @@
 
 				}
 
-				//$this->log("Levels: $ascendCount",0,"green");
 
 				while($ascendCount--){
 

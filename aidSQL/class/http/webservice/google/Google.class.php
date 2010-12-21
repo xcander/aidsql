@@ -39,7 +39,7 @@
 			protected $language	=	NULL;
 			protected $start		=	NULL;
 
-			public function __construct(\aidSQL\http\Adapter &$adapter=NULL,\aidSQL\Log &$log=NULL){
+			public function __construct(\aidSQL\http\Adapter &$adapter=NULL,\aidSQL\core\Logger &$log=NULL){
 
 				$this->url	=	new \aidSQL\http\URL($this->baseUrl);
 
@@ -67,7 +67,7 @@
 
 			}
 
-			public function setLog(\aidSQL\Log &$log){
+			public function setLog(\aidSQL\core\Logger &$log){
 
 				$this->log = $log;
 				$log->setPrepend('['.__CLASS__.']');
