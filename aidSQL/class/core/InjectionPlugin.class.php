@@ -22,7 +22,7 @@
 			protected $_isVulnerable					=	FALSE;
 
 
-			public final function __construct(\aidSQL\http\Adapter $adapter,aidSQL\LogInterface &$log=NULL){
+			public final function __construct(\aidSQL\http\Adapter $adapter,aidSQL\core\Logger &$log=NULL){
 
 				$url	=	$adapter->getUrl();
 
@@ -62,7 +62,7 @@
 
 			/* Wrapper */
 
-			public function setLog(\aidSQL\LogInterface &$log){
+			public function setLog(\aidSQL\core\Logger &$log){
 				$this->_log = $log;
 			}
 

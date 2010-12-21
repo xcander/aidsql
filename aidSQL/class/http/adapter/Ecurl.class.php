@@ -224,6 +224,10 @@
 
 			}
 
+			public function getMethod(){
+				return $this->method;
+			}
+
 			public function setBrowser($browser=NULL){
 
 				if(is_null($browser)){
@@ -457,7 +461,7 @@
 
 			}
 
-			public function setLog(\aidSQL\LogInterface &$log){
+			public function setLog(\aidSQL\core\Logger &$log){
 
 				$this->log=$log;
 

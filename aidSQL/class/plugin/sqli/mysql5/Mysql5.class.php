@@ -71,7 +71,9 @@
 
 				$this->setUseConcat(TRUE);
 
-				foreach($vars["numeric"] as $variable=>$value){
+				$vars	=	array_merge($vars["numeric"],$vars["strings"]);
+
+				foreach($vars as $variable=>$value){
 
 					$this->setAffectedVariable($variable,$value);
 

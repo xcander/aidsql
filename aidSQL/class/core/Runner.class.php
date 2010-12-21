@@ -13,7 +13,7 @@
 			private	$_crawler		=	NULL;			//This object might contain important information that 
 																//may be used by the plugins.
 
-			public function __construct(\aidSQL\parser\CmdLine $parser,\aidSQL\http\Adapter &$adapter,\aidSQL\http\crawler &$crawler,\aidSQL\LogInterface &$log=NULL){
+			public function __construct(\aidSQL\parser\CmdLine $parser,\aidSQL\http\Adapter &$adapter,\aidSQL\http\crawler &$crawler,\aidSQL\core\Logger &$log=NULL){
 
 				if(!is_null($log)){
 					$this->setLog($log);
@@ -54,7 +54,7 @@
 
 			}
 
-			public function setLog(\aidSQL\LogInterface &$log){
+			public function setLog(\aidSQL\core\Logger &$log){
 				$this->_log = $log;
 			}
 

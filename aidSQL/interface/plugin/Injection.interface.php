@@ -5,7 +5,7 @@
 		interface InjectionPluginInterface {
 
 			public function getPluginName();
-			public function setLog(\aidSQL\LogInterface &$log);	//Log setter
+			public function setLog(\aidSQL\core\Logger &$log);	//Log setter
 			public function log($msg=NULL);				//Log wrapper
 			public function count();
 			public function setTable();
