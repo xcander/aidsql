@@ -287,7 +287,7 @@
 			}
 
 			//name must be the normalized name
-			public function getPluginInstance($type,$name,\aidSQL\http\Adapter &$httpAdapter,\aidSQL\Log &$log=NULL){
+			public function getPluginInstance($type,$name,\aidSQL\http\Adapter &$httpAdapter,\aidSQL\core\Logger &$log=NULL){
 
 				if(empty($name)||empty($type)){
 					throw(new \Exception("Must specify normalized plugin name and type when using getPlugin!"));
