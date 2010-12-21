@@ -10,7 +10,7 @@
 			private	$_disclosureLoadOrder	=	array();
 			private	$_sqliLoadOrder			=	array();
 
-			public function __construct($pluginsDir=NULL,\aidSQL\LogInterface &$log=NULL){
+			public function __construct($pluginsDir=NULL,\aidSQL\core\Logger &$log=NULL){
 
 				if(!is_null($log)){
 					$this->setLog($log);
@@ -198,7 +198,7 @@
 
 			}
 
-			public function setLog(\aidSQL\LogInterface &$log){
+			public function setLog(\aidSQL\core\Logger &$log){
 				$this->_log	=	$log;
 			}
 
@@ -287,7 +287,7 @@
 			}
 
 			//name must be the normalized name
-			public function getPluginInstance($type,$name,\aidSQL\http\Adapter &$httpAdapter,\aidSQL\LogInterface &$log=NULL){
+			public function getPluginInstance($type,$name,\aidSQL\http\Adapter &$httpAdapter,\aidSQL\Log &$log=NULL){
 
 				if(empty($name)||empty($type)){
 					throw(new \Exception("Must specify normalized plugin name and type when using getPlugin!"));

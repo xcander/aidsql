@@ -10,7 +10,7 @@
 			private	$_hosts			=	array();
 			private	$_maxPages		=	10;
 			
-			public function setLog(\aidSQL\LogInterface &$log){
+			public function setLog(\aidSQL\Log &$log){
 				$this->_log	=	$log;
 			}
 
@@ -28,7 +28,7 @@
 				return $this->_maxPages;
 			}
 
-			public function __construct(\aidSQL\http\Adapter &$adapter,\aidSQL\LogInterface &$log=NULL){
+			public function __construct(\aidSQL\http\Adapter &$adapter,\aidSQL\Log &$log=NULL){
 
 				if(!is_null($log)){
 					$this->setLog($log);

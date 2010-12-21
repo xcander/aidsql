@@ -1,6 +1,6 @@
 <?php
 
-	function usageShort(aidSQL\LogInterface &$log){
+	function usageShort(aidSQL\core\Logger &$log){
 
 		$info = $log->getX11Info();
 
@@ -117,7 +117,7 @@
 
 	}
 
-	function banner(aidSQL\LogInterface &$log){
+	function banner(aidSQL\core\Logger &$log){
 
 		$log->setX11Info(FALSE);
 
@@ -146,8 +146,31 @@
 
 	}
 
+	function isVulnerable($cmdParser,$httpAdapter,$crawler,$log){
 
-	function filterSites (Array &$sites,aidSQL\LogInterface &$log,$regex=NULL){
+		$aidSQL		=	new \aidSQL\core\Runner($cmdParser,$httpAdapter,$crawler,$log);
+		$result		=	FALSE;
+
+		if($aidSQL->isVulnerable()){
+
+			$log->log("Site is vulnerable to sql injection!!",0,"light_cyan");
+
+			if(!$aidSQL->generateReport()){
+
+				$log->log("Site seems to be vulnerable, however we failed to gather necessary data to make the injection report!",1,"red");
+
+			}
+
+			$result	=	TRUE;
+
+		}
+
+		return $result;
+
+	}
+
+
+	function filterSites (Array &$sites,aidSQL\core\Logger &$log,$regex=NULL){
 
 		$regex	=	trim($regex,"/");
 		$doRegex	=	!empty($regex);

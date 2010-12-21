@@ -43,7 +43,6 @@
 
 	//Interfaces
 	require	"interface/Parser.interface.php";
-	require	"interface/Log.interface.php";
 	require	"interface/http/Adapter.interface.php";
 	require	"interface/plugin/Injection.interface.php";
 	require	"interface/plugin/Disclosure.interface.php";
@@ -51,15 +50,13 @@
 	//Core
 	require	"class/core/String.class.php";
 	require	"class/core/Dom.class.php";
+	require	"class/core/Logger.class.php";
 	require	"class/core/File.class.php";
 	require	"class/core/Runner.class.php";
 	require	"class/core/PluginLoader.class.php";
 	require	"class/core/InjectionPlugin.class.php";
 	require	"class/core/DisclosurePlugin.class.php";
 	require	"class/core/DisclosureResult.class.php";
-
-	//Log (should be switched to core ?)
-	require	"class/log/StdLog.class.php";
 
 	//HTTP 
 	require	"class/http/Url.class.php";
@@ -78,15 +75,15 @@
 	//Functions
 	require	"functions/launcher.functions.php";
 
+	$log	=	new core\Logger();
+	$log->setEcho(TRUE);
+
 	try{
 
 		unset($_SERVER["argv"][0]);
 
 		$sites			=	array();
 		$links			=	array();
-
-		$log	=	new Log\StdLog();
-		$log->setEcho(TRUE);
 		banner($log);
 		$log->setPrepend("[aidSQL]");
 		$parameters		=	mergeConfig($_SERVER["argv"],"etc/aidSQL/aidSQL.conf");
@@ -124,7 +121,7 @@
 		$httpAdapter	=	new $Adapter();
 
 		$httpAdapter->setLog($log);
-		$httpAdapter->setMethod($parsedOptions["http-method"]);
+		$httpAdapter->setMethod(strtoupper($parsedOptions["http-method"]));
 		$httpAdapter->setFollowRedirects($parsedOptions["follow-redirects"]);
 
 		if(isset($parsedOptions["connect-timeout"])){
@@ -210,6 +207,7 @@
 			$httpAdapter->setUrl($url);
 
 			$crawler			=	new http\Crawler($httpAdapter);
+			$crawler->setLog($log);
 
 			if(isset($parsedOptions["lpp"])){
 
@@ -253,53 +251,56 @@
 
 			}
 
+			$parsedOptions	=	$cmdParser->getParsedOptions();
+
+			$urlVars		=	array();
+			$linkCount	=	1;
+
+			$passedParameters	=	$url->getQueryAsArray();
+
+			if(sizeof($passedParameters)){
+
+				$log->log("0. {".$url->getUrlAsString(FALSE)."} = [".implode(",",array_keys($passedParameters))."]\t<".$httpAdapter->getMethod().">",2,"yellow");
+
+				$result	=	isVulnerable($cmdParser,$httpAdapter,$crawler,$log);
+
+				if($result && (bool)$parsedOptions["immediate-mode"]){
+
+					exit(0);
+
+				}else{
+
+					$log->log("Failed to perform injection :(",1,"red");
+					exit(1);
+
+				}
+
+			}
+
+
 			$crawler->crawl();
 
 			//Test crawled links
 
 			$links				=	$crawler->getAllRequests(TRUE);
 
-			$passedParameters	=	$url->getQueryAsArray();
-
-			if(sizeof($passedParameters)){
-
-				$links[$url->getUrlAsString(FALSE)]	=	$passedParameters;
-
-			}
-
-			if(!sizeof($links)){
-
-				throw(new \Exception("No valid links to be tested!"));
-
-			}
-
-			$parsedOptions	=	$cmdParser->getParsedOptions();
-
-			$urlVars		=	array();
-			$linkCount	=	1;
-
-			//Take away links which have no parameters 
-
-			$allLinks	=	array();
-
-			foreach($links as $key=>$link){
-
-				$url		=	key($link);
-				$query	=	$link[$url];
-
-				$log->log($linkCount++.' {'.$url."} = [".implode(array_keys($query["parameters"]),',')."]\t<$query[method]>",2,"yellow");
-				$allLinks[$url]	=	$query;
-
-
-			}
-
-			$links	=	$allLinks;
-
 			if(sizeof($links)){
 
-				foreach($links as $url=>$query){
+				$allLinks	=	array();
 
-					foreach($query["parameters"]	as $var=>$value){
+				foreach($links as $key=>$link){
+
+					$linkURL		=	key($link);
+					$query		=	$link[$linkURL];
+
+					$log->log($linkCount++.'. {'.$linkURL."} = [".implode(array_keys($query["parameters"]),',')."]\t<$query[method]>",2,"yellow");
+					$allLinks[$linkURL]	=	$query;
+
+				}
+
+				foreach($allLinks as $url=>$request){
+
+					foreach($request["parameters"] as $var=>$value){
 
 						$urlVars[]	=	$var.$parsedOptions["url-equality-char"].$value;
 
@@ -315,30 +316,13 @@
 
 					//<isvulnerable>
 
-					$aidSQL		=	new \aidSQL\core\Runner($cmdParser,$httpAdapter,$crawler,$log);
-					$result		=	FALSE;
-
-					if($aidSQL->isVulnerable()){
-
-						$log->log("Site is vulnerable to sql injection!!",0,"light_cyan");
-
-						if(!$aidSQL->generateReport()){
-
-							$log->log("Failed to gather necessary data to make report!",1,"red");
-
-						}
-
-						$result	=	TRUE;
-
-					}
+					$result	=	isVulnerable($cmdParser,$httpAdapter,$crawler,$log);
 
 					if($result && (bool)$parsedOptions["immediate-mode"]){
 
 						break;
 
-					}
-
-					if(!$result){
+					}else{
 
 						$log->log("Failed to perform injection :(",1,"red");
 

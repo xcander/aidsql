@@ -7,7 +7,7 @@
 			private	$_httpAdapter	=	NULL;
 			private	$_log				=	NULL;
 
-			public function __construct(\aidSQL\http\Adapter &$httpAdapter, \aidSQL\LogInterface &$log=NULL){
+			public function __construct(\aidSQL\http\Adapter &$httpAdapter, \aidSQL\Log &$log=NULL){
 
 				$this->setHttpAdapter($httpAdapter);
 
@@ -21,7 +21,7 @@
 				$this->_httpAdapter	=	$httpAdapter;
 			}
 
-			public function setLog(\aidSQL\LogInterface &$log){
+			public function setLog(\aidSQL\Log &$log){
 				
 				$this->_log = $log;
 
