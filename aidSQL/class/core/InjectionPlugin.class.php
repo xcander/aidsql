@@ -66,7 +66,7 @@
 				$this->_log = $log;
 			}
 
-			public function log($msg = NULL){
+			public function log($msg = NULL,$toFile=FALSE){
 
 				if(!is_null($this->_log)){
 
