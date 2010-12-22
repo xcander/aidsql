@@ -112,8 +112,8 @@
 		"google-maxpages"=>array(
 			"requires"=>array("google")
 		),
-		"google-shuffle-sites"=>array(
-			"requires"=>array("google")
+		"shuffle"=>array(
+			"requires"=>array("url")
 		),
 		"omit-sites"=>array(
 		),
@@ -126,6 +126,10 @@
 			)
 		),
 		"log-save"=>array(
+		),
+		"log-all"=>array(
+			"novalue" => TRUE,
+			"requires"=> array("log-save")
 		),
 		"plugin-phpinfo"=>array(
 		),
@@ -146,6 +150,10 @@
 		"url-equality-char"=>array(
 		),
 		"url-path-char"=>array(
+		),
+		"help"=>array(
+			"novalue"=>TRUE,
+			"overlaps-with"=>array("url")
 		)
 
 	);

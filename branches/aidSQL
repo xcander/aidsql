@@ -90,6 +90,11 @@
 		$cmdParser		=	new parser\CmdLine($config,$parameters);
 		$parsedOptions	=	$cmdParser->getParsedOptions();
 
+		if(in_array("help",array_keys($parsedOptions))){
+			usageLong($log);
+			exit(0);
+		}	
+
 	}catch(\Exception $e){
 
 		usageShort($log);
@@ -162,13 +167,14 @@
 			
 			$sites = googleSearch($google,$offset,$userTotal);
 
-			if(isset($parsedOptions["google-shuffle-sites"])){
-				shuffle($sites);
-			}
 
 		}
 
 		//</Google>
+
+		if(isset($parsedOptions["shuffle"])){
+			shuffle($sites);
+		}
 
 
 		if(isset($parsedOptions["omit-sites"])){
