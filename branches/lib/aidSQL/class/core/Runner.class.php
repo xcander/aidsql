@@ -6,7 +6,7 @@
 
 			private	$_debug			=	TRUE;
 			private	$_vulnerable	=	FALSE;		//boolean vulnerable TRUE or not vulnerable FALSE
-			private	$_log				=	NULL;			//Log object
+			private	$_logger			=	NULL;			//Log object
 			private	$_httpAdapter	=	NULL;
 			private	$_options		=	array();
 			private	$_pLoader		=	NULL;			//Plugin Loader Instance
@@ -25,22 +25,19 @@
 				$pluginsDir	=	__CLASSPATH.DIRECTORY_SEPARATOR."class".DIRECTORY_SEPARATOR."plugin";
 
 				$this->_pLoader	=	new PluginLoader($pluginsDir,$log);
+				$this->_pLoader->setConfig($options);
 			
-				if(isset($options["plugin-disclosure-load-order"])){
-
-					$this->_pLoader->setDisclosurePluginLoadOrder(explode(',',$options["plugin-disclosure-load-order"]));
-
-				}
-
 				$this->setHttpAdapter($adapter);
 				$this->configureHttpAdapter($options);
 				$this->setCrawler($crawler);
 
 			}
 
+
 			public function setCrawler(\aidSQL\http\crawler &$crawler){
 				$this->_crawler	=	$crawler;
 			}
+
 
 			public function setHttpAdapter(\aidSQL\http\Adapter &$httpAdapter){
 
@@ -48,27 +45,37 @@
 
 			}
 
+
 			public function getHttpAdapter(){
 
 				return $this->_httpAdapter;
 
 			}
 
+
 			public function setLog(\aidSQL\core\Logger &$log){
-				$this->_log = $log;
+				$this->_logger = $log;
 			}
 
-			private function log($msg=NULL){
 
-				if(!is_null($this->_log)){
-					$this->_log->setPrepend('['.__CLASS__.']');
-					call_user_func_array(array($this->_log, "log"),func_get_args());
+			private function log($msg=NULL,$color="white",$level=0,$toFile=FALSE){
+
+				if(isset($this->_config["log-all"])){
+					$toFile	=	TRUE;
+				}
+
+				if(!is_null($this->_logger)){
+
+					$this->_logger->setPrepend('['.__CLASS__.']');
+					$this->_logger->log($msg,$color,$level,$toFile);
 					return TRUE;
+
 				}
 
 				return FALSE;
 
 			}
+
 
 			public function isVulnerable(){
 
@@ -93,11 +100,11 @@
 					$this->_pLoader->load($plugin);
 
 					$config	=	$plugin["config"];
-
 					$plugin	=	"aidSQL\\plugin\\sqli\\$plugin[name]";
 					$plugin	=	new $plugin($this->_httpAdapter);
-					$plugin->setLog($this->_log);
-					$plugin->setConfig($config);
+					$plugin->setLog($this->_logger);
+					$mergedConfig	=	array_merge($config->getParsedOptions(),$this->_options);
+					$plugin->setConfig($mergedConfig);
 
 					$this->log("Testing ".get_class($plugin)." sql injection plugin...",0,"white");
 
@@ -149,31 +156,31 @@
 					$dbuser		= $plugin->getUser();
 					$dbtables	= $plugin->getTables();
 
-					$this->log("BASIC INFORMATION",0,"cyan");
-					$this->log("---------------------------------",0,"white");
-					$this->log("PLUGIN\t\t:\t".$plugin->getPluginName(),0,"cyan");
-					$this->log("DBASE\t\t:\t$database",0,"white");
-					$this->log("USER\t\t:\t$dbuser",0,"white");
-					$this->log("TABLES\t\t:\t$dbtables",0,"white");
+					$this->log("BASIC INFORMATION",0,"cyan",TRUE);
+					$this->log("---------------------------------",0,"white",TRUE);
+					$this->log("PLUGIN\t\t:\t".$plugin->getPluginName(),0,"cyan",TRUE);
+					$this->log("DBASE\t\t:\t$database",0,"white",TRUE);
+					$this->log("USER\t\t:\t$dbuser",0,"white",TRUE);
+					$this->log("TABLES\t\t:\t$dbtables",0,"white",TRUE);
 
 					if($plugin->isRoot($dbuser)){
 
-						$this->log("IS ROOT\t:\tYES",0,"light_green");
-						$this->log("Trying to get Shell ...",1,"light_cyan");
+						$this->log("IS ROOT\t:\tYES",0,"light_green",TRUE);
+						$this->log("Trying to get Shell ...",1,"light_cyan",TRUE);
 
 						//Getshell method must return FALSE on error or String path/to/shellLocation
 
 						$g0tShell = $plugin->getShell($this->_pLoader,$this->_crawler,$this->_options);
 
 						if($g0tShell){
-							$this->log("Got Shell => $g0tShell",0,"light_green");
+							$this->log("Got Shell => $g0tShell",0,"light_green",TRUE);
 						}else{
-							$this->log("Couldn't get shell :(",2,"yellow");
+							$this->log("Couldn't get shell :(",2,"yellow",TRUE);
 						}
 
 					}else{
 				
-						$this->log("IS ROOT\t:\tNO",0,"white");
+						$this->log("IS ROOT\t:\tNO",0,"white",TRUE);
 
 					}
 
@@ -181,7 +188,7 @@
 
 				}catch(\Exception $e){
 
-					$this->log($e->getMessage(),1,"red");
+					$this->log($e->getMessage(),1,"red",TRUE);
 					return FALSE;
 
 				}

@@ -98,7 +98,7 @@
 	}catch(\Exception $e){
 
 		usageShort($log);
-		$log->log($e->getMessage(),1,"red");
+		$log->log($e->getMessage(),1,"red",FALSE);
 		exit(1);
 
 	}
@@ -108,10 +108,15 @@
 
 		$log->setColors((bool)$parsedOptions["colors"]);
 
+		if(isset($parsedOptions["log-prepend-date"])){
+
+			$log->useLogDate($parsedOptions["log-prepend-date"]);
+
+		}
+
 		if(isset($parsedOptions["log-save"])){
 			$log->setFilename($parsedOptions["log-save"]);
 		}
-
 
 		if(!empty($parsedOptions["url"])){
 
@@ -125,30 +130,8 @@
 
 		$Adapter			=	"\\aidSQL\\http\\Adapter\\".$parsedOptions["http-adapter"];
 		$httpAdapter	=	new $Adapter();
-
 		$httpAdapter->setLog($log);
-		$httpAdapter->setMethod(strtoupper($parsedOptions["http-method"]));
-		$httpAdapter->setFollowRedirects($parsedOptions["follow-redirects"]);
-
-		if(isset($parsedOptions["connect-timeout"])){
-
-			$httpAdapter->setConnectTimeout($parsedOptions["connect-timeout"]);
-
-		}
-
-
-		if(isset($parsedOptions["request-interval"])&&$parsedOptions["request-interval"]>0){
-
-			$httpAdapter->setRequestInterval($parsedOptions["request-interval"]);
-
-		}
-
-
-		if(isset($parsedOptions["log-prepend-date"])){
-
-			$log->useLogDate($parsedOptions["log-prepend-date"]);
-
-		}
+		$httpAdapter->setConfig($parsedOptions);
 
 		//</httpAdapter>
 
@@ -158,22 +141,64 @@
 		if(in_array("google",array_keys($parsedOptions))){
 
 			$google	=	new http\webservice\Google($httpAdapter,$log);
-			$google->setQuery($parsedOptions["google"]);
+			$google->setConfig($parsedOptions);
 
-			(isset($parsedOptions["google-language"])) ? $google->setLanguage($parsedOptions["google-language"]) : NULL;
+			$userTotal	=	(isset($parsedOptions["google-max-results"]))	?	$parsedOptions["google-max-results"]	:	0;
 
-			$offset		=	(isset($parsedOptions["google-offset"]))			? $parsedOptions["google-offset"] : 0;
-			$userTotal	=	(isset($parsedOptions["google-max-results"]))	? $parsedOptions["google-max-results"] : 0;
-			
-			$sites = googleSearch($google,$offset,$userTotal);
+			try{
 
+				$sites	=	array();
+				$total	=	0;
+				$offset	=	(isset($parsedOptions["google-offset"]))	?	$parsedOptions["google-offset"]	:	0;
+
+				do{
+
+					if($offset>0){
+
+						$google->setStart($offset);
+
+					}
+
+					$result = $google->search();
+
+					if(isset($result->responseData->cursor->estimatedResultCount)){
+
+						$total = $result->responseData->cursor->estimatedResultCount - $offset;
+
+						if($userTotal==0){
+							$userTotal = $total;
+						}
+
+					}
+
+					foreach($result->responseData->results as $searchResult){
+
+						$url = new \aidSQL\http\Url($searchResult->visibleUrl);
+
+						if(!in_array($url,$sites)){
+							$sites[] = $url;
+						}
+
+					}
+
+					$offset+=8;
+
+				}while($offset<$total && $offset<$userTotal);
+
+			}catch(\Exception $e){
+
+				$log->log($e->getMessage(),1,"red",FALSE);
+
+			}
 
 		}
 
 		//</Google>
 
 		if(isset($parsedOptions["shuffle"])){
+
 			shuffle($sites);
+
 		}
 
 
@@ -185,7 +210,6 @@
 
 
 		foreach($sites as $url){
-
 
 			//<urlconfig>
 
@@ -211,63 +235,18 @@
 
 			//</urlconfig>
 
-			$httpAdapter->setUrl($url);
+			$crawler			=	new http\Crawler($httpAdapter,$url,$log);
+			$crawler->setConfig($parsedOptions);
 
-			$crawler			=	new http\Crawler($httpAdapter,$log);
-
-			//URL WITH CMDLINE PARAMETERS
-			if(sizeof($url->getQueryAsArray())){
-				$crawler->addUrl($url);
-			}
-
-			if(isset($parsedOptions["lpp"])){
-
-				$crawler->setLinksPerPage($parsedOptions["lpp"]);
-
-			}
-
-
-			if(isset($parsedOptions["max-links"])){
-
-				$crawler->setMaxLinks($parsedOptions["max-links"]);
-
-			}
-
-
-			if(isset($parsedOptions["page-types"])){
-
-				$crawler->addPageTypes(explode(",",$parsedOptions["page-types"]));
-
-			}
-
-
-			if(isset($parsedOptions["omit-paths"])){
-
-				$omitPaths = explode(",",$parsedOptions["omit-paths"]);
-				$crawler->addOmitPaths($omitPaths);
-
-			}
-
-
-			if(isset($parsedOptions["omit-pages"])){
-
-				$omitPages = explode(",",$parsedOptions["omit-pages"]);
-				$crawler->addOmitPages($omitPages);
-
-			}
-
-			if(isset($parsedOptions["crawl"])){
-
-				$crawler->setDepth($parsedOptions["crawl"]);
-
-			}
-
-			$parsedOptions	=	$cmdParser->getParsedOptions();
+			//To crawl url or not to crawl, that is the question!
 
 			if(!in_array("no-crawl",array_keys($parsedOptions))){
+
 				$crawler->crawl();
+
 			}
 
+			//Fetch url list, btw this array also contains the current URL, seemless!
 
 			$urls	=	$crawler->getUrlList(TRUE);
 
@@ -277,7 +256,7 @@
 
 				if(sizeof($_url["url"]->getQueryAsArray())){
 
-					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan");
+					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan",FALSE);
 
 				}else{
 
@@ -290,10 +269,11 @@
 
 			if(sizeof($urls)){
 
-				//Test crawled links
+				//Test crawled links for vulnerabilities
 
 				foreach($urls as $_url){
 
+					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan",TRUE);
 					$httpAdapter->setUrl($_url["url"]);
 					$httpAdapter->setMethod($_url["method"]);
 

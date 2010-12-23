@@ -105,53 +105,6 @@
 
 	}
 
-	function googleSearch(\aidSQL\http\webservice\Google &$google,$offset=0,$userTotal=200){
-
-		try{
-
-			$sites	= array();
-
-			$total = 0;
-	
-			do{
-
-				$result = $google->search();
-				$google->setStart($offset);
-
-				if(isset($result->responseData->cursor->estimatedResultCount)){
-
-					$total = $result->responseData->cursor->estimatedResultCount - $offset;
-
-					if($userTotal==0){
-						$userTotal = $total;
-					}
-
-				}
-
-				foreach($result->responseData->results as $searchResult){
-
-					$url = new \aidSQL\http\Url($searchResult->visibleUrl);
-
-					if(!in_array($url,$sites)){
-						$sites[] = $url;
-					}
-
-				}
-
-				$offset+=8;
-
-			}while($offset<$total && $offset<$userTotal);
-
-		}catch(Exception $e){
-
-			$google->log($e->getMessage(),1,"red");
-			return $sites;
-
-		}
-
-		return $sites;
-
-	}
 
 	function banner(aidSQL\core\Logger &$log){
 
@@ -225,7 +178,7 @@
 
 			}
 
-			$log->log("Site added ".$site->getHost(),0,"green");
+			$log->log("Site added ".$site->getHost(),0,"green",FALSE);
 
 		}
 

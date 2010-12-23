@@ -156,7 +156,7 @@
 			* @method registraLog() registro los eventos en el archivo log creado por el constructor
 			*/
 	
-			public function log($msg=NULL,$type=0,$color=NULL,$frequency=0,$file=NULL,$line=NULL,$method=NULL) {
+			public function log($msg=NULL,$type=0,$color=NULL,$logToFile=TRUE,$frequency=0,$method=NULL,$file=NULL,$line=NULL){
 	
 				if(empty($msg)){
 					throw(new \Exception("Message to be logged cant be empty"));
@@ -245,7 +245,7 @@
 				}
 	
 	
-				if(!empty($this->_filename)) {
+				if(!empty($this->_filename)&&$logToFile) {
 	
 					$write = TRUE;
 	

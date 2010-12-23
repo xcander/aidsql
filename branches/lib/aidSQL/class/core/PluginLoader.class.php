@@ -4,11 +4,12 @@
 
 		class PluginLoader {
 			
-			private	$_log							=	NULL;
+			private	$_logger						=	NULL;
 			private	$_pluginsDir				=	NULL;
 			private	$_plugins					=	array();
 			private	$_disclosureLoadOrder	=	array();
 			private	$_sqliLoadOrder			=	array();
+			private	$_config						=	array();
 
 			public function __construct($pluginsDir=NULL,\aidSQL\core\Logger &$log=NULL){
 
@@ -25,6 +26,18 @@
 				$this->setPluginsDir($pluginsDir);
 
 				$this->listPlugins();
+
+			}
+
+			public function setConfig(Array $config){
+
+				if(isset($config["plugin-disclosure-load-order"])){
+
+					$this->setDisclosurePluginLoadOrder(explode(',',$config["plugin-disclosure-load-order"]));
+
+				}
+
+				$this->_config	=	$config;
 
 			}
 
@@ -199,15 +212,19 @@
 			}
 
 			public function setLog(\aidSQL\core\Logger &$log){
-				$this->_log	=	$log;
+				$this->_logger	=	$log;
 			}
 
-			private function log($msg = NULL){
+			private function log($msg = NULL,$color="white",$level=0,$toFile=FALSE){
 
-				if(!is_null($this->_log)){
+				if(isset($this->_config["log-all"])){
+					$toFile	=	TRUE;
+				}
 
-					$this->_log->setPrepend("[".__CLASS__."]");
-					call_user_func_array(array($this->_log, "log"),func_get_args());
+				if(!is_null($this->_logger)){
+
+					$this->_logger->setPrepend('['.__CLASS__.']');
+					$this->_logger->log($msg,$color,$level,$toFile);
 					return TRUE;
 
 				}
