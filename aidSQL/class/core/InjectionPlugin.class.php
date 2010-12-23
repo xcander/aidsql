@@ -4,22 +4,22 @@
 
 		abstract class InjectionPlugin implements InjectionPluginInterface {
 
-			private $_stringEscapeCharacter			=	NULL;
-			private $_queryConcatenationCharacter	=	NULL;
-			private $_queryCommentOpen					=	NULL;
-			private $_queryCommentClose				=	NULL;
-			private $_table								=	NULL;
-			private $_verbose								=	FALSE;
+			private		$_stringEscapeCharacter				=	NULL;
+			private		$_queryConcatenationCharacter		=	NULL;
+			private		$_queryCommentOpen					=	NULL;
+			private		$_queryCommentClose					=	NULL;
+			private		$_table									=	NULL;
+			private		$_verbose								=	FALSE;
 			
-			protected $_log								=	NULL;
-			protected $_httpAdapter						=	NULL;
-			protected $_httpCode							=	NULL;
-			protected $_affectedVariable				=	Array();
-			protected $_injectionAttempts				=	40;
-			protected $_parser							=	NULL;
-			protected $_dbUser							=	NULL;
-			protected $_config							=	NULL;
-			protected $_isVulnerable					=	FALSE;
+			protected	$_log										=	NULL;
+			protected 	$_httpAdapter							=	NULL;
+			protected 	$_httpCode								=	NULL;
+			protected	$_affectedVariable					=	Array();
+			protected 	$_injectionAttempts					=	40;
+			protected 	$_parser									=	NULL;
+			protected 	$_dbUser									=	NULL;
+			protected	$_config									=	NULL;
+			protected	$_isVulnerable							=	FALSE;
 
 
 			public final function __construct(\aidSQL\http\Adapter $adapter,aidSQL\core\Logger &$log=NULL){
@@ -56,23 +56,24 @@
 
 			}
 
-			public function setConfig(\aidSQL\parser\CmdLine $config){
+			public function setConfig(Array $config){
 				$this->_config=$config;
 			}
-
-			/* Wrapper */
 
 			public function setLog(\aidSQL\core\Logger &$log){
 				$this->_log = $log;
 			}
 
-			public function log($msg = NULL,$toFile=FALSE){
+			public function log($msg = NULL,$color="white",$type="0",$toFile=FALSE){
+
+				$logToFile			=	(isset($this->_config["log-all"]))	?	TRUE	:	$toFile;
 
 				if(!is_null($this->_log)){
 
 					$this->_log->setPrepend("[".get_class($this)."]");
-					call_user_func_array(array($this->_log, "log"),func_get_args());
+					$this->_log->log($msg,$color,$type,$logToFile);
 					return TRUE;
+
 				}
 
 				return FALSE;

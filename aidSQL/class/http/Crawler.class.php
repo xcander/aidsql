@@ -21,20 +21,85 @@
 			private	$_log					=	NULL;
 			private	$_maxLinks			=	0;				//Amount of links desired to crawl
 			private	$_urlList			=	array();		//Holds all the urls
+			private	$_config				=	array();		//Holds configuration parameters passed from the command line and config
 
-			public function __construct(\aidSQL\http\Adapter $httpAdapter,\aidSQL\core\Logger &$log){
+			public function __construct(\aidSQL\http\Adapter &$httpAdapter,\aidSQL\http\Url $url,\aidSQL\core\Logger &$log){
 
-				if(is_null($httpAdapter->getUrl())){
+				$httpAdapter->setUrl($url);
+				
+				$this->_urlList[]		=	array("url"=>$url,"method"=>$httpAdapter->getMethod());
 
-					throw(new \Exception("URL Must be set in the adapter before passing it to the crawler"));
-
-				}
-
-				$this->_host			=	$httpAdapter->getUrl();
+				$this->_host			=	$url;
 				$this->_httpAdapter	=	$httpAdapter;
 				$this->setLog($log);
 
 				$this->_log->log("Normalized URL: ".$this->_host->getUrlAsString());
+
+			}
+
+			public function setConfig(Array $config){
+
+				if(isset($config["lpp"])){
+
+					$this->setLinksPerPage($config["lpp"]);
+
+				}
+
+
+				if(isset($config["max-links"])){
+
+					$this->setMaxLinks($config["max-links"]);
+
+				}
+
+
+				if(isset($config["page-types"])){
+
+					$this->addPageTypes(explode(",",$config["page-types"]));
+
+				}
+
+
+				if(isset($config["omit-paths"])){
+
+					$omitPaths = explode(",",$config["omit-paths"]);
+					$this->addOmitPaths($omitPaths);
+
+				}
+
+
+				if(isset($config["omit-pages"])){
+
+					$omitPages = explode(",",$config["omit-pages"]);
+					$this->addOmitPages($omitPages);
+
+				}
+
+				if(isset($config["crawl"])){
+
+					$this->setDepth($config["crawl"]);
+
+				}
+
+				$this->_config	=	$config;
+
+			}
+
+			private function log($msg=NULL,$color="white",$level=0,$toFile=FALSE){
+
+				if(isset($this->_config["log-all"])){
+					$toFile	=	TRUE;
+				}
+
+				if(!is_null($this->_log)){
+
+					$this->_log->setPrepend('['.__CLASS__.']');
+					$this->_log->log($msg,$color,$level,$toFile);
+					return TRUE;
+
+				}
+
+				return FALSE;
 
 			}
 
@@ -223,19 +288,19 @@
 				$sizeOfLinks = sizeof($links);
 
 				if(!$sizeOfLinks){
-					$this->_log->log("No links to reduce");	
+					$this->log("No links to reduce");	
 					return $links;
 				}
 
 
 				if($sizeOfLinks < $this->_lpp){
 
-					$this->_log->log("Amount of links not enough to perform redux!");
+					$this->log("Amount of links not enough to perform redux!");
 					return $links;
 
 				}
 
-				$this->_log->log("Shuffling Links ...");
+				$this->log("Shuffling Links ...");
 
 				$shuffled = array_keys($links);
 				shuffle($shuffled);
@@ -271,7 +336,7 @@
 
 					if($ext->getHost()!=$this->_host->getHost()){
 
-						$this->_log->log("External URL detected ".$ext->getFullUrl($parameters=TRUE),0,"green");
+						$this->log("External URL detected ".$ext->getFullUrl($parameters=TRUE),0,"green");
 						$this->_externalUrls[$ext->getHost()][] = $ext;
 						return TRUE;
 
@@ -483,7 +548,7 @@
 					return array();
 				}
 
-				$this->_log->log("Found ".sizeof($forms)." forms ...",0,"light_cyan");
+				$this->log("Found ".sizeof($forms)." forms ...",0,"light_cyan");
 
 				$formLinks	=	array();	
 
@@ -544,19 +609,19 @@
 
 					if($this->isOmittedPage($page)){
 
-						$this->_log->log("*$page  was meant to be omitted",0);
+						$this->log("*$page  was meant to be omitted",0);
 						return FALSE;
 
 					}
 
 					if($this->pageHasValidType($url->getPage())===FALSE){
 							
-						$this->_log->log($url->getPage()." doesnt matches given file types",0,"yellow");
+						$this->log($url->getPage()." doesnt matches given file types",0,"yellow");
 						return FALSE;
 
 					}else{
 						
-						$this->_log->log("Page \"".$url->getPage()."\" matches required types ".implode($this->_pageTypes,","),0,"light_green");
+						$this->log("Page \"".$url->getPage()."\" matches required types ".implode($this->_pageTypes,","),0,"light_green");
 
 					}
 	
@@ -566,7 +631,7 @@
 
 				if($urlListIndex!==FALSE){
 
-					$this->_log->log("Parsing previously crawled URL, looking for new parameters ...",0,"white");
+					$this->log("Parsing previously crawled URL, looking for new parameters ...",0,"white");
 
 					$parameters	=	$url->getQueryAsArray();
 
@@ -582,12 +647,12 @@
 
 									if(in_array($parameter,array_keys($storedParameters))){
 
-										$this->_log->log("Parameter $parameter was already inside",0,"yellow");
+										$this->log("Parameter $parameter was already inside",0,"yellow");
 										continue;
 
 									}else{
 
-										$this->_log->log("Adding new parameter \"$parameter\"!",0,"cyan");
+										$this->log("Adding new parameter \"$parameter\"!",0,"cyan");
 										$this->_urlList[$urlListIndex]["url"]->addRequestVariable($parameter,$value);
 
 									}
@@ -598,7 +663,7 @@
 
 							foreach($parameters as $parameter=>$value){
 
-								$this->_log->log("Adding new parameter \"$parameter\"!",0,"cyan");
+								$this->log("Adding new parameter \"$parameter\"!",0,"cyan");
 								$this->_urlList[$urlListIndex]["url"]->addRequestVariable($parameter,$value);
 
 							}
@@ -607,14 +672,14 @@
 
 					}else{
 	
-								$this->_log->log("No parameters found");
+								$this->log("No parameters found");
 								return FALSE;
 
 					}
 
 				}else{
 
-					$this->_log->log("Add URL \"$url\"!",0,"cyan");
+					$this->log("Add URL \"$url\"!",0,"cyan");
 					$this->_urlList[]	=	array("url"=>$url,"method"=>$method);
 					return TRUE;
 
@@ -624,7 +689,7 @@
 
 			public function crawl(\aidSQL\http\Url $url=NULL){
 
-				$this->_log->log($this->drawLine($this->_depthCount++,0,"light_cyan"));
+				$this->log($this->drawLine($this->_depthCount++,0,"light_cyan"));
 
 				if($this->_depth>0){
 					if($this->_depthCount>$this->_depth){
@@ -645,12 +710,12 @@
 
 				if($this->isOmittedPath($url->getPath())){
 
-					$this->_log->log('*'.$url->getPath()." is omitted will NOT fetch content from here!");
+					$this->log('*'.$url->getPath()." is omitted will NOT fetch content from here!");
 					return FALSE;
 
 				}
 
-				$this->_log->log("Fetching content from ".$url->getUrlAsString($parameters=TRUE),0,"light_green");
+				$this->log("Fetching content from ".$url->getUrlAsString($parameters=TRUE),0,"light_green");
 
 
 				try{
@@ -662,7 +727,7 @@
 
 						if(sizeof($this->_urlList)>$this->_maxLinks){
 
-							$this->_log->log("Link limit reached!",2,"white");
+							$this->log("Link limit reached!",2,"white");
 							return NULL;
 
 						}
@@ -671,7 +736,7 @@
 
 					if($this->detectModRewriteFuckUp($url->getPath())){
 
-						$this->_log->log("Possible url rewrite Fuck up detected in ".$url->getPath());
+						$this->log("Possible url rewrite Fuck up detected in ".$url->getPath());
 						return FALSE;
 
 					}
@@ -679,12 +744,12 @@
 
 					if(($httpCode = $this->_httpAdapter->getHttpCode()) != 200){
 
-						$this->_log->log("Got $httpCode",1,"red");
+						$this->log("Got $httpCode",1,"red");
 						return FALSE;
 
 					}else{
 
-						$this->_log->log("200 OK",0,"light_green");
+						$this->log("200 OK",0,"light_green");
 
 					}
 
@@ -703,21 +768,21 @@
 	
 					if(sizeof($images)){
 
-						$this->_log->log("Found ".sizeof($images)." images",0,"light_cyan");
+						$this->log("Found ".sizeof($images)." images",0,"light_cyan");
 
 						foreach($images as $img){
 
 							$file		=	$img->getPath().$img->getPathSeparator().$img->getPage();
 
 							if ($this->addFile($this->whatIs($file))){
-								$this->_log->log("Add file $file",0,"light_purple");
+								$this->log("Add file $file",0,"light_purple");
 							}
 
 						}
 
 					}else{
 	
-						$this->_log->log("No images found",2,"yellow");
+						$this->log("No images found",2,"yellow");
 
 					}
 				
@@ -729,7 +794,7 @@
 
 					if($this->_lpp>0 && $sizeOfLinks > $this->_lpp){
 
-						$this->_log->log("Reducing links amount to ".$this->_lpp,0,"yellow");
+						$this->log("Reducing links amount to ".$this->_lpp,0,"yellow");
 						$urls = $this->reduxLinks($urls);
 
 					}
@@ -744,12 +809,12 @@
 
 					if(!$amountOfUrls){
 
-						$this->_log->log("No links found",2,"yellow");
+						$this->log("No links found",2,"yellow");
 						return FALSE;
 
 					}else{
 
-						$this->_log->log("TOTAL URL's found: $amountOfUrls",0,"light_cyan");
+						$this->log("TOTAL URL's found: $amountOfUrls",0,"light_cyan");
 
 					}
 
@@ -762,7 +827,7 @@
 
 							if($this->addFile($file)){
 
-								$this->_log->log("Add file ".$_url->getPage()." ...",0,"light_purple");
+								$this->log("Add file ".$_url->getPage()." ...",0,"light_purple");
 
 							}
 
@@ -777,7 +842,7 @@
 
 							if(is_null($crawlResult)){
 
-								$this->_log->log("DEPTH LIMIT REACHED!",1,"yellow");
+								$this->log("DEPTH LIMIT REACHED!",1,"yellow");
 
 							}
 
@@ -787,7 +852,7 @@
 
 				}catch(\Exception $e){
 
-					$this->_log->log($e->getMessage(),1,"red");
+					$this->log($e->getMessage(),1,"red");
 					return NULL;
 
 				}
@@ -802,7 +867,7 @@
 
 						if($this->addExternalSite($url)){
 
-							$this->_log->log($url->getHost().", external site detected adding to other sites list ...",0,"purple");
+							$this->log($url->getHost().", external site detected adding to other sites list ...",0,"purple");
 
 						}
 

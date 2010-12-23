@@ -4,18 +4,18 @@
 
 		class Ecurl implements \aidSQL\http\Adapter{
 
-			private		$cookie				=	NULL;
-			private		$curlOptions		=	array();
-			private		$url					=	NULL;		//\aidSQL\http\Url Object
-			private		$handler				=	NULL;
-			private		$content				=	NULL;
-			private		$requestVariables	=	array();
-			private		$requestInterval	=	0;
-			private		$method				=	NULL;
-			private		$transferInfo		=	NULL;
-			private		$connectRetry		=	20;	//Put in config and interfaces!!!!!
+			private		$_cookie					=	NULL;
+			private		$_curlOptions			=	array();
+			private		$_url						=	NULL;		//\aidSQL\http\Url Object
+			private		$_handler				=	NULL;
+			private		$_content				=	NULL;
+			private		$_requestInterval		=	0;
+			private		$_method					=	NULL;
+			private		$_transferInfo			=	NULL;
+			private		$_connectRetry			=	20;	//Put in config and interfaces!!!!!
+			private		$_config					=	array();
 
-			private		$proxy				=	array(
+			private		$_proxy				=	array(
 				"server"		=>NULL,
 				"port"		=>80,
 				"user"		=>"",
@@ -25,7 +25,7 @@
 				"tunnel"		=>0
 			);
 
-			private		$log					=	NULL;
+			private		$_logger				=	NULL;
 
 			public function __construct(\aidSQL\http\Url $url=NULL){
 
@@ -38,18 +38,41 @@
 
 			}
 
+			public function setConfig(Array $config){
+
+				$this->setMethod(strtoupper($config["http-method"]));
+				$this->setFollowRedirects($config["follow-redirects"]);
+
+				if(isset($config["connect-timeout"])){
+
+					$this->setConnectTimeout($config["connect-timeout"]);
+
+				}
+
+
+				if(isset($config["request-interval"])&&$config["request-interval"]>0){
+
+					$this->setRequestInterval($config["request-interval"]);
+
+				}
+
+
+				$this->_config	=	$config;
+
+			}
+
 			public function setConnectRetry($int=20){
 
 				if(!is_int($int)){
 					throw(new \Exception("Connect retry should be an integer"));
 				}
 
-				$this->connectRetry	=	$int;	
+				$this->_connectRetry	=	$int;	
 
 			}
 
 			public function getConnectRetry($int=20){
-				return $this->connectRetry;
+				return $this->_connectRetry;
 			}
 
 			public function setConnectTimeout($timeout=0){
@@ -66,25 +89,25 @@
 
 			public function setCookieFile($cookie="/tmp/cookie"){
 
-				$this->cookie=$cookie;
+				$this->_cookie=$cookie;
 
 			}
 
 			public function getCookieFile(){
 
-				return $this->cookie;
+				return $this->_cookie;
 
 			}
 
 
 			public function setProxyServer($server){
 
-				$this->proxy["server"] = $server;
+				$this->_proxy["server"] = $server;
 
 			}
 
 			public function setProxyTunnel($boolean){
-				$this->proxy["tunnel"] = $boolean;
+				$this->_proxy["tunnel"] = $boolean;
 			}
 
 			public function setProxyPort($port){
@@ -95,28 +118,28 @@
 					throw(new \Exception("Invalid proxy port specified"));
 				}
 
-				$this->proxy["port"] = $port;
+				$this->_proxy["port"] = $port;
 
 			}
 
 
 			public function setProxyUser($user){
-				$this->proxy["user"]=$user;
+				$this->_proxy["user"]=$user;
 			}
 
 			public function setProxyPassword($password){
-				$this->proxy["password"] = $password;
+				$this->_proxy["password"] = $password;
 			}
 
 			public function getProxyPort(){
 
-				return (int)$this->proxy["port"];
+				return (int)$this->_proxy["port"];
 
 			}
 
 			public function getProxyServer(){
 
-				return $this->proxy["server"];
+				return $this->_proxy["server"];
 
 			}
 
@@ -145,7 +168,7 @@
 				switch($auth){
 					case "NTLM":
 					case "BASIC":
-						$this->proxy["auth"] = $auth;
+						$this->_proxy["auth"] = $auth;
 					break;
 					default:
 							throw(new \Exception("Invalid authentication method ->$auth<-"));
@@ -162,7 +185,7 @@
 
 					case "HTTP":
 					case "SOCKS5":
-						$this->proxy["type"] = $type;
+						$this->_proxy["type"] = $type;
 					break;
 
 					default:
@@ -210,7 +233,7 @@
 					case "POST":
 					case "GET" :
 						$this->log("Set method $method ..");
-						$this->method = $method;
+						$this->_method = $method;
 						break;
 
 					default:
@@ -225,7 +248,7 @@
 			}
 
 			public function getMethod(){
-				return $this->method;
+				return $this->_method;
 			}
 
 			public function setBrowser($browser=NULL){
@@ -240,13 +263,14 @@
 
 			public function setUrl(\aidSQL\http\Url $url){
 
-				$this->url = $url;
+				$this->log("Normalized URL: ".$url,0,"white");
+				$this->_url = $url;
 
 			}
 
 			public function getUrl(){
 
-				return $this->url;
+				return $this->_url;
 
 			}
 
@@ -260,15 +284,15 @@
 
 				$option = $this->parseCurlOption($option);
 
-				$this->curlOptions[$option]=$value;
+				$this->_curlOptions[$option]=$value;
 
-				if(is_null($this->handler)){
+				if(is_null($this->_handler)){
 
 					throw (new \Exception("Could not set option $option, there's no cURL handler set!"));
 
 				}
 
-				return curl_setopt($this->handler,constant($option),$value);
+				return curl_setopt($this->_handler,constant($option),$value);
 
 			}
 
@@ -282,7 +306,7 @@
 
 			public function getCurlOptions(){
 
-				return $this->curlOptions;
+				return $this->_curlOptions;
 
 			}
 
@@ -305,11 +329,11 @@
 			}
 
 			public function getProxyOptions(){
-				return $this->proxy;
+				return $this->_proxy;
 			}
 
 			public function setRequestInterval($interval=0){
-					  $this->requestInterval = $interval;
+					  $this->_requestInterval = (int)$interval;
 			}
 
 			public function getRequestInterval(){
@@ -318,50 +342,50 @@
 
 			private function setHandler($handler){
 
-				$this->handler=$handler;
+				$this->_handler=$handler;
 
 			}
 
 
 			public function getHandler(){
 
-				return $this->handler;
+				return $this->_handler;
 
 			}
 
 			private function setContent($content){
 
-				$this->content = $content;
+				$this->_content = $content;
 
 			}
 
 			public function getContent(){
 
-				return $this->content;
+				return $this->_content;
 
 			}
 
 			public function getProxyAuth(){
 
-				if(is_null($this->proxy["auth"])){
-					$this->proxy["auth"]="BASIC";
+				if(is_null($this->_proxy["auth"])){
+					$this->_proxy["auth"]="BASIC";
 				}
 
-				return $this->proxy["auth"];
+				return $this->_proxy["auth"];
 			}
 
 			private function configureProxy(){
 
-				if(empty($this->proxy["server"])){
+				if(empty($this->_proxy["server"])){
 					return FALSE;
 				}
 
-				$this->setCurlOption("PROXY",$this->proxy["server"]);
-				$this->setCurlOption("PROXYPORT",$this->proxy["port"]);
+				$this->setCurlOption("PROXY",$this->_proxy["server"]);
+				$this->setCurlOption("PROXYPORT",$this->_proxy["port"]);
 
-				if(!empty($this->proxy["user"])){
+				if(!empty($this->_proxy["user"])){
 
-					$userPassword = $this->proxy["user"].":".$this->proxy["password"];
+					$userPassword = $this->_proxy["user"].":".$this->_proxy["password"];
 					$this->setCurlOption("PROXYUSERPWD",$userPassword);
 
 					$authType = $this->getProxyAuth();
@@ -369,7 +393,7 @@
 
 				}
 
-				if($this->proxy["tunnel"]){
+				if($this->_proxy["tunnel"]){
 					$this->setCurlOption("HTTPPROXYTUNNEL",TRUE);
 				}
 
@@ -386,41 +410,41 @@
 
 				}
 
-				if($this->method=="POST"){
+				if($this->_method=="POST"){
 
-					$requestVariables =  $this->url->getQueryAsArray();
+					$requestVariables =  $this->_url->getQueryAsArray();
 					$post             =  array();
 
 					foreach($requestVariables as $var=>$value){
-						$post[]  =  "$var".$this->url->getEqualityOperator()."$value";
+						$post[]  =  "$var".$this->_url->getEqualityOperator()."$value";
 					}
 
-					$post =  implode($this->url->getVariableDelimiter(),$post);
+					$post =  implode($this->_url->getVariableDelimiter(),$post);
 
 					$this->setCurlOption("POSTFIELDS",$post);
-					$this->setCurlOption("URL",$this->url->getUrlAsString(FALSE));
+					$this->setCurlOption("URL",$this->_url->getUrlAsString(FALSE));
 
 				}else{
 
-					$this->setCurlOption('URL',$this->url->getURLAsString());
+					$this->setCurlOption('URL',$this->_url->getURLAsString());
 
 				}
 
-				if((int)$this->requestInterval > 0){
-					sleep($this->requestInterval);
+				if((int)$this->_requestInterval > 0){
+					sleep($this->_requestInterval);
 				}
 
 				$connect	=	0;
 
 				do{
 
-					$content					= curl_exec($this->handler);
-					$this->transferInfo	= curl_getinfo($this->handler);
+					$content					= curl_exec($this->_handler);
+					$this->_transferInfo	= curl_getinfo($this->_handler);
 
 					$this->setContent($content);
 
-					$errno	=	curl_errno($this->handler);
-					$error	=	curl_error($this->handler);
+					$errno	=	curl_errno($this->_handler);
+					$error	=	curl_error($this->_handler);
 
 					if($connect>0&&$errno){
 						$this->log("$error, attempting reconnect ... $connect",1,"red");
@@ -428,7 +452,7 @@
 
 					$connect++;
 
-				} while($connect < $this->connectRetry && $errno > 0);
+				} while($connect < $this->_connectRetry && $errno > 0);
 
 
 				if($errno){
@@ -467,13 +491,16 @@
 
 			}
 
-			public function log($msg = NULL){
+			public function log($msg = NULL,$color="white",$type="0",$toFile=FALSE){
 
-				if(!is_null($this->log)){
+				$logToFile			=	(isset($this->_config["log-all"]))	?	TRUE	:	$toFile;
 
-					$this->log->setPrepend("[".get_class($this)."]");
-					call_user_func_array(array($this->log, "log"),func_get_args());
+				if(!is_null($this->_logger)){
+
+					$this->_logger->setPrepend("[".get_class($this)."]");
+					$this->_logger->log($msg,$color,$type,$logToFile);
 					return TRUE;
+
 				}
 
 				return FALSE;
@@ -481,11 +508,11 @@
 			}
 
 			public function getTransferInfo(){
-				return $this->transferInfo;
+				return $this->_transferInfo;
 			}
 
 			public function getHttpCode(){
-				return $this->transferInfo["http_code"];
+				return $this->_transferInfo["http_code"];
 			}
 
 		}

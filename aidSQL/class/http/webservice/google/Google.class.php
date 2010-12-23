@@ -11,12 +11,13 @@
 
 		class Google { 
 
-			private	$baseUrl				=	'http://ajax.googleapis.com/ajax/services/search/web';
-			private	$searchQuery		=	NULL;
-			private	$result				=	NULL;
-			private	$url					=	NULL;
-			private	$httpAdapter		=	NULL;
-			private	$log					=	NULL;
+			private	$_baseUrl			=	'http://ajax.googleapis.com/ajax/services/search/web';
+			private	$_searchQuery		=	NULL;
+			private	$_result				=	NULL;
+			private	$_url					=	NULL;
+			private	$_httpAdapter		=	NULL;
+			private	$_logger				=	NULL;
+			private	$_config				=	array();
 
 			//protected $gLKey:	Google license key. This is a valid license. Get your own license, by going to www.google.com/api
 
@@ -33,20 +34,20 @@
 			//									The start property for a page may be used as a valid value for this argument.
 	
 
-			protected $gLKey		=	NULL;
-			protected $rsz			=	'large';
-			protected $version	=	'1.0';
-			protected $language	=	NULL;
-			protected $start		=	NULL;
+			protected $_gLKey			=	NULL;
+			protected $_rsz			=	'large';
+			protected $_version		=	'1.0';
+			protected $_language		=	NULL;
+			protected $_start			=	NULL;
 
 			public function __construct(\aidSQL\http\Adapter &$adapter=NULL,\aidSQL\core\Logger &$log=NULL){
 
-				$this->url	=	new \aidSQL\http\URL($this->baseUrl);
+				$this->_url	=	new \aidSQL\http\URL($this->_baseUrl);
 
 				if(!is_null($log)){
 
 					$this->setLog($log);
-					$this->log("Google search engine started");
+					$this->log("Google search engine started",0,"light_cyan");
 
 				}
 
@@ -56,33 +57,56 @@
 	
 			}
 
-			public function log($msg=NULL){
 
-				if(!is_null($this->log)){
-					call_user_func_array(array($this->log, "log"),func_get_args());
+			private function log($msg=NULL,$color="white",$level=0,$toFile=FALSE){
+
+				if(isset($this->_config["log-all"])){
+					$toFile	=	TRUE;
+				}
+
+				if(!is_null($this->_logger)){
+
+					$this->_logger->setPrepend('['.__CLASS__.']');
+					$this->_logger->log($msg,$color,$level,$toFile);
 					return TRUE;
+
 				}
 
 				return FALSE;
 
 			}
 
+
 			public function setLog(\aidSQL\core\Logger &$log){
 
-				$this->log = $log;
 				$log->setPrepend('['.__CLASS__.']');
+				$this->_logger = $log;
 
 			}
 
 			public function setHttpAdapter(\aidSQL\http\Adapter &$adapter){
 
-				$this->httpAdapter = $adapter;
+				$this->_httpAdapter = $adapter;
 
 			}
 
 			public function setBaseUrl($url=NULL){
 
-				$this->url	=	new \aidSQL\http\Url($url);	
+				$this->_url	=	new \aidSQL\http\Url($url);	
+
+			}
+
+			public function setConfig(Array $config){
+
+				$this->setQuery($config["google"]);
+
+				(isset($config["google-language"])) ? $google->setLanguage($config["google-language"]) 	:	NULL;
+
+				$offset		=	(isset($config["google-offset"]))			? $config["google-offset"] 		:	0;
+
+				$this->setStart($offset);
+
+				$this->_config	=	$config;
 
 			}
 
@@ -93,13 +117,13 @@
 				}
 
 				$this->log("Setting search query to \"$query\"",0,"white");
-				$this->searchQuery	=	$query;
+				$this->_searchQuery	=	$query;
 
 			}
 
 			public function getUrl(){
 
-				return $this->url;
+				return $this->_url;
 
 			}
 
@@ -107,37 +131,36 @@
 
 				$this->log("Getting results ...",0,"white");
 
-				$searchQuery	=	preg_replace("/ /","%20",$this->searchQuery);
-				$this->url->addRequestVariable('v',$this->version);
-				$this->url->addRequestVariable('q',$searchQuery,FALSE);
+				$searchQuery	=	preg_replace("/ /","%20",$this->_searchQuery);
+				$this->_url->addRequestVariable('v',$this->_version);
+				$this->_url->addRequestVariable('q',$searchQuery,FALSE);
 
-				($this->language) ?	$this->url->addRequestVariable("hl",$this->language)	:	NULL;
-				($this->gLKey)	 	?	$this->url->addRequestVariable("key",$this->gLKey)		:	NULL;
-				($this->rsz)		?	$this->url->addRequestVariable("rsz",$this->rsz)		:	NULL;
-				($this->start)		?	$this->url->addRequestVariable("start",$this->start)	:	NULL;
+				($this->_language)	?	$this->_url->addRequestVariable("hl",$this->_language)	:	NULL;
+				($this->_gLKey)	 	?	$this->_url->addRequestVariable("key",$this->_gLKey)		:	NULL;
+				($this->_rsz)			?	$this->_url->addRequestVariable("rsz",$this->_rsz)			:	NULL;
+				($this->_start)		?	$this->_url->addRequestVariable("start",$this->_start)	:	NULL;
 
 
-				$this->httpAdapter->setUrl($this->url);
-				$this->httpAdapter->setMethod("GET");
+				$this->_httpAdapter->setUrl($this->_url);
+				$this->_httpAdapter->setMethod("GET");
 
-				$result = $this->httpAdapter->fetch();
-				$this->result	=	json_decode($result);
+				$this->_result	=	json_decode($this->_httpAdapter->fetch());
 
-				if (!is_object($this->result)) {
+				if (!is_object($this->_result)) {
 
-					$msg	=	"Query {$this->searchQuery}  didnt retrieved any results";
+					$msg	=	"Query {$this->_searchQuery}  didnt retrieved any results";
 					throw (new \Exception($msg));
 
 				}
 
-				if ($this->result->responseStatus !== 200) { 
+				if ($this->_result->responseStatus !== 200) { 
 
-					$msg = "[ERROR {$this->result->responseStatus} ] [DETAILS] {$this->result->responseDetails} [DATA] {$this->result->responseData}";
+					$msg = "[ERROR {$this->_result->responseStatus} ] [DETAILS] {$this->_result->responseDetails} [DATA] {$this->_result->responseData}";
 					throw (new \Exception($msg));
 
 				}
 
-				return $this->result;
+				return $this->_result;
 
 			}
 
@@ -147,7 +170,7 @@
 					throw (new Exception("Version number must no be empty"));
 				}
 
-				$this->version	=	$version;
+				$this->_version	=	$version;
 
 			}
 
@@ -156,7 +179,7 @@
 			public function setStart($start=NULL){
 
 				$this->log("Setting start offset to $start",0,"white");
-				$this->start	=	(int)$start;
+				$this->_start	=	(int)$start;
 
 			}
 
@@ -169,7 +192,7 @@
 
 				$this->log("Setting language to $lang",0,"light_cyan");
 
-				$this->language	=	$lang;
+				$this->_language	=	$lang;
 
 			}
 

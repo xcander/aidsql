@@ -109,11 +109,10 @@
 		"google-offset"=>array(
 			"requires"=>array("google")
 		),
-		"google-maxpages"=>array(
+		"google-max-results"=>array(
 			"requires"=>array("google")
 		),
 		"shuffle"=>array(
-			"requires"=>array("url")
 		),
 		"omit-sites"=>array(
 		),

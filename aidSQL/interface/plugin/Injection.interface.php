@@ -32,7 +32,7 @@
 			public function setParser(\aidSQL\parser\ParserInterface $parser);
 			public function getParser();
 			public function getAffectedDatabases();
-			public function setConfig(\aidSQL\parser\CmdLine $config);
+			public function setConfig(Array $config);
 
 		}
 
