@@ -100,7 +100,7 @@
 
 				$this->setQuery($config["google"]);
 
-				(isset($config["google-language"])) ? $google->setLanguage($config["google-language"]) 	:	NULL;
+				(isset($config["google-language"])) ? $this->setLanguage($config["google-language"]) 	:	NULL;
 
 				$offset		=	(isset($config["google-offset"]))			? $config["google-offset"] 		:	0;
 

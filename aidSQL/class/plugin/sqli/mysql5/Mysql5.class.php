@@ -123,11 +123,17 @@
 
 				}
 
+				$offset	=	(isset($this->_config["mysql5-start-offset"])) ? (int)$this->_config["mysql5-start-offset"] : 1;
+
+				if(!$offset){
+					throw(new \Exception("Start offset should be an integer greater than 0!"));
+				}
+
 				foreach($vars as $variable=>$value){
 
 					$this->setAffectedVariable($variable,$value);
 
-					for($i=1;$i<=$this->_injectionAttempts;$i++){
+					for($i=$offset;$i<=$this->_injectionAttempts;$i++){
 
 						$this->setMaxFields($i);
 
