@@ -138,6 +138,8 @@
 						}
 
 						$confObj		=	new \aidSQL\parser\CmdLine($config,$iniCfg);
+						$confObj->setConfig($config);
+						$confObj->setCmdLineOptions($iniCfg);
 						$plugin		.= DIRECTORY_SEPARATOR.ucwords($name).".class.php";
 
 						$_plugin = array(

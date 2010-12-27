@@ -86,9 +86,16 @@
 		$links			=	array();
 		banner($log);
 		$log->setPrepend("[aidSQL]");
+
 		$parameters		=	mergeConfig($_SERVER["argv"],"etc/aidSQL/aidSQL.conf");
-		$cmdParser		=	new parser\CmdLine($config,$parameters);
-		$parsedOptions	=	$cmdParser->getParsedOptions();
+
+		$cmdParser		=	new parser\CmdLine();
+
+		$cmdParser->setConfig($config);
+		$cmdParser->setCmdLineOptions($parameters);
+		$cmdParser->setIgnoreOptionsWith(array("plugin-.*"));
+
+		$parsedOptions	=	$cmdParser->parse();
 
 		if(in_array("help",array_keys($parsedOptions))){
 			usageLong($log);

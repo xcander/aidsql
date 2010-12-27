@@ -17,7 +17,7 @@
 			private	$_openTag						=	NULL;
 			private	$_closeTag						=	NULL;
 			private	$_fieldPayloads				=	array("","'", "%'","')","%')");
-			private	$_terminatingPayloads		=	array("LIMIT 1,1", " ORDER BY 1", "LIMIT 1,1 ORDER BY 1");
+			private	$_endingPayloads				=	array("LIMIT 1,1", " ORDER BY 1", "LIMIT 1,1 ORDER BY 1");
 			private	$_commentPayloads				=	array("/*","--","#");
 			private	$_currFieldPayload			=	NULL;
 			private	$_currTerminatingPayload	=	NULL;
@@ -51,6 +51,46 @@
 
 			}
 
+
+			public function setConfig (Array $config){
+
+				parent::setConfig($config);
+
+				if(isset($config["mysql5-field-payloads"])){
+
+					$payloads	=	explode("_",$config["mysql5-field-payloads"]);
+					$this->setFieldPayloads($payloads);
+
+				}
+
+				if(isset($config["mysql5-ending-payloads"])){
+
+					$payloads	=	explode("_",$config["mysql5-ending-payloads"]);
+					$this->setEndingPayloads($payloads);
+
+				}
+
+				if(isset($config["mysql5-comment-payloads"])){
+
+					$payloads	=	explode("_",$config["mysql5-comment-payloads"]);
+					$this->setCommentPayloads($payloads);
+
+				}
+				
+			}
+
+			public function setEndingPayloads(Array $payloads){
+
+				$this->_endingPayloads	=	$payloads;
+
+			}
+
+			public function setCommentPayloads(Array $payloads){
+
+				$this->_commentPayloads	=	$payloads;
+
+			}
+
 			/**
 			*Checkout if the given URL by the HttpAdapter is vulnerable or not
 			*This method combines execution
@@ -69,7 +109,19 @@
 
 				$this->setUseConcat(TRUE);
 
-				$vars	=	array_merge($vars["numeric"],$vars["strings"]);
+				if(isset($this->_config["mysql5-numeric-only"])){
+
+					$vars	=	$vars["numeric"];
+
+				}elseif(isset($this->_config["mysql5-strings-only"])){
+
+					$vars	=	$vars["strings"];
+
+				}else{	//Default, use both
+
+					$vars	=	array_merge($vars["numeric"],$vars["strings"]);
+
+				}
 
 				foreach($vars as $variable=>$value){
 
@@ -83,7 +135,7 @@
 
 							$this->setQueryCommentOpen($commentPayload);
 				
-							foreach($this->_terminatingPayloads as $terminatingPayload){
+							foreach($this->_endingPayloads as $terminatingPayload){
 
 								$this->_currTerminatingPayload = $terminatingPayload;
 
@@ -92,7 +144,6 @@
 								$this->log("[$variable] Attempt:\t$i",0,"white");
 
 								foreach($this->_fieldPayloads as $FPL){
-
 									$this->_currFieldPayload	=	$FPL;
 
 									$matches	=	$this->analyzeInjection($injection);
@@ -232,6 +283,18 @@
 				}
 
 				$this->_step = $step;
+
+			}
+
+			public function setFieldPayloads(Array $payloads){
+
+				$this->_fieldPayloads	=	$payloads;
+
+			}
+
+			public function getFieldPayloads(){
+
+				return $this->_fieldPayloads;
 
 			}
 
