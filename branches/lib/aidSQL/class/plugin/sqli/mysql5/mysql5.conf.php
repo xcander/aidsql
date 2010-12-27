@@ -12,6 +12,8 @@
 		"mysql5-ending-payloads"=>array(
 		),
 		"mysql5-comment-payloads"=>array(
+		),
+		"mysql5-start-offset"=>array(
 		)
 	);
 
