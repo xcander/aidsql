@@ -20,6 +20,20 @@
 				}
 
 				$options				=	$parser->getParsedOptions();
+
+				foreach($options as $opt=>$value){
+
+					if(preg_match("#plugin-#",$opt)){
+
+						unset($options[$opt]);
+
+						$newOpt				=	substr($opt,strpos($opt,"-")+1);
+						$options[$newOpt]	=	$value;
+
+					}
+
+				}
+
 				$this->_options	=	$options;
 
 				$pluginsDir	=	__CLASSPATH.DIRECTORY_SEPARATOR."class".DIRECTORY_SEPARATOR."plugin";
@@ -99,16 +113,19 @@
 
 					$this->_pLoader->load($plugin);
 
-					$config	=	$plugin["config"];
-					$plugin	=	"aidSQL\\plugin\\sqli\\$plugin[name]";
-					$plugin	=	new $plugin($this->_httpAdapter);
-					$plugin->setLog($this->_logger);
-					$mergedConfig	=	array_merge($config->getParsedOptions(),$this->_options);
-					$plugin->setConfig($mergedConfig);
+					$config			=	$plugin["config"];	
+					$options			=	$config->parse();
 
-					$this->log("Testing ".get_class($plugin)." sql injection plugin...",0,"white");
+					$plugin			=	"aidSQL\\plugin\\sqli\\$plugin[name]";
 
 					try{
+
+						$plugin			=	new $plugin($this->_httpAdapter,$this->_logger);
+
+						$mergedConfig	=	array_merge($options,$this->_options);
+
+						$plugin->setConfig($mergedConfig);
+						$this->log("Testing ".get_class($plugin)." sql injection plugin...",0,"white");
 
 						if($plugin->isVulnerable()){
 

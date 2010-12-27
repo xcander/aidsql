@@ -4,28 +4,27 @@
 
 		class CmdLine {
 
-			private $_options				= array();
-			private $_cmdLineOptions	= array();
-			private $_parsedOptions		= array();
-
-			public function __construct(Array $config,Array $givenParameters){
-					  $this->parse($config,$givenParameters);
-			}
+			private	$_options				=	array();
+			private	$_cmdLineOptions		=	array();
+			private	$_parsedOptions		=	array();
+			private	$_ignoreOptionsWith	=	array();
 
 			public function setConfig(Array $optArray){
 				$this->_options = $optArray;
 			}
 
-			private function setCmdLineOptions(Array $options){
-
-				$this->_cmdLineOptions = $options;
-				
+			public function setIgnoreOptionsWith(Array $regex){
+				$this->_ignoreOptionsWith	=	$regex;
 			}
 
-			public function parse(Array $config, Array $optArray){
+			public function setCmdLineOptions(Array $options){
 
-				$this->setConfig($config);
-				$this->setCmdLineOptions($optArray);
+				$this->_cmdLineOptions = $options;
+
+			}
+
+			public function parse(){
+
 				$this->parseOptions();
 				$this->optionOverlapsOption();
 				$this->optionRequiresOption();
@@ -134,6 +133,21 @@
 
 
 			private function validateOption($realOption,$realOptionValue){
+
+				if(sizeof($this->_ignoreOptionsWith)){
+
+					foreach($this->_ignoreOptionsWith as $regex){
+
+						if(preg_match("#$regex#",$realOption)){
+
+							$this->_parsedOptions[$realOption]=$realOptionValue;
+							return TRUE;
+
+						}
+
+					}
+
+				}
 
 				if(!$this->isValidOption($realOption)){
 					throw(new \Exception("Unknown option specified \"$realOption\""));
