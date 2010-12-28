@@ -14,6 +14,10 @@
 		"mysql5-comment-payloads"=>array(
 		),
 		"mysql5-start-offset"=>array(
+		),
+		"mysql5-injection-attempts"=>array(
+		),
+		"mysql5-var-count"=>array(
 		)
 	);
 

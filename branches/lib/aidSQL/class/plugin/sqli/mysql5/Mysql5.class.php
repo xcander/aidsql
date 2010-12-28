@@ -76,6 +76,12 @@
 					$this->setCommentPayloads($payloads);
 
 				}
+
+				if(isset($config["mysql5-injection-attempts"])){
+
+					$this->setInjectionAttempts($config["mysql5-injection-attempts"]);
+
+				}
 				
 			}
 
@@ -102,10 +108,6 @@
 				$vars			=	$url->getQueryAsArray();
 				$vars			=	$this->orderRequestVariables($vars);
 				$found		=	FALSE;
-				$payloads	=	array(
-												"LIMIT 1,1",
-												"ORDER BY 1"
-				);
 
 				$this->setUseConcat(TRUE);
 
@@ -123,13 +125,22 @@
 
 				}
 
+				//Start offset, use it when you know the amount of fields involved in the union injection
+
 				$offset	=	(isset($this->_config["mysql5-start-offset"])) ? (int)$this->_config["mysql5-start-offset"] : 1;
 
 				if(!$offset){
 					throw(new \Exception("Start offset should be an integer greater than 0!"));
 				}
 
+				$varCount	=	0;
+				$maxVars		=	(isset($this->_config["mysql5-var-count"]))	?	(int)$this->_config["mysql5-var-count"] : NULL;
+
 				foreach($vars as $variable=>$value){
+
+					if(!is_null($maxVars)&&$varCount++ > $maxVars){
+						break;
+					}
 
 					$this->setAffectedVariable($variable,$value);
 
