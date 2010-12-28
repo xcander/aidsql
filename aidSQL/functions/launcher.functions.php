@@ -170,7 +170,7 @@
 
 				if(preg_match("/$regex/",$site->getHost())){
 
-					$log->log("SITE OMITTED ".$site->getHost(),2,"yellow");
+					$log->log("SITE OMITTED ".$site->getHost(),2,"yellow",FALSE);
 					unset($sites[$key]);
 					continue;
 

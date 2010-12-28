@@ -328,6 +328,8 @@
 	
 					$pluginName	=	"aidSQL\\plugin\\$type\\$name";
 
+					var_dump($plugin["config"]);
+
 					return new $pluginName($httpAdapter,$plugin["config"],$log);
 
 				}
