@@ -5,13 +5,12 @@
 		class Defaults extends DisclosurePlugin {
 
 			public function getInfo(){
-		
+
 				$return	=	new \aidSQL\plugin\disclosure\DisclosureResult();
 	
 				$this->log("Trying to discover default directory locations ...",0,"light_cyan");
 
-				$allDirectories		=	$this->_config->getParsedOptions();
-				$webDirectories		=	explode(',',$allDirectories["web_directories"]);
+				$webDirectories		=	explode(',',$this->_config["web-directories"]);
 
 				$possiblyWritable		=	array();
 
@@ -40,8 +39,8 @@
 				}
 
 				$return->setWebDirectories($possiblyWritable);
-				$return->setUnixDirectories(explode(',',$allDirectories["unix_directories"]));
-				$return->setWindowsDirectories(explode(',',$allDirectories["win_directories"]));
+				$return->setUnixDirectories(explode(',',$this->_config["unix-directories"]));
+				$return->setWindowsDirectories(explode(',',$this->_config["win-directories"]));
 
 				if(!sizeof($possiblyWritable)){
 

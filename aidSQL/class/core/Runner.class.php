@@ -23,16 +23,26 @@
 
 				foreach($options as $opt=>$value){
 
-					if(preg_match("#plugin-#",$opt)){
+					if(preg_match("#sqli-.*|info-.*#",$opt)){
 
 						unset($options[$opt]);
 
-						$newOpt				=	substr($opt,strpos($opt,"-")+1);
-						$options[$newOpt]	=	$value;
+						$type	=	substr($opt,0,$pos=strpos($opt,"-"));
+
+						if($type=="info"){
+							$type	=	"disclosure";
+						}
+
+						$option										=	substr($opt,strpos($opt,"-")+1);
+						$plugin										=	substr($option,0,strpos($option,"-"));
+						$option										=	substr($option,strpos($option,"-")+1);
+
+						$options[$type][$plugin][$option]	=	$value;
 
 					}
 
 				}
+
 
 				$this->_options	=	$options;
 
@@ -111,25 +121,15 @@
 						continue;
 					}
 
-					$this->_pLoader->load($plugin);
-
-					$config			=	$plugin["config"];	
-					$options			=	$config->parse();
-
-					$plugin			=	"aidSQL\\plugin\\sqli\\$plugin[name]";
-
 					try{
 
-						$plugin			=	new $plugin($this->_httpAdapter,$this->_logger);
+						$plugin	=	$this->_pLoader->getPluginInstance("sqli",$plugin["name"],$this->_httpAdapter,$this->_logger);
 
-						$mergedConfig	=	array_merge($options,$this->_options);
-
-						$plugin->setConfig($mergedConfig);
 						$this->log("Testing ".get_class($plugin)." sql injection plugin...",0,"white");
 
 						if($plugin->isVulnerable()){
 
-							$this->_plugin			= clone($plugin);
+							$this->_plugin			= $plugin;
 							$this->_vulnerable	= TRUE;
 							return TRUE;
 
