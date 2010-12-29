@@ -1,23 +1,23 @@
 <?php
 
 	$config = array(
-		"mysql5-numeric-only"=>array(
-			"overlaps-with"=>array("mysql5-strings-only")
+		"numeric-only"=>array(
+			"overlaps-with"=>array("strings-only")
 		),
-		"mysql5-strings-only"=>array(
-			"overlaps-with"=>("mysql5-numeric-only")
+		"strings-only"=>array(
+			"overlaps-with"=>("numeric-only")
 		),
-		"mysql5-field-payloads"=>array(
+		"field-payloads"=>array(
 		),
-		"mysql5-ending-payloads"=>array(
+		"ending-payloads"=>array(
 		),
-		"mysql5-comment-payloads"=>array(
+		"comment-payloads"=>array(
 		),
-		"mysql5-start-offset"=>array(
+		"start-offset"=>array(
 		),
-		"mysql5-injection-attempts"=>array(
+		"injection-attempts"=>array(
 		),
-		"mysql5-var-count"=>array(
+		"var-count"=>array(
 		)
 	);
 
