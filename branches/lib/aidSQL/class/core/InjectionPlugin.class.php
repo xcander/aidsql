@@ -22,7 +22,7 @@
 			protected	$_isVulnerable							=	FALSE;
 
 
-			public final function __construct(\aidSQL\http\Adapter $adapter,\aidSQL\core\Logger &$log=NULL){
+			public final function __construct(\aidSQL\http\Adapter $adapter,Array $config,\aidSQL\core\Logger &$log=NULL){
 
 				$url	=	$adapter->getUrl();
 
@@ -35,6 +35,8 @@
 				if(!is_null($log)){
 					$this->setLog($log);
 				}
+
+				$this->setConfig($config);
 
 			}
 

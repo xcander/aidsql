@@ -146,7 +146,7 @@
 							"file"=>new \aidSQL\core\File($plugin),
 							"name"=>$name,
 							"type"=>$t,
-							"config"=>$confObj
+							"config"=>$confObj->parse()
 						);
 
 						$plugins[]	=	$_plugin;
@@ -328,9 +328,16 @@
 	
 					$pluginName	=	"aidSQL\\plugin\\$type\\$name";
 
-					var_dump($plugin["config"]);
+					$name	=	strtolower($name);
 
-					return new $pluginName($httpAdapter,$plugin["config"],$log);
+					if(isset($this->_config[$type][$name])){
+
+						$pluginOptions	=	$this->_config[$type][$name];
+
+					}
+
+					$config		=	array_merge($pluginOptions,$this->_config,$plugin["config"]);
+					return new $pluginName($httpAdapter,$config,$log);
 
 				}
 

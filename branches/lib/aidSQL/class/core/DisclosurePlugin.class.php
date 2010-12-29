@@ -8,7 +8,7 @@
 			private		$_log				=	NULL;
 			protected	$_config			=	NULL;
 
-			final public function __construct(\aidSQL\http\Adapter &$httpAdapter,\aidSQL\parser\CmdLine &$config, \aidSQL\core\Logger &$log=NULL){
+			final public function __construct(\aidSQL\http\Adapter &$httpAdapter,Array $config,\aidSQL\core\Logger &$log=NULL){
 
 				$this->setHttpAdapter($httpAdapter);
 
@@ -20,7 +20,7 @@
 
 			}
 
-			public function setConfig(\aidSQL\parser\CmdLine &$config){
+			public function setConfig(Array $config){
 				$this->_config	=	$config;
 			}
 
@@ -34,21 +34,22 @@
 
 			}
 
-			protected function log($msg=NULL){
-				
+
+			protected function log($msg=NULL,$color="white",$level=0,$toFile=FALSE){
+
+				if(isset($this->_config["log-all"])){
+					$toFile	=	TRUE;
+				}
+
 				if(!is_null($this->_log)){
-					$this->_log->setPrepend('['.get_class($this).']');
-					call_user_func_array(array($this->_log, "log"),func_get_args());
+
+					$this->_log->setPrepend('['.__CLASS__.']');
+					$this->_log->log($msg,$color,$level,$toFile);
 					return TRUE;
+
 				}
 
 				return FALSE;
-
-			}
-
-			public function getInfo(){
-
-				die($config."\n");
 
 			}
 

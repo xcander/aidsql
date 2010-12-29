@@ -93,7 +93,12 @@
 
 		$cmdParser->setConfig($config);
 		$cmdParser->setCmdLineOptions($parameters);
-		$cmdParser->setIgnoreOptionsWith(array("plugin-.*"));
+		$cmdParser->setIgnoreOptionsWith(
+													array(
+															"sqli-.*",
+															"info-.*"
+													)
+		);
 
 		$parsedOptions	=	$cmdParser->parse();
 

@@ -1,11 +1,11 @@
 <?php
 
 	$config = array(
-		"web_directories"=>array(
+		"web-directories"=>array(
 		),
-		"unix_directories"=>array(
+		"unix-directories"=>array(
 		),
-		"win_directories"=>array(
+		"win-directories"=>array(
 		)
 	);
 
