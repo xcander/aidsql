@@ -333,10 +333,16 @@
 					if(isset($this->_config[$type][$name])){
 
 						$pluginOptions	=	$this->_config[$type][$name];
+						$config			=	array_merge($plugin["config"],$pluginOptions);
+
+					}else{
+
+						$config	=	$plugin["config"];
 
 					}
 
-					$config		=	array_merge($pluginOptions,$this->_config,$plugin["config"]);
+					$config["all"]	=	$this->_config;
+
 					return new $pluginName($httpAdapter,$config,$log);
 
 				}

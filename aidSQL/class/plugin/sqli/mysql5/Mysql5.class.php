@@ -56,30 +56,30 @@
 
 				parent::setConfig($config);
 
-				if(isset($config["mysql5-field-payloads"])){
+				if(isset($config["field-payloads"])){
 
-					$payloads	=	explode("_",$config["mysql5-field-payloads"]);
+					$payloads	=	explode("_",$config["field-payloads"]);
 					$this->setFieldPayloads($payloads);
 
 				}
 
-				if(isset($config["mysql5-ending-payloads"])){
+				if(isset($config["ending-payloads"])){
 
-					$payloads	=	explode("_",$config["mysql5-ending-payloads"]);
+					$payloads	=	explode("_",$config["ending-payloads"]);
 					$this->setEndingPayloads($payloads);
 
 				}
 
-				if(isset($config["mysql5-comment-payloads"])){
+				if(isset($config["comment-payloads"])){
 
-					$payloads	=	explode("_",$config["mysql5-comment-payloads"]);
+					$payloads	=	explode("_",$config["comment-payloads"]);
 					$this->setCommentPayloads($payloads);
 
 				}
 
-				if(isset($config["mysql5-injection-attempts"])){
+				if(isset($config["injection-attempts"])){
 
-					$this->setInjectionAttempts($config["mysql5-injection-attempts"]);
+					$this->setInjectionAttempts($config["injection-attempts"]);
 
 				}
 				
@@ -111,11 +111,11 @@
 
 				$this->setUseConcat(TRUE);
 
-				if(isset($this->_config["mysql5-numeric-only"])){
+				if(isset($this->_config["numeric-only"])){
 
 					$vars	=	$vars["numeric"];
 
-				}elseif(isset($this->_config["mysql5-strings-only"])){
+				}elseif(isset($this->_config["strings-only"])){
 
 					$vars	=	$vars["strings"];
 
@@ -127,18 +127,19 @@
 
 				//Start offset, use it when you know the amount of fields involved in the union injection
 
-				$offset	=	(isset($this->_config["mysql5-start-offset"])) ? (int)$this->_config["mysql5-start-offset"] : 1;
+				$offset	=	(isset($this->_config["start-offset"])) ? (int)$this->_config["start-offset"] : 1;
 
 				if(!$offset){
 					throw(new \Exception("Start offset should be an integer greater than 0!"));
 				}
 
 				$varCount	=	0;
-				$maxVars		=	(isset($this->_config["mysql5-var-count"]))	?	(int)$this->_config["mysql5-var-count"] : NULL;
+				$maxVars		=	(isset($this->_config["var-count"]))	?	(int)$this->_config["var-count"] : NULL;
 
 				foreach($vars as $variable=>$value){
 
 					if(!is_null($maxVars)&&$varCount++ > $maxVars){
+						die("BREAK, LOL");
 						break;
 					}
 
@@ -148,19 +149,26 @@
 
 						$this->setMaxFields($i);
 
+						$this->log("[$variable] Attempt:\t$i",0,"light_cyan");
+
 						foreach($this->_commentPayloads as $commentPayload){
+
+							$this->log("Comment Payload:\t$commentPayload",0,"light_cyan");
 
 							$this->setQueryCommentOpen($commentPayload);
 				
 							foreach($this->_endingPayloads as $terminatingPayload){
 
+								$this->log("Ending Payload:\t$terminatingPayload",0,"light_cyan");
+
 								$this->_currTerminatingPayload = $terminatingPayload;
 
 								$injection	=	$this->makeDiscoveryInjection();
 
-								$this->log("[$variable] Attempt:\t$i",0,"white");
-
 								foreach($this->_fieldPayloads as $FPL){
+
+									$this->log("Field Payload:\t$FPL",0,"light_cyan");
+
 									$this->_currFieldPayload	=	$FPL;
 
 									$matches	=	$this->analyzeInjection($injection);
