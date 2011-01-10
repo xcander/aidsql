@@ -1,8 +1,8 @@
 <?php
 
-	namespace aidSQL\plugin\disclosure {
+	namespace aidSQL\plugin\info {
 
-		abstract class DisclosurePlugin implements DisclosurePluginInterface {
+		abstract class InfoPlugin implements InfoPluginInterface {
 
 			protected	$_httpAdapter	=	NULL;
 			private		$_log				=	NULL;

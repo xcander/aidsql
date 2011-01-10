@@ -6,7 +6,9 @@
 			"alias"=>'u',
 			"required"=>TRUE
 		),
-		"plugins"=>array(
+		"sqli-plugins"=>array(
+		),
+		"info-plugins"=>array(
 		),
 		"http-method"=>array(
 			"alias"=>"m",
@@ -135,7 +137,7 @@
 		"classpath"=>array(
 		),
 		
-		"plugin-disclosure-load-order"=>array(
+		"plugin-info-load-order"=>array(
 		),
 		"crawl"=>array(
 		),
@@ -152,7 +154,11 @@
 		),
 		"help"=>array(
 			"novalue"=>TRUE,
-			"overlaps-with"=>array("url")
+			"overlaps-with"=>array("url","google")
+		),
+		"list-plugins"=>array(
+			"novalue"=>TRUE,
+			"overlaps-with"=>array("url","google")
 		)
 
 	);

@@ -7,7 +7,7 @@
 			private	$_logger						=	NULL;
 			private	$_pluginsDir				=	NULL;
 			private	$_plugins					=	array();
-			private	$_disclosureLoadOrder	=	array();
+			private	$_infoLoadOrder			=	array();
 			private	$_sqliLoadOrder			=	array();
 			private	$_config						=	array();
 
@@ -22,18 +22,16 @@
 					return;
 				}
 
-
 				$this->setPluginsDir($pluginsDir);
-
-				$this->listPlugins();
 
 			}
 
+
 			public function setConfig(Array $config){
 
-				if(isset($config["plugin-disclosure-load-order"])){
+				if(isset($config["plugin-info-load-order"])){
 
-					$this->setDisclosurePluginLoadOrder(explode(',',$config["plugin-disclosure-load-order"]));
+					$this->setInfoPluginLoadOrder(explode(',',$config["plugin-info-load-order"]));
 
 				}
 
@@ -41,8 +39,8 @@
 
 			}
 
-			public function setDisclosurePluginLoadOrder(Array $order){
-				$this->_disclosureLoadOrder	=	$order;
+			public function setInfoPluginLoadOrder(Array $order){
+				$this->_infoLoadOrder	=	$order;
 			}
 
 			public function setSQLiPluginLoadOrder(Array $order){
@@ -89,7 +87,7 @@
 			*Builds the whole plugin list of plugins of any type, it also validates plugin configurations
 			*/
 
-			private function listPlugins(){
+			public function listPlugins(){
 
 				$plugins	=	array();
 				$types	=	$this->listPluginTypes();
@@ -112,7 +110,6 @@
 
 						$confFile	=	$plugin.DIRECTORY_SEPARATOR.strtolower($name).".conf.php";
 						$iniFile		=	$plugin.DIRECTORY_SEPARATOR.strtolower($name).".ini";
-
 						if(!file_exists($confFile)){
 							throw(new \Exception("Config file not found for plugin \"$name\", if youre developing a plugin, please remember that *every* plugin should have a config file, no matter if its empty"));
 						}
@@ -155,8 +152,8 @@
 
 				}
 
-				if(sizeof($this->_disclosureLoadOrder)){
-					$this->_arrangePluginOrder($plugins,$this->_disclosureLoadOrder,"disclosure");
+				if(sizeof($this->_infoLoadOrder)){
+					$this->_arrangePluginOrder($plugins,$this->_infoLoadOrder,"info");
 				}
 
 				if(sizeof($this->_sqliLoadOrder)){

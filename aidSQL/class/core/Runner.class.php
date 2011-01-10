@@ -13,7 +13,9 @@
 			private	$_crawler		=	NULL;			//This object might contain important information that 
 																//may be used by the plugins.
 
-			public function __construct(\aidSQL\parser\CmdLine $parser,\aidSQL\http\Adapter &$adapter,\aidSQL\http\crawler &$crawler,\aidSQL\core\Logger &$log=NULL){
+			public function __construct(\aidSQL\parser\CmdLine $parser,\aidSQL\http\Adapter &$adapter,\aidSQL\http\crawler &$crawler,\aidSQL\core\Logger &$log=NULL,\aidSQL\core\PluginLoader &$pLoader){
+
+				$this->_pLoader	=	$pLoader;
 
 				if(!is_null($log)){
 					$this->setLog($log);
@@ -29,10 +31,6 @@
 
 						$type	=	substr($opt,0,$pos=strpos($opt,"-"));
 
-						if($type=="info"){
-							$type	=	"disclosure";
-						}
-
 						$option										=	substr($opt,strpos($opt,"-")+1);
 						$plugin										=	substr($option,0,strpos($option,"-"));
 						$option										=	substr($option,strpos($option,"-")+1);
@@ -45,10 +43,6 @@
 
 
 				$this->_options	=	$options;
-
-				$pluginsDir	=	__CLASSPATH.DIRECTORY_SEPARATOR."class".DIRECTORY_SEPARATOR."plugin";
-
-				$this->_pLoader	=	new PluginLoader($pluginsDir,$log);
 				$this->_pLoader->setConfig($options);
 			
 				$this->setHttpAdapter($adapter);
