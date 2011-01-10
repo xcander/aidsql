@@ -804,7 +804,16 @@
 			}
 
 			public static function getHelp(\aidSQL\core\Logger $logger){
-				$logger->log(__CLASS__." HELP!");
+
+				$logger->log("--sqli-mysql5-injection-attempts\tAt how many attempts shall we stop trying");
+				$logger->log("--sqli-mysql5-start-offset\t\t<integer>Start the UNION injection at this offset (if you know what youre doing)");
+				$logger->log("--sqli-mysql5-var-count\t\t<integer> Try this amount of variables per link");
+				$logger->log("--sqli-numeric-only\t\t\tOnly try to perform injection on integer fields");
+				$logger->log("--sqli-mysql5-strings-only\t\tOnly try to perform injection on string fields");
+				$logger->log("--sqli-mysql5-field-payloads\t\tSet field payloads delimited by _\ti.e: _'_')_%)");
+				$logger->log("--sqli-mysql5-ending-payloads\t\tSet ending payloads delimited by _\ti.e: LIMIT 1,1_ORDER BY 1");
+				$logger->log("--sqli-mysql5-comment-payloads\t\tSet comment payloads delimited by _\ti.e: #_/*_--");
+
 			}
 
 		}

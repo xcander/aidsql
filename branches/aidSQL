@@ -141,10 +141,10 @@
 					$log->setX11Info(FALSE);
 					$log->setPrepend("");
 
+					$log->log(strtoupper($plugin["type"] . " " . $plugin["name"] . " HELP")."\n",0,"light_cyan");
 					$help	=	'\\'.__NAMESPACE__.'\\plugin\\'.$plugin["type"].'\\'.$plugin["name"]."::getHelp";
-
 					call_user_func($help,$log);
-
+					$log->log("\n");
 					exit(0);
 
 				}
