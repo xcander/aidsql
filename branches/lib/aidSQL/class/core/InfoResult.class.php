@@ -1,8 +1,8 @@
 <?php
 
-	namespace aidSQL\plugin\disclosure {
+	namespace aidSQL\plugin\info {
 
-		class DisclosureResult {
+		class InfoResult {
 				
 			private	$_info	=	array();
 

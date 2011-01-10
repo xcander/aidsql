@@ -3,6 +3,7 @@
 	function usageShort(aidSQL\core\Logger &$log){
 
 		$info = $log->getX11Info();
+		$log->setPrepend("");
 		$log->setX11Info(FALSE);
 		$log->log("--url\t\t\t\t<url>\t\t\tUse this URL to perform injection tests",0,"white");
 		$log->log("--google\t\t\t<search term>\t\tJust Google it!",0,"white");
@@ -17,6 +18,7 @@
 		usageShort($log);
 		$log->log("--log-save\t\t\tFile where to dump results",0,"white");
 		$log->log("--plugins\t\t\tUse these plugins (default all)",0,"white");
+		$log->log("--list-plugins\t\t\tCheckout which plugins are available",0,"white");
 		$log->log("--http-adapter\t\t\tSwitch http adapter (default Ecurl) ",0,"white");
 		$log->log("--connect-timeout\t\tConnect timeout for A ",0,"white");
 		$log->log("--url-query-char\t\t(default ?)",0,"white");
@@ -135,9 +137,9 @@
 
 	}
 
-	function isVulnerable($cmdParser,$httpAdapter,$crawler,$log){
+	function isVulnerable(&$cmdParser,&$httpAdapter,&$crawler,&$log,&$pLoader){
 
-		$aidSQL		=	new \aidSQL\core\Runner($cmdParser,$httpAdapter,$crawler,$log);
+		$aidSQL		=	new \aidSQL\core\Runner($cmdParser,$httpAdapter,$crawler,$log,$pLoader);
 		$result		=	FALSE;
 
 		if($aidSQL->isVulnerable()){

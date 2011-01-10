@@ -1,8 +1,8 @@
 <?php
 
-	namespace aidSQL\plugin\disclosure {
+	namespace aidSQL\plugin\info {
 
-		interface DisclosurePluginInterface{
+		interface InfoPluginInterface{
 
 			public function __construct(\aidSQL\http\Adapter &$httpAdapter,Array $config,\aidSQL\core\Logger &$log=NULL);
 			public function getInfo();

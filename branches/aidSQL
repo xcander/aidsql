@@ -45,7 +45,7 @@
 	require	"interface/Parser.interface.php";
 	require	"interface/http/Adapter.interface.php";
 	require	"interface/plugin/Injection.interface.php";
-	require	"interface/plugin/Disclosure.interface.php";
+	require	"interface/plugin/Info.interface.php";
 
 	//Core
 	require	"class/core/String.class.php";
@@ -55,8 +55,8 @@
 	require	"class/core/Runner.class.php";
 	require	"class/core/PluginLoader.class.php";
 	require	"class/core/InjectionPlugin.class.php";
-	require	"class/core/DisclosurePlugin.class.php";
-	require	"class/core/DisclosureResult.class.php";
+	require	"class/core/InfoPlugin.class.php";
+	require	"class/core/InfoResult.class.php";
 
 	//HTTP 
 	require	"class/http/Url.class.php";
@@ -101,8 +101,9 @@
 		);
 
 		$parsedOptions	=	$cmdParser->parse();
+		$parameters		=	array_keys($parsedOptions);
 
-		if(in_array("help",array_keys($parsedOptions))){
+		if(in_array("help",$parameters)){
 			usageLong($log);
 			exit(0);
 		}	
@@ -118,7 +119,43 @@
 
 	try {
 
+		$pluginsDir	=	__CLASSPATH.DIRECTORY_SEPARATOR."class".DIRECTORY_SEPARATOR."plugin";
+
 		$log->setColors((bool)$parsedOptions["colors"]);
+
+		$log->setEcho(FALSE);
+
+		$pLoader		=	new \aidSQL\core\PluginLoader($pluginsDir,$log);
+		$allPlugins	=	$pLoader->listPlugins();
+
+		$log->setEcho(TRUE);
+
+		if(in_array("list-plugins",$parameters)){
+
+			$pluginTypes	=	$pLoader->listPluginTypes();
+
+			$log->setPrepend("");
+			$log->setX11Info(FALSE);
+
+			foreach($pluginTypes as $pType){
+
+				$log->log(ucwords($pType) . " Plugins",0,"light_green");
+				$log->log("-------------------------------------------",0,"light_green");
+
+				foreach($allPlugins as $plugin){
+
+					if($pType==$plugin["type"]){
+
+						$log->log(ucwords($plugin["name"]). "\t\t--$pType-$plugin[name]-help to get help about this plugin",0,"white");
+					}
+
+				}
+				$log->log("\n");
+
+			}	
+			
+		}
+
 
 		if(isset($parsedOptions["log-prepend-date"])){
 
@@ -132,7 +169,7 @@
 
 		if(!empty($parsedOptions["url"])){
 
-			$sites[0]	=	new \aidSQL\http\Url ($parsedOptions["url"]); 
+			$sites[0]	=	new \aidSQL\http\Url($parsedOptions["url"]); 
 
 		}
 
@@ -289,7 +326,7 @@
 					$httpAdapter->setUrl($_url["url"]);
 					$httpAdapter->setMethod($_url["method"]);
 
-					$result	=	isVulnerable($cmdParser,$httpAdapter,$crawler,$log);
+					$result	=	isVulnerable($cmdParser,$httpAdapter,$crawler,$log,$pLoader);
 
 					if($result && (bool)$parsedOptions["immediate-mode"]){
 
@@ -314,6 +351,7 @@
 
 	}catch(\Exception $e){
 
+		$log->setEcho(TRUE);
 		$log->log($e->getMessage(),1,"light_red");
 		exit(1);
 
