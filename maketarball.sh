@@ -1,19 +1,13 @@
-#!/bin/sh
-
-#Not optimal but whatever, it's just for saving the job of making a tarball
-#not containing .svn directories 
-
+#!/bin/bash
+export _DT=$(/bin/date +%m%d%Y);
+mkdir /tmp/aidsql-temp &>/dev/null
+cp -r * /tmp/aidsql-temp
+cp -r .svn /tmp/aidsql-temp
+find /tmp/aidsql-temp/ -name ".s*"|xargs rm -rf &>/dev/null
+find /tmp/aidsql-temp/ -name ".*.*"|xargs rm -rf &>/dev/null
+find /tmp/aidsql-temp/ -name ".*.*"|xargs rm -rf &>/dev/null
+cd /tmp/aidsql-temp
+tar -czf aidsql-$_DT.tgz *
+mv aidsql-$_DT.tgz $HOME;
+echo "DONE aidsql-$_DT.tgz";
 rm -rf /tmp/aidsql-temp
-mkdir /tmp/aidsql-temp
-export DATE=$(date +%m%d%Y);
-cp -r .svn functions run aidSQL *.txt class launcher.php config interface utils tests /tmp/aidsql-temp
-echo "Deleting .svn files ...";
-find ./ -name ".svn"| xargs rm -rf 
-echo "Packing aidsql-$DATE.tgz ...";
-tar -czf "aidsql-$DATE.tgz" *
-rm -rf functions run *.txt class launcher.php config interface utils tests
-echo "Restoring files ...";
-mv /tmp/aidsql-temp/* .
-mv /tmp/aidsql-temp/.svn .
-rm -rf /tmp/aidsql-temp
-echo "Done"
