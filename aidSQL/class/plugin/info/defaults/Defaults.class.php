@@ -53,7 +53,9 @@
 			}
 
 			public static function getHelp(\aidSQL\core\Logger $logger){
-				$logger->log(__CLASS__. " HELP");
+				$logger->log("--info-defaults-web-directories\t\tComma delimited list of web directories to check i.e: tempates_c,tmp,public");
+				$logger->log("--info-unix-directories\t\t\tComma delimited list of unix directories to check i.e: /var/www/");
+				$logger->log("--info-win-directories\t\t\t\tComma delimited list of windows directories to check i.e: c:\inetpub\www");
 			}
 
 		}
