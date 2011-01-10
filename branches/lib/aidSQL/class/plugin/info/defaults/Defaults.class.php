@@ -52,6 +52,10 @@
 
 			}
 
+			public static function getHelp(\aidSQL\core\Logger $logger){
+				$logger->log(__CLASS__. " HELP");
+			}
+
 		}
 
 	}

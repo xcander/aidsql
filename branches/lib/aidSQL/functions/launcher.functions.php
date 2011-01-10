@@ -15,10 +15,31 @@
 	function usageLong(aidSQL\core\Logger &$log){
 
 		$log->setX11Info(FALSE);
-		usageShort($log);
+		$log->setPrepend("");
+	
+		$log->log("\nGENERAL\n");	
+		$log->log("--url\t\t\t\t<url> Use this URL to perform injection tests",0,"white");
+		$log->log("--immediate-mode\t\tQuit as soon as it finds a vulnerable spot (default yes)",0,"white");
+
+		$log->log("\nGOOGLING\n");
+		$log->log("--google\t\t\t<search term> Just Google it!",0,"white");
+		$log->log("--google-language\t\tsearch in this language (default \"en\") accepts <es,de,it> amongst others",0,"white");
+		$log->log("--google-max-results\t\tLimit the search to a maximum of results others",0,"white");
+		$log->log("--google-offset\t\tOffset results (Use with care you can end with no sites)",0,"white");
+		$log->log("--google-shuffle\t\tShuffle search results (default yes)",0,"white");
+
+		$log->log("\nLOGGING\n");
 		$log->log("--log-save\t\t\tFile where to dump results",0,"white");
-		$log->log("--plugins\t\t\tUse these plugins (default all)",0,"white");
-		$log->log("--list-plugins\t\t\tCheckout which plugins are available",0,"white");
+		$log->log("--log-prepend-date\t\tPrepend date to log (default 0)",0,"white");
+		$log->log("--colors\t\t\tActivate / Deactivate colors (default 1)",0,"white");
+
+		$log->log("\nPLUGINS\n");
+		$log->log("--list-plugins\t\t\tReturn a list of available plugins and their types",0,"white");
+		$log->log("--sqli-plugins\t\t\tUse these plugins for sqli (default all)",0,"white");
+		$log->log("--<type>-<name>-<help>\t\tIf you need help about a certain plugin",0,"white");
+
+		$log->log("\nHTTP RELATED\n");
+		$log->log("--http-method\t\t\tPOST or GET (default GET)",0,"white");
 		$log->log("--http-adapter\t\t\tSwitch http adapter (default Ecurl) ",0,"white");
 		$log->log("--connect-timeout\t\tConnect timeout for A ",0,"white");
 		$log->log("--url-query-char\t\t(default ?)",0,"white");
@@ -26,30 +47,25 @@
 		$log->log("--url-equality-char\t\t(default =)",0,"white");
 		$log->log("--url-path-char\t\t(default /)",0,"white");
 		$log->log("--request-interval\t\tHTTP Request Interval (in seconds)",0,"white");
-		$log->log("--no-crawl\t\t\tDont crawl hrefs (default yes)",0,"white");
-		$log->log("--http-method\t\t\tPOST or GET (default GET)",0,"white");
 		$log->log("--follow-redirects\t\tFollow HTTP 302 (default yes)",0,"white");
-		$log->log("--omit-sites\t\t\tRegex for omitting certain sites when googling",0,"white");
 		$log->log("--proxy-server\t\t\tHost or IP of the proxy server",0,"white");
 		$log->log("--proxy-user\t\t\tUsername for the proxy server (if requires authentication)",0,"white");
 		$log->log("--proxy-password\t\tPassword for the proxy server (if requires authentication)",0,"white");
 		$log->log("--proxy-port\t\t\tProxy port",0,"white");
 		$log->log("--proxy-type\t\t\tProxy type [BASIC | NTLM] (default basic) ",0,"white");
 		$log->log("--proxy-tunnel\t\t\tUse CONNECT method (default 0) ",0,"white");
-		$log->log("--immediate-mode\t\tQuit as soon as it finds a vulnerable spot (default yes)",0,"white");
+
+		$log->log("\nSITE CRAWL\n");
+		$log->log("--crawl\t\t\t<depth> How many levels do you want the crawler to go (default 0)",0,"white");
+		$log->log("--no-crawl\t\t\tDont crawl hrefs (default yes)",0,"white");
+		$log->log("--omit-sites\t\t\tRegex for omitting certain sites when googling",0,"white");
 		$log->log("--omit-paths\t\t\tcomma delimited list of paths to be ommited",0,"white");
 		$log->log("--omit-pages\t\t\tcomma delimited list of pages to be ommited",0,"white");
 		$log->log("--page-types\t\t\tPage types that should be taken in account when crawling a site",0,"white");
 		$log->log("--lpp\t\t\t\tAmount of links to get per page when crawling (default all)",0,"white");
 		$log->log("--max-links\t\t\tAmount of links to consume per site",0,"white");
-		$log->log("--colors\t\t\tActivate / Deactivate colors (default 1)",0,"white");
-		$log->log("--log-prepend-date\t\tPrepend date to log (default 0)",0,"white");
-		$log->log("--google-language\t\tsearch in this language (default \"en\") accepts <es,de,it> amongst others",0,"white");
-		$log->log("--google-max-results\t\tLimit the search to a maximum of results others",0,"white");
-		$log->log("--google-offset\t\tOffset results (Use with care you can end with no sites)",0,"white");
-		$log->log("--google-shuffle\t\tShuffle search results (default yes)",0,"white");
-		
 		$log->log("--classpath\t\t\tDirectory where aidSQL classes reside",0,"white");
+		$log->log("--help\t\t\t\tThis help",0,"white");
 		$log->log("\n",0,"white");
 		
 	}

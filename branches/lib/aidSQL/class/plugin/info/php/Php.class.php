@@ -15,6 +15,10 @@
 				$this->log("Should get PHP info and stuff, try to find phpinfo perhaps in paths provided by the crawler etc",0,"yellow");
 			}
 
+			public static function getHelp(\aidSQL\core\Logger $logger){
+				$logger->log(__CLASS__. " HELP");
+			}
+
 		}
 
 	}

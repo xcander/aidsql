@@ -9,6 +9,7 @@
 			public function setLog(\aidSQL\core\Logger &$log);
 			public function setConfig(Array $config);
 			public function setHttpAdapter(\aidSQL\http\Adapter &$httpAdapter);
+			public static function getHelp(\aidSQL\core\Logger $logger);
 
 		}
 

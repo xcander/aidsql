@@ -33,6 +33,7 @@
 			public function getParser();
 			public function getAffectedDatabases();
 			public function setConfig(Array $config);
+			public static function getHelp(\aidSQL\core\Logger $logger);
 
 		}
 

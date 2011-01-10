@@ -91,8 +91,19 @@
 
 		$cmdParser		=	new parser\CmdLine();
 
+
 		$cmdParser->setConfig($config);
 		$cmdParser->setCmdLineOptions($parameters);
+
+		//<fixme>
+		if(preg_match("/--help-.*/",implode(" ",$parameters))){
+
+			$cmdParser->setOption("url","http://fix.this.awful.regex.org");	
+			$pluginHelpFixMe	=	TRUE;
+
+		}
+		//</fixme>
+
 		$cmdParser->setIgnoreOptionsWith(
 													array(
 															"sqli-.*",
@@ -103,36 +114,70 @@
 		$parsedOptions	=	$cmdParser->parse();
 		$parameters		=	array_keys($parsedOptions);
 
-		if(in_array("help",$parameters)){
-			usageLong($log);
-			exit(0);
-		}	
-
-	}catch(\Exception $e){
-
-		usageShort($log);
-		$log->log($e->getMessage(),1,"red",FALSE);
-		exit(1);
-
-	}
-
-
-	try {
-
 		$pluginsDir	=	__CLASSPATH.DIRECTORY_SEPARATOR."class".DIRECTORY_SEPARATOR."plugin";
 
 		$log->setColors((bool)$parsedOptions["colors"]);
 
 		$log->setEcho(FALSE);
 
-		$pLoader		=	new \aidSQL\core\PluginLoader($pluginsDir,$log);
-		$allPlugins	=	$pLoader->listPlugins();
+		$pLoader			=	new \aidSQL\core\PluginLoader($pluginsDir,$log);
+		$allPlugins		=	$pLoader->listPlugins();
+		$pluginTypes	=	$pLoader->listPluginTypes();
+
+		//<plugin-help>
+
+		if(isset($pluginHelpFixMe)){
+
+			foreach($allPlugins as $plugin){
+
+				$help	=	"help-".$plugin["type"].'-'.$plugin["name"];
+
+				if(in_array($help,$parameters)){
+
+					$helpFound	=	TRUE;
+
+					$pLoader->load($plugin);
+					$log->setEcho(TRUE);
+					$log->setX11Info(FALSE);
+					$log->setPrepend("");
+
+					$help	=	'\\'.__NAMESPACE__.'\\plugin\\'.$plugin["type"].'\\'.$plugin["name"]."::getHelp";
+
+					call_user_func($help,$log);
+
+					exit(0);
+
+				}
+
+			}
+
+			foreach($parameters as $param){
+
+				if(preg_match("/^help-.*/",$param)){
+					throw (new \Exception("Help not found for $param!"));
+				}
+
+			}
+
+		}
+
+		//</plugin-help>
+
+		//<help>
+
+		if(in_array("help",$parameters)){
+			$log->setEcho(TRUE);
+			usageLong($log);
+			exit(0);
+		}	
+
+		//</help>
+
 
 		$log->setEcho(TRUE);
 
 		if(in_array("list-plugins",$parameters)){
 
-			$pluginTypes	=	$pLoader->listPluginTypes();
 
 			$log->setPrepend("");
 			$log->setX11Info(FALSE);
