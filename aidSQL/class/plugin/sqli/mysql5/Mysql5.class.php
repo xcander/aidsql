@@ -703,12 +703,12 @@
 
 				$restoreUrl				=	$this->_httpAdapter->getUrl();
 
-				$webDefaultsPlugin	=	$pLoader->getPluginInstance("disclosure","defaults",$this->_httpAdapter,$this->_log);
+				$webDefaultsPlugin	=	$pLoader->getPluginInstance("info","defaults",$this->_httpAdapter,$this->_log);
 				$information			=	$webDefaultsPlugin->getInfo();
 
-				if (!is_a($information,"\\aidSQL\\plugin\\disclosure\\DisclosureResult")){
+				if (!is_a($information,"\\aidSQL\\plugin\\info\\InfoResult")){
 
-					throw(new \Exception("Plugin $plugin[name] should return an instance of \\aidSQL\\plugin\\disclosure\\DisclosureResult"));
+					throw(new \Exception("Plugin $plugin[name] should return an instance of \\aidSQL\\plugin\\info\\InfoResult"));
 				}
 
 				$webDirectories	=	$information->getWebDirectories();
