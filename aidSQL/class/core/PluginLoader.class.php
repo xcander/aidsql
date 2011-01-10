@@ -26,7 +26,6 @@
 
 			}
 
-
 			public function setConfig(Array $config){
 
 				if(isset($config["plugin-info-load-order"])){
