@@ -196,6 +196,7 @@
 
 			}
 
+			$log->setPrepend('[aidSQL]');
 			$log->log("Site added ".$site->getHost(),0,"green",FALSE);
 
 		}

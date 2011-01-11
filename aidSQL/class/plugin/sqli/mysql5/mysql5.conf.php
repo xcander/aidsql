@@ -2,7 +2,8 @@
 
 	$config = array(
 		"numeric-only"=>array(
-			"overlaps-with"=>array("strings-only")
+			"overlaps-with"=>array("strings-only"),
+			"novalue"=>TRUE
 		),
 		"strings-only"=>array(
 			"overlaps-with"=>("numeric-only")

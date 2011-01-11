@@ -33,7 +33,7 @@
 				$this->_httpAdapter	=	$httpAdapter;
 				$this->setLog($log);
 
-				$this->_log->log("Normalized URL: ".$this->_host->getUrlAsString());
+				$this->log("Normalized URL: ".$this->_host->getUrlAsString());
 
 			}
 
@@ -792,7 +792,7 @@
 					$urls	=	$dom->fetchLinks();
 					$urls	=	$urls["links"];
 
-					if($this->_lpp>0 && $sizeOfLinks > $this->_lpp){
+					if($this->_lpp>0 && sizeof($urls) > $this->_lpp){
 
 						$this->log("Reducing links amount to ".$this->_lpp,0,"yellow");
 						$urls = $this->reduxLinks($urls);

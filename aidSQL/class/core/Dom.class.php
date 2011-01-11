@@ -114,102 +114,110 @@
 
 						//for every child of the <form>
 
-						foreach($childs as $childKey=>$childNode){
+						if($childs){
 
-							$nodeName				=	$childNode->nodeName;
+							foreach($childs as $childKey=>$childNode){
 
-							$tmpChild				=	array();
-							$tmpChild[$nodeName]	=	array();
+								$nodeName				=	$childNode->nodeName;
 
-							if ($childNode->hasChildNodes()){	//should be a <select>
+								$tmpChild				=	array();
+								$tmpChild[$nodeName]	=	array();
 
-								$childNodeChilds	=	$this->getChildNodes($childNode);
-								$attributes			=	$this->getNodeAttributes($childNode);
+								if ($childNode->hasChildNodes()){	//should be a <select>
 
-								if(!isset($attributes["name"])){
-									continue;
-								}
-
-								$elementName		=	$attributes["name"];
-
-								$tmpChild[$nodeName]["attributes"]["name"]	=	$elementName;
-
-								$elementValues		=	array();
-
-								foreach($childNodeChilds as $childNodeChild){	//get all the <option> values
-
-									$attributes	=	$this->getNodeAttributes($childNodeChild);
-
-									if(sizeof($attributes)){
-										if(isset($attributes["value"])){
-											$tmpChild[$nodeName]["attributes"]["values"][]	=	$attributes["value"];
-										}
-									}
-
-								}
-
-							}else{	//Should be anything else, like an <input>
-
-								$attributes	=	$this->getNodeAttributes($childNode);
-
-								if(sizeof($attributes)){
+									$childNodeChilds	=	$this->getChildNodes($childNode);
+									$attributes			=	$this->getNodeAttributes($childNode);
 
 									if(!isset($attributes["name"])){
 										continue;
 									}
 
-									$tmpChild[$nodeName]["attributes"]	=	$attributes;
+									$elementName		=	$attributes["name"];
 
-									if(isset($tmpChild[$nodeName]["attributes"]["value"])){
+									$tmpChild[$nodeName]["attributes"]["name"]	=	$elementName;
 
-										if(isset($curForm[$formName]["elements"])){
+									$elementValues		=	array();
 
-											foreach($curForm[$formName]["elements"] as $key=>$formElement){
+									foreach($childNodeChilds as $childNodeChild){	//get all the <option> values
 
-												$formElementName	=	key($formElement);
-												$formElement		=	$formElement[$formElementName];
+										$attributes	=	$this->getNodeAttributes($childNodeChild);
 
-												if($formElement["attributes"]["name"]	==	$tmpChild[$nodeName]["attributes"]["name"]){
+										if(sizeof($attributes)){
+											if(isset($attributes["value"])){
+												$tmpChild[$nodeName]["attributes"]["values"][]	=	$attributes["value"];
+											}
+										}
+
+									}
+
+								}else{	//Should be anything else, like an <input>
+
+									$attributes	=	$this->getNodeAttributes($childNode);
+
+									if(sizeof($attributes)){
+
+										if(!isset($attributes["name"])){
+											continue;
+										}
+
+										$tmpChild[$nodeName]["attributes"]	=	$attributes;
+
+										if(isset($tmpChild[$nodeName]["attributes"]["value"])){
+
+											if(isset($curForm[$formName]["elements"])){
+
+												foreach($curForm[$formName]["elements"] as $key=>$formElement){
+
+													$formElementName	=	key($formElement);
+													$formElement		=	$formElement[$formElementName];
+
+													if($formElement["attributes"]["name"]	==	$tmpChild[$nodeName]["attributes"]["name"]){
 	
-													$tmpChildValue		=	$tmpChild[$nodeName]["attributes"]["value"];
+														$tmpChildValue		=	$tmpChild[$nodeName]["attributes"]["value"];
 
-													if(!isset($curForm[$formName]["elements"][$key][$formElementName]["attributes"]["values"])){
-														unset($curForm[$formName]["elements"][$key][$formElementName]["attributes"]["value"]);
+														if(!isset($curForm[$formName]["elements"][$key][$formElementName]["attributes"]["values"])){
+															unset($curForm[$formName]["elements"][$key][$formElementName]["attributes"]["value"]);
 
-														$formElementValue	=	$formElement["attributes"]["value"];
+															$formElementValue	=	$formElement["attributes"]["value"];
 
-														$curForm[$formName]["elements"]
-														[$key][$formElementName]["attributes"]
-														["values"][]	=	$formElementValue;
+															$curForm[$formName]["elements"]
+															[$key][$formElementName]["attributes"]
+															["values"][]	=	$formElementValue;
 
-														$curForm[$formName]["elements"]
-														[$key][$formElementName]["attributes"]
-														["values"][]	=	$tmpChildValue;
-
-													}else{
-
-														if(!in_array($tmpChildValue,$curForm[$formName]["elements"][$key][$formElementName]["attributes"]["values"])){
 															$curForm[$formName]["elements"]
 															[$key][$formElementName]["attributes"]
 															["values"][]	=	$tmpChildValue;
 
+														}else{
+
+															if(!in_array($tmpChildValue,$curForm[$formName]["elements"][$key][$formElementName]["attributes"]["values"])){
+																$curForm[$formName]["elements"]
+																[$key][$formElementName]["attributes"]
+																["values"][]	=	$tmpChildValue;
+
+															}
+
+														}
+													
+													}else{
+													
+														foreach($curForm[$formName]["elements"] as $key=>$formElement){
+
+															$names[]	=	$formElement[key($formElement)]["attributes"]["name"];
+
+														}
+
+														if(!in_array($tmpChild[$nodeName]["attributes"]["name"],$names)){
+															$curForm[$formName]["elements"][]	=	$tmpChild;
 														}
 
 													}
-													
-												}else{
-													
-													foreach($curForm[$formName]["elements"] as $key=>$formElement){
-
-														$names[]	=	$formElement[key($formElement)]["attributes"]["name"];
-
-													}
-
-													if(!in_array($tmpChild[$nodeName]["attributes"]["name"],$names)){
-														$curForm[$formName]["elements"][]	=	$tmpChild;
-													}
 
 												}
+
+											}else{
+
+												$curForm[$formName]["elements"][]	=	$tmpChild;
 
 											}
 
@@ -219,23 +227,18 @@
 
 										}
 
-									}else{
-
-										$curForm[$formName]["elements"][]	=	$tmpChild;
-
 									}
 
 								}
 
 							}
 
+							$return[]	=	$curForm;
 
 						}
 
-						$return[]	=	$curForm;
 
 					}
-
 
 				}
 
