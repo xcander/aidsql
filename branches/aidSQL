@@ -116,8 +116,8 @@
 
 		$pluginsDir	=	__CLASSPATH.DIRECTORY_SEPARATOR."class".DIRECTORY_SEPARATOR."plugin";
 
+		$log->reset();
 		$log->setColors((bool)$parsedOptions["colors"]);
-
 		$log->setEcho(FALSE);
 
 		$pLoader			=	new \aidSQL\core\PluginLoader($pluginsDir,$log);

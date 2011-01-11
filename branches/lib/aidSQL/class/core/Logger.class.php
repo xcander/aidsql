@@ -191,8 +191,8 @@
 				$msg = $this->_prepend.$type." ".$date.$msg.$this->_append;
 	
 				if ($this->_echo) {
-	
-					if($color) {
+
+					if($color && $this->_colors) {
 	
 						if(!in_array(strtolower($color),array_keys($this->colors))) {
 	
@@ -267,6 +267,10 @@
 	
 				}
 			
+			}
+
+			public function reset(){
+				echo $this->colors["light_gray"]."\r";
 			}
 	
 			private function _fwrite($msg){
