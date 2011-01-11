@@ -28,11 +28,12 @@ As we see, here it fails to crawl because this page doesnt has any usefull links
 
 Now, lets try adding the --crawl parameter with a depth of 3 I'll also add other parameters since I know what Im doing
 
-
+{{{
 stalker@hardcore:~/Projects/aidsql/branches>time ./aidSQL --url=www.aidsql.com --crawl=3 \
 --sqli-mysql5-numeric-only=1 \
 --colors=0 \ 
 --sqli-mysql5-field-payloads="'"
+}}}
 
 
 *Note 1:* The --sqli-mysql5-numeric-only parameter will cause the plugin *only* to audit numeric URL variables.
