@@ -176,8 +176,8 @@
 					$this->log("DATABASE SCHEMA",0,"light_cyan");
 					$this->log("-----------------------------------------------------------------",0,"light_cyan");
 
-					if(!is_a($dbSchema,"DatabaseSchema")){
-						throw(new \Exception("The getSchema method for your plugin has to return a DatabaseSchema Object!"));
+					if(!is_a($dbSchema,"\\aidSQL\\core\\DatabaseSchema")){
+						throw(new \Exception("The getSchema method for your plugin has to return a \\aidSQL\\core\\DatabaseSchema Object!"));
 					}
 			
 					$dbSchema	=	$dbSchema->getSchema();
