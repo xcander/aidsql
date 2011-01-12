@@ -54,6 +54,7 @@
 	require	"class/core/File.class.php";
 	require	"class/core/Runner.class.php";
 	require	"class/core/PluginLoader.class.php";
+	require	"class/core/DatabaseSchema.class.php";
 	require	"class/core/InjectionPlugin.class.php";
 	require	"class/core/InfoPlugin.class.php";
 	require	"class/core/InfoResult.class.php";

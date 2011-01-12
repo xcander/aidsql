@@ -9,8 +9,7 @@
 			public function log($msg=NULL);				//Log wrapper
 			public function count();
 			public function setTable();
-			public function getTables();
-			public function getColumns();
+			public function getSchema($complete=TRUE);	//Has to return a DatabaseSchema Object
 			public function getDatabase();
 			public function getUser();
 			public function getVersion();

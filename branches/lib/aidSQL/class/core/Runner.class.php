@@ -163,16 +163,36 @@
 
 					$plugin		= $this->_plugin;
 
-					$database	= $plugin->getDatabase();
-					$dbuser		= $plugin->getUser();
-					$dbtables	= $plugin->getTables();
+					$db			= $plugin->getDatabase();
+					$dbUser		= $plugin->getUser();
+					$dbSchema	= $plugin->getSchema();
 
 					$this->log("BASIC INFORMATION",0,"cyan",TRUE);
 					$this->log("---------------------------------",0,"white",TRUE);
 					$this->log("PLUGIN\t\t:\t".$plugin->getPluginName(),0,"cyan",TRUE);
-					$this->log("DBASE\t\t:\t$database",0,"white",TRUE);
-					$this->log("USER\t\t:\t$dbuser",0,"white",TRUE);
-					$this->log("TABLES\t\t:\t$dbtables",0,"white",TRUE);
+					$this->log("DBASE\t\t:\t$db",0,"white",TRUE);
+					$this->log("USER\t\t:\t$dbUser",0,"white",TRUE);
+
+					$this->log("DATABASE SCHEMA",0,"light_cyan");
+					$this->log("-----------------------------------------------------------------",0,"light_cyan");
+
+					if(!is_a($dbSchema,"DatabaseSchema")){
+						throw(new \Exception("The getSchema method for your plugin has to return a DatabaseSchema Object!"));
+					}
+			
+					$dbSchema	=	$dbSchema->getSchema();
+
+					if(sizeof($dbSchema)){
+
+						foreach($dbSchema as $table=>$fields){
+							$this->log("TABLE\t\t:".implode($fields,','),0,"white");
+						}
+
+					}else{
+
+						$this->log("Couldnt retrieve database schema!",1,"red");
+
+					}
 
 					if($plugin->isRoot($dbuser)){
 
