@@ -485,15 +485,14 @@
 
 				if(isset($form["attributes"]["action"])){
 
-					$action	=	$url->getPath().$url->getPathSeparator().trim($form["attributes"]["action"],$url->getPathSeparator());
+					$action	=	$this->makeUrl($form["attributes"]["action"],$url->getPath())->getUrlAsString();
 
 				}else{
 
-					$action	=	$url->getPath().$url->getPath().$url->getPathSeparator().$url->getPage();
+					$action	=	$url->getUrlAsString();
 
 				}
 
-				$action	=	$url->getPath().trim($action,$url->getPathSeparator());
 
 				$query	=	array();
 
