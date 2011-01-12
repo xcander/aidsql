@@ -167,6 +167,11 @@
 					$dbUser		= $plugin->getUser();
 					$dbSchema	= $plugin->getSchema();
 
+					if(!is_a($dbSchema,"\\aidSQL\\core\\DatabaseSchema")){
+
+						throw(new \Exception("The getSchema method for your plugin has to return a \\aidSQL\\core\\DatabaseSchema Object!"));
+					}
+
 					$this->log("BASIC INFORMATION",0,"cyan",TRUE);
 					$this->log("---------------------------------",0,"white",TRUE);
 					$this->log("PLUGIN\t\t:\t".$plugin->getPluginName(),0,"cyan",TRUE);
@@ -176,9 +181,6 @@
 					$this->log("DATABASE SCHEMA",0,"light_cyan");
 					$this->log("-----------------------------------------------------------------",0,"light_cyan");
 
-					if(!is_a($dbSchema,"\\aidSQL\\core\\DatabaseSchema")){
-						throw(new \Exception("The getSchema method for your plugin has to return a \\aidSQL\\core\\DatabaseSchema Object!"));
-					}
 			
 					$dbSchema	=	$dbSchema->getSchema();
 					var_dump($dbSchema);

@@ -421,7 +421,9 @@
 
 						//Add the table and the columns of the table to the DatabaseSchema Object
 
-						$dbSchema->addTable($table,$this->getColumns($table));
+						$tableColumns	=	$this->getColumns($table);
+						var_dump($tableColumns);
+						$dbSchema->addTable($table,$tableColumns);
 
 					}
 
@@ -439,9 +441,9 @@
 
 				}
 
-
+				var_dump($dbSchema->getSchema());
+				die();
 				return $dbSchema;
-
 
 			}
 
