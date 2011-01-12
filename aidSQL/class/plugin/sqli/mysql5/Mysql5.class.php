@@ -409,8 +409,7 @@
 
 					$this->log("Performing table extraction one by one",2,"yellow");
 
-					$limit	=	1;
-
+					$limit									=	1;
 					$dbSchema								=	new \aidSQL\core\DatabaseSchema();
 					$restoreTerminatingPayload			=	$this->_currTerminatingPayload;
 					$select									=	"TABLE_NAME";
@@ -441,8 +440,6 @@
 				}
 
 
-				var_dump($dbSchema->getSchema());
-				die();
 				return $dbSchema;
 
 
@@ -464,7 +461,7 @@
 				$from				=	"FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=$table";
 
 				$tableFields	=	$this->execute($select,$from);
-				
+					
 				$this->log("Fetching table columns ...",0,"white");
 
 				if($this->detectTruncatedData($tableFields)){
@@ -488,6 +485,12 @@
 				}else{
 
 					$tableFields	=	explode(',',$tableFields);
+
+					if(!is_array($tableFields)){
+
+						$tableFields	=	array();
+
+					}
 					
 				}
 
