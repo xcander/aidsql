@@ -181,11 +181,14 @@
 					}
 			
 					$dbSchema	=	$dbSchema->getSchema();
-
+					var_dump($dbSchema);
+					die();
 					if(sizeof($dbSchema)){
 
 						foreach($dbSchema as $table=>$fields){
-							$this->log("TABLE\t\t:".implode($fields,','),0,"white");
+
+							$this->log("TABLE\t\t:".implode(',',$fields),0,"white");
+
 						}
 
 					}else{
