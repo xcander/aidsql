@@ -72,7 +72,10 @@
 			"alias"=>"s"
 		),
 		"verbose"=>array(
-				  "novalue"=>TRUE
+			"values"=>array(
+					1,
+					0
+			)
 		),
 		"immediate-mode"=>array(
 			"values"=>array(

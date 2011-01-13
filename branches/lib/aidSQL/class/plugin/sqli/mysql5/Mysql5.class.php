@@ -400,34 +400,37 @@
 
 			public function getSchema($complete=TRUE){
 
-				$select	=	"GROUP_CONCAT(TABLE_NAME)";
-				$from		=	"FROM information_schema.tables WHERE table_schema=DATABASE()";
+				$select		=	"GROUP_CONCAT(TABLE_NAME)";
+				$from			=	"FROM information_schema.tables WHERE table_schema=DATABASE()";
 
-				$tables	=	$this->execute($select,$from);
+				$tables		=	$this->execute($select,$from);
+				$dbSchema	=	new \aidSQL\core\DatabaseSchema();
 
 				if($this->detectTruncatedData($tables)){	//We have to do 1 by 1 table retrieval :/ bigger foot print
 
 					$this->log("Performing table extraction one by one",2,"yellow");
 
 					$limit									=	1;
-					$dbSchema								=	new \aidSQL\core\DatabaseSchema();
 					$restoreTerminatingPayload			=	$this->_currTerminatingPayload;
 					$select									=	"TABLE_NAME";
 					$from										=	"FROM information_schema.tables WHERE table_schema=DATABASE()";
 
+					$this->_currTerminatingPayload	=	"LIMIT ".$limit++.",1";
+
 					while($table	=	$this->execute($select,$from)){
 
-						$this->_currTerminatingPayload	=	"LIMIT ".$limit++.",1";
+						$this->log("Discovered table $table!",0,"light_cyan");
+
+						$restoreTPayLoad	=	$this->_currTerminatingPayload	=	"LIMIT ".$limit++.",1";
 
 						//Add the table and the columns of the table to the DatabaseSchema Object
 
 						$tableColumns	=	$this->getColumns($table);
-						var_dump($tableColumns);
+
 						$dbSchema->addTable($table,$tableColumns);
 
 					}
 
-					$this->_currTerminatingPayload	=	$restoreTerminatingPayload;
 
 				}else{	//no data trunking, everything cool
 
@@ -441,8 +444,8 @@
 
 				}
 
-				var_dump($dbSchema->getSchema());
-				die();
+				$this->_currTerminatingPayload	=	$restoreTerminatingPayload;
+
 				return $dbSchema;
 
 			}
@@ -457,14 +460,20 @@
 
 				}
 
-				$table			=	\String::hexEncode($table);
+				$this->log("Fetching table \"$table\" columns ...",0,"white");
 
-				$select			=	"GROUP_CONCAT(COLUMN_NAME)";
-				$from				=	"FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=$table";
+				$table							=	\String::hexEncode($table);
+
+				$select							=	"GROUP_CONCAT(COLUMN_NAME)";
+				$from								=	"FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=$table";
+				$restoreTerminatingPayload	=	$this->_currTerminatingPayload;
+				$this->_currTerminatingPayload	=	"LIMIT 1,1";
 
 				$tableFields	=	$this->execute($select,$from);
-					
-				$this->log("Fetching table columns ...",0,"white");
+
+				if(empty($tableFields)){
+					die("EMPTY");
+				}
 
 				if($this->detectTruncatedData($tableFields)){
 
@@ -473,16 +482,15 @@
 					$from				=	"FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=$table";
 
 					$tableFields					=	array();
-					$restoreTerminatingPayload	=	$this->_currTerminatingPayload;
 
 					while($field	=	$this->execute($select,$from)){
 
-						$this->_currTerminatingPayload	=	"LIMIT ".$limit++.",1";
+						$this->_currTerminatingPayload	=	"LIMIT ".$limit.",1";
+						$limit++;
 						$tableFields[]	=	$field;
 
 					}
 
-					$this->_currTerminatingPayload	=	$restoreTerminatingPayload;
 
 				}else{
 
@@ -495,6 +503,8 @@
 					}
 					
 				}
+
+				$this->_currTerminatingPayload	=	$restoreTerminatingPayload;
 
 				return $tableFields;
 

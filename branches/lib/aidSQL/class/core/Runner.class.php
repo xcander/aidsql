@@ -177,19 +177,16 @@
 					$this->log("PLUGIN\t\t:\t".$plugin->getPluginName(),0,"cyan",TRUE);
 					$this->log("DBASE\t\t:\t$db",0,"white",TRUE);
 					$this->log("USER\t\t:\t$dbUser",0,"white",TRUE);
-
 					$this->log("DATABASE SCHEMA",0,"light_cyan");
 					$this->log("-----------------------------------------------------------------",0,"light_cyan");
 
-			
 					$dbSchema	=	$dbSchema->getSchema();
-					var_dump($dbSchema);
-					die();
+
 					if(sizeof($dbSchema)){
 
 						foreach($dbSchema as $table=>$fields){
 
-							$this->log("TABLE\t\t:".implode(',',$fields),0,"white");
+							$this->log("TABLE\t$table\t\t:".implode(',',$fields),0,"white");
 
 						}
 
@@ -199,7 +196,7 @@
 
 					}
 
-					if($plugin->isRoot($dbuser)){
+					if($plugin->isRoot($dbUser)){
 
 						$this->log("IS ROOT\t:\tYES",0,"light_green",TRUE);
 						$this->log("Trying to get Shell ...",1,"light_cyan",TRUE);

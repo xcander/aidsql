@@ -68,6 +68,10 @@
 
 			public function log($msg = NULL,$color="white",$type="0",$toFile=FALSE){
 
+				if(!(isset($this->_config["verbose"])&&(bool)$this->_config["verbose"])){
+					return;
+				}
+
 				$logToFile			=	(isset($this->_config["log-all"]))	?	TRUE	:	$toFile;
 
 				if(!is_null($this->_log)){
