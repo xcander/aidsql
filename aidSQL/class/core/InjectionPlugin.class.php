@@ -69,6 +69,7 @@
 			public function log($msg = NULL,$color="white",$type="0",$toFile=FALSE){
 
 				if(!(isset($this->_config["all"]["verbose"])&&(bool)$this->_config["all"]["verbose"])){
+					echo ".";
 					return;
 				}
 
@@ -96,7 +97,11 @@
 				$url->addRequestVariable($variable,$value);
 				$this->_httpAdapter->setUrl($url);
 
-				$this->log("Fetching ".$url->getURLAsString());
+				if(isset($this->_config["all"]["decoded-requests"])){
+					$this->log("Fetching ".urldecode($url->getURLAsString()));
+				}else{
+					$this->log("Fetching ".$url->getURLAsString());
+				}
 
 				try{
 

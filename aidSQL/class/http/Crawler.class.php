@@ -87,6 +87,10 @@
 
 			private function log($msg=NULL,$color="white",$level=0,$toFile=FALSE){
 
+				if(sizeof($this->_config)&&!$this->_config["verbose"]){
+					return;
+				}
+
 				if(isset($this->_config["log-all"])){
 					$toFile	=	TRUE;
 				}
