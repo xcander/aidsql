@@ -20,6 +20,10 @@
 		$log->log("\nGENERAL\n");	
 		$log->log("--url\t\t\t\t<url> Use this URL to perform injection tests",0,"white");
 		$log->log("--immediate-mode\t\tQuit as soon as it finds a vulnerable spot (default yes)",0,"white");
+		$log->log("--verbose\t\t 0 => normal, 1 => verbose, 2 => more verbose",0,"white");
+		$log->log("--no-shell\t\t Dont attempt to get a shell",0,"white");
+		$log->log("--no-schema\t\t Dont get database schema",0,"white");
+		$log->log("--partial-schema\t\t Dont get fields from all tables in the database schema",0,"white");
 
 		$log->log("\nGOOGLING\n");
 		$log->log("--google\t\t\t<search term> Just Google it!",0,"white");
