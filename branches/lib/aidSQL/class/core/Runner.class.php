@@ -161,21 +161,23 @@
 
 				try{	
 
-					$plugin		= $this->_plugin;
+					$plugin		=	$this->_plugin;
 
-					$db			= $plugin->getDatabase();
-					$dbUser		= $plugin->getUser();
-					$dbSchema	= $plugin->getSchema();
+					$db			=	$plugin->getDatabase();
+					$dbUser		=	$plugin->getUser();
+					$dbSchema	=	$plugin->getSchema();
+					$dbVersion	=	$plugin->getVersion;
 
 					if(!is_a($dbSchema,"\\aidSQL\\core\\DatabaseSchema")){
 
-						throw(new \Exception("The getSchema method for your plugin has to return a \\aidSQL\\core\\DatabaseSchema Object!"));
+						throw(new \Exception("The getSchema method for your plugin must return a \\aidSQL\\core\\DatabaseSchema Object!"));
 					}
 
 					$this->log("BASIC INFORMATION",0,"cyan",TRUE);
 					$this->log("---------------------------------",0,"white",TRUE);
 					$this->log("PLUGIN\t\t:\t".$plugin->getPluginName(),0,"cyan",TRUE);
 					$this->log("DBASE\t\t:\t$db",0,"white",TRUE);
+					$this->log("VERSION\t\t:\t$dbVersion",0,"white",TRUE);
 					$this->log("USER\t\t:\t$dbUser",0,"white",TRUE);
 
 					if(!in_array("no-schema",array_keys($this->_options))){

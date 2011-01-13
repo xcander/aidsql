@@ -171,7 +171,17 @@
 		),
 		"partial-schema"=>array(
 			"novalue"=>TRUE
+		),
+		"decode-requests"=>array(
+			"values"=>array(
+				1,
+				0
+			)
+		),
+		"list-links"=>array(
+			"novalue"=>TRUE,
+			"overlaps-with"=>array("no-crawl")
 		)
-
+	
 	);
 ?>

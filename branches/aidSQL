@@ -347,13 +347,10 @@
 
 			$count	=	1;
 
+
 			foreach($urls as $key=>$_url){
 
-				if(sizeof($_url["url"]->getQueryAsArray())){
-
-					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan",FALSE);
-
-				}else{
+				if(!sizeof($_url["url"]->getQueryAsArray())){
 
 					unset($urls[$key]);
 
@@ -361,6 +358,12 @@
 
 			}
 
+			if(in_array("list-links",$parameters)){
+
+				$log->log("LINK LIST",0,"light_cyan");
+				$log->log("------------------------------------------------",0,"light_cyan");
+
+			}
 
 			if(sizeof($urls)){
 
@@ -369,6 +372,13 @@
 				foreach($urls as $_url){
 
 					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan",TRUE);
+
+					if(in_array("list-links",$parameters)){
+
+						continue;
+
+					}
+
 					$httpAdapter->setUrl($_url["url"]);
 					$httpAdapter->setMethod($_url["method"]);
 

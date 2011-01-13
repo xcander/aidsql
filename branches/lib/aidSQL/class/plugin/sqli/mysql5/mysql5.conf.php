@@ -6,7 +6,8 @@
 			"novalue"=>TRUE
 		),
 		"strings-only"=>array(
-			"overlaps-with"=>("numeric-only")
+			"overlaps-with"=>("numeric-only"),
+			"novalue"=>TRUE
 		),
 		"field-payloads"=>array(
 		),

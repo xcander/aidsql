@@ -24,6 +24,7 @@
 			private	$_currTerminatingPayload	=	NULL;
 			private	$_affectedDatabases			=	array("mysql5");
 			private	$_getCompleteSchema			=	TRUE;
+			private	$_version						=	NULL;
 
 
 			public function getPluginName(){
@@ -116,11 +117,13 @@
 
 				$this->setUseConcat(TRUE);
 
-				if(isset($this->_config["numeric-only"])){
+				$keys	=	array_keys($this->_config);
+
+				if(in_array("numeric-only",$keys)){
 
 					$vars	=	$vars["numeric"];
 
-				}elseif(isset($this->_config["strings-only"])){
+				}elseif(in_array("strings-only",$keys)){
 
 					$vars	=	$vars["strings"];
 
@@ -200,11 +203,13 @@
 
 										//Actually we can have a series of childNodes here any field is good, so we just pick
 										//a random field.
-
+	
+										$this->log("Checking database version ... ",0,"green");
 										$this->setAffectedVariable($variable,$value);
 										$this->setAffectedField($field);
 										$this->setMaxFields($i);
-	
+
+
 										return TRUE;
 
 									}
@@ -224,6 +229,16 @@
 				}
 
 				return FALSE;
+
+			}
+
+			private function checkVersion($version){
+
+				if(substr($version,0,1)!=5){
+					return FALSE;
+				}
+
+				return TRUE;
 
 			}
 
@@ -400,6 +415,12 @@
 
 			public function getSchema($complete=TRUE){
 
+				$version	=	$this->getVersion();
+
+				if(!$this->checkVersion($version)){
+					throw(new \Exception("Database version mismatch: $version, cant get database schema!",0,"red"));
+				}
+
 				$select		=	"GROUP_CONCAT(TABLE_NAME)";
 				$from			=	"FROM information_schema.tables WHERE table_schema=DATABASE()";
 
@@ -462,17 +483,20 @@
 
 				$this->log("Fetching table \"$table\" columns ...",0,"white");
 
-				$table							=	\String::hexEncode($table);
+				$table							=	
 
 				$select							=	"GROUP_CONCAT(COLUMN_NAME)";
-				$from								=	"FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=$table";
+				$from								=	"FROM information_schema.columns WHERE table_schema=DATABASE() ".
+														"AND table_name=".\String::hexEncode($table);
+
 				$restoreTerminatingPayload	=	$this->_currTerminatingPayload;
 				$this->_currTerminatingPayload	=	"LIMIT 1,1";
 
 				$tableFields	=	$this->execute($select,$from);
 
 				if(empty($tableFields)){
-					die("EMPTY");
+					$this->log("Couldnt fetch fields for table $table",1,"red");
+					return array();
 				}
 
 				if($this->detectTruncatedData($tableFields)){
@@ -567,9 +591,13 @@
 
 			public function getVersion(){
 
-				$select	= "@@version";
-				return $this->execute($select);
+				if(!is_null($this->_version)){
+					return $this->_version;
+				}
 
+				$select	= "@@version";
+				return $this->_version	=	$this->execute($select);
+					
 			}
 
 			public function getDatadir(){
