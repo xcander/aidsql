@@ -337,6 +337,7 @@
 
 			if(!in_array("no-crawl",array_keys($parsedOptions))){
 
+				$log->log("Crawling ...",0,"light_green");
 				$crawler->crawl();
 
 			}
