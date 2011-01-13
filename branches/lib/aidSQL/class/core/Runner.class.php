@@ -78,7 +78,7 @@
 
 			private function log($msg=NULL,$color="white",$level=0,$toFile=FALSE){
 
-				if(isset($this->_config["log-all"])){
+				if(isset($this->_options["log-all"])){
 					$toFile	=	TRUE;
 				}
 
@@ -177,47 +177,64 @@
 					$this->log("PLUGIN\t\t:\t".$plugin->getPluginName(),0,"cyan",TRUE);
 					$this->log("DBASE\t\t:\t$db",0,"white",TRUE);
 					$this->log("USER\t\t:\t$dbUser",0,"white",TRUE);
-					$this->log("DATABASE SCHEMA",0,"light_cyan");
-					$this->log("-----------------------------------------------------------------",0,"light_cyan");
 
-					$dbSchema	=	$dbSchema->getSchema();
+					if(!in_array("no-schema",array_keys($this->_options))){
 
-					if(sizeof($dbSchema)){
+						$this->log("DATABASE SCHEMA",0,"light_cyan");
+						$this->log("-----------------------------------------------------------------",0,"light_cyan");
 
-						foreach($dbSchema as $table=>$fields){
+						$dbSchema	=	$dbSchema->getSchema();
 
-							$this->log("TABLE\t$table\t\t:".implode(',',$fields),0,"white");
+						if(sizeof($dbSchema)){
 
-						}
+							foreach($dbSchema as $table=>$fields){
 
-					}else{
+								$this->log("TABLE\t$table\t\t:".implode(',',$fields),0,"white");
 
-						$this->log("Couldnt retrieve database schema!",1,"red");
+							}
 
-					}
-
-					if($plugin->isRoot($dbUser)){
-
-						$this->log("IS ROOT\t:\tYES",0,"light_green",TRUE);
-						$this->log("Trying to get Shell ...",1,"light_cyan",TRUE);
-
-						//Getshell method must return FALSE on error or String path/to/shellLocation
-
-						$g0tShell = $plugin->getShell($this->_pLoader,$this->_crawler,$this->_options);
-
-						if($g0tShell){
-							$this->log("Got Shell => $g0tShell",0,"light_green",TRUE);
 						}else{
-							$this->log("Couldn't get shell :(",2,"yellow",TRUE);
+
+							$this->log("Couldnt retrieve database schema!",1,"red");
+
 						}
 
 					}else{
-				
-						$this->log("IS ROOT\t:\tNO",0,"white",TRUE);
+
+						$this->log("Skiping fetching database schema by user request",0,"yellow");
 
 					}
 
-					return TRUE;
+					if(!in_array("no-shell",array_keys($this->_options))){
+
+						if($plugin->isRoot($dbUser)){
+
+							$this->log("IS ROOT\t:\tYES",0,"light_green",TRUE);
+							$this->log("Trying to get Shell ...",1,"light_cyan",TRUE);
+
+							//Getshell method must return FALSE on error or String path/to/shellLocation
+
+							$g0tShell = $plugin->getShell($this->_pLoader,$this->_crawler,$this->_options);
+
+							if($g0tShell){
+								$this->log("Got Shell => $g0tShell",0,"light_green",TRUE);
+							}else{
+								$this->log("Couldn't get shell :(",2,"yellow",TRUE);
+							}
+
+						}else{
+				
+							$this->log("IS ROOT\t:\tNO",0,"white",TRUE);
+
+						}
+
+						return TRUE;
+
+					}else{
+
+						$this->log("Not trying to get a shell since the user has specified he doesnt wants to",0,"yellow");
+
+					}
 
 				}catch(\Exception $e){
 
@@ -226,6 +243,7 @@
 
 				}
 
+				return TRUE;
 
 			}
 

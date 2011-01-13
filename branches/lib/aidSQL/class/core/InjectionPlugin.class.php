@@ -68,7 +68,7 @@
 
 			public function log($msg = NULL,$color="white",$type="0",$toFile=FALSE){
 
-				if(!(isset($this->_config["verbose"])&&(bool)$this->_config["verbose"])){
+				if(!(isset($this->_config["all"]["verbose"])&&(bool)$this->_config["all"]["verbose"])){
 					return;
 				}
 

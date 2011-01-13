@@ -162,6 +162,15 @@
 		"list-plugins"=>array(
 			"novalue"=>TRUE,
 			"overlaps-with"=>array("url","google")
+		),
+		"no-shell"=>array(
+			"novalue"=>TRUE
+		),
+		"no-schema"=>array(
+			"novalue"=>TRUE
+		),
+		"partial-schema"=>array(
+			"novalue"=>TRUE
 		)
 
 	);
