@@ -117,6 +117,12 @@
 
 			}
 
+			public function setPath($path=NULL){
+	
+				$this->_url["path"]=$path;
+
+			}
+
 			private function queryStringToArray($queryString=NULL){
 
 				$variables	=	array();
