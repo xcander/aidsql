@@ -107,6 +107,20 @@
 
 					$content				=	$this->_httpAdapter->fetch();
 
+					if($content===FALSE){
+
+						if(!$this->_config["all"]["http-ignore-errors"]){
+
+							throw(new \Exception("There was a problem processing the request! Got ". $this->_httpCode."!!!"));
+
+						}else{
+
+							$this->log("Got ". $this->_httpCode." proceeding anyways by user request ...");
+
+						}
+
+					}
+
 				}catch(\Exception $e){
 
 					$this->log($e->getMessage());

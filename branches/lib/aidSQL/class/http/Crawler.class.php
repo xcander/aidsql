@@ -448,7 +448,7 @@
 					//Means that the uri is relative to the path
 					//We *have* to normalize the url passing also the host 
 
-					$path	=	(dirname($uri)=='.')	? $path.$this->_host->getPathSeparator() : NULL;
+					$path	=	(dirname($uri)=='.')	? $path.$this->_host->getPathSeparator() : $this->_host->getPath().$this->_host->getPathSeparator();
 
 					$url				=	new \aidSQL\http\URL($this->_host->getScheme()."://"				.
 																	$this->_host->getHost()							.

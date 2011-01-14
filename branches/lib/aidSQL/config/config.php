@@ -181,6 +181,12 @@
 		"list-links"=>array(
 			"novalue"=>TRUE,
 			"overlaps-with"=>array("no-crawl")
+		),
+		"http-ignore-errors"=>array(
+			"values"=>array(
+					0,
+					1
+			)
 		)
 	
 	);

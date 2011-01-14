@@ -729,12 +729,6 @@
 
 				$content	=	parent::execute($variable,$value);
 
-				if($content===FALSE){
-
-					throw(new \Exception("There was a problem processing the request! Got ". $this->_httpCode."!!!"));
-
-				}
-
 				return $this->_checkInjection($content);
 
 			}
