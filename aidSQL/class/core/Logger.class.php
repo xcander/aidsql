@@ -187,8 +187,9 @@
 												"type"	=>$type,
 												"message"=>$msg
 											);
-	
-				$msg = $this->_prepend.$type." ".$date.$msg.$this->_append;
+
+				$origMsg	=	$msg;	
+				$msg		= $this->_prepend.$type." ".$date.$msg.$this->_append;
 	
 				if ($this->_echo) {
 
@@ -248,8 +249,8 @@
 				if(!empty($this->_filename)&&$logToFile) {
 	
 					$write = TRUE;
-	
-					$write &= $this->_fwrite($code.$msg."\n");
+
+					$write &= $this->_fwrite($code.$origMsg."\n");
 	
 					if(!is_null($file)){
 						$write &= $this->_fwrite($code."[DD]$date FILE: $file\n");

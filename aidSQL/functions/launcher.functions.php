@@ -166,7 +166,7 @@
 
 		if($aidSQL->isVulnerable()){
 
-			$log->log("Site is vulnerable to sql injection!!",0,"light_cyan");
+			$log->log("Site is vulnerable to sql injection!",0,"light_cyan");
 
 			if(!$aidSQL->generateReport()){
 

