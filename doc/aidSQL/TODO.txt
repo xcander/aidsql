@@ -1,2 +1,2 @@
 A) Improve the Command line parser with all the bells and whistles, i.e alias options
-B) All plugins should have an isRoot() method plus a getShell() method
+B) When a host redirects to another path, make sure to add that path to the URL
