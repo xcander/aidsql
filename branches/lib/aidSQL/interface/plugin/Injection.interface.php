@@ -10,6 +10,7 @@
 			public function count();
 			public function setTable();
 			public function getSchema($complete=TRUE);	//Has to return a DatabaseSchema Object
+			public function getColumns($table=NULL);		//Separated from the original getSchema due to the --partial-schema opt
 			public function getDatabase();
 			public function getUser();
 			public function getVersion();

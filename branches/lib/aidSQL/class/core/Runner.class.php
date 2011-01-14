@@ -125,6 +125,11 @@
 
 							$this->_plugin			= $plugin;
 							$this->_vulnerable	= TRUE;
+
+							if(!$this->_options["verbose"]){
+								echo "\n";
+							}
+
 							return TRUE;
 
 						}
@@ -166,7 +171,7 @@
 					$db			=	$plugin->getDatabase();
 					$dbUser		=	$plugin->getUser();
 					$dbSchema	=	$plugin->getSchema();
-					$dbVersion	=	$plugin->getVersion;
+					$dbVersion	=	$plugin->getVersion();
 
 					if(!is_a($dbSchema,"\\aidSQL\\core\\DatabaseSchema")){
 
@@ -182,30 +187,62 @@
 
 					if(!in_array("no-schema",array_keys($this->_options))){
 
-						$this->log("DATABASE SCHEMA",0,"light_cyan");
-						$this->log("-----------------------------------------------------------------",0,"light_cyan");
+						$tables	=	$dbSchema->getSchema();
 
-						$dbSchema	=	$dbSchema->getSchema();
+						if(sizeof($tables)){
 
-						if(sizeof($dbSchema)){
+							if(!in_array("partial-schema",array_keys($this->_options))){
 
-							foreach($dbSchema as $table=>$fields){
+								$tables	=	array_keys($tables);
 
-								$this->log("TABLE\t$table\t\t:".implode(',',$fields),0,"white");
+								foreach($tables as $table){
+
+									$dbSchema->addTable($table,$plugin->getColumns($table));
+
+								}
+
+								if(!$this->_options["verbose"]){
+									echo "\n";
+								}
+
+								$this->log("COMPLETE DATABASE SCHEMA",0,"light_cyan",TRUE);
+								$this->log("-----------------------------------------------------------------",0,"light_cyan",TRUE);
+								
+							}else{
+
+								$this->log("PARTIAL DATABASE SCHEMA",0,"yellow",TRUE);
+								$this->log("-----------------------------------------------------------------",0,"yellow",TRUE);
+
+							}
+
+							$schema	=	$dbSchema->getSchema();
+
+							foreach($schema as $table=>$columns){
+
+								if(sizeof($columns)){
+
+									$this->log("TABLE $table\t:\t".implode(',',$columns),0,"light_green",TRUE);
+
+								}else{
+
+									$this->log("TABLE $table\t:\t(remove --partial-schema option to see columns)",0,"light_green",TRUE);
+
+								}
 
 							}
 
 						}else{
 
-							$this->log("Couldnt retrieve database schema!",1,"red");
+							$this->log("Couldnt fetch database Schema :(",0,"yellow");
 
 						}
-
+	
 					}else{
 
-						$this->log("Skiping fetching database schema by user request",0,"yellow");
+						$this->log("Skipping database schema fetching by user request",2,"yellow");
 
 					}
+	
 
 					if(!in_array("no-shell",array_keys($this->_options))){
 
