@@ -1,3 +1,2 @@
 A) Improve the Command line parser with all the bells and whistles, i.e alias options
 B) When a host redirects to another path, make sure to add that path to the URL
-C) Cambiar group_concat length en plugin mysql5 para que lo tome desde show global variables  @@group_concat_max_len;
