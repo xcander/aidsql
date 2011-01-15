@@ -341,6 +341,29 @@
 			
 			}
 
+			private function getGroupConcatLength(){
+
+				$this->log("Checking for @@group_concat_max_len",0,"light_cyan");
+
+				$select	=	"@@group_concat_max_len";
+				$length	=	(int)$this->execute($select);
+
+				if(!$length){
+
+					$length	=	1024;
+					$this->log("Warning, couldnt properly determine group concat length, setting length to $length",0,"yellow");
+
+				}else{
+
+					$this->log("@@group_concat_max_len = $length",0,"light_cyan");
+
+				}
+
+				$this->_groupConcatLength	=	$length;
+
+			}
+
+
 			public function setStep($step=10){
 
 				$step = (int)$step;
@@ -420,6 +443,9 @@
 				if(!$this->checkVersion($version)){
 					throw(new \Exception("Database version mismatch: $version, cant get database schema!",0,"red"));
 				}
+
+				//Determines server global variable @@group_concat_max_len
+				$this->getGroupConcatLength();
 
 				$select									=	"GROUP_CONCAT(TABLE_NAME)";
 				$from										=	"FROM information_schema.tables WHERE table_schema=DATABASE()";

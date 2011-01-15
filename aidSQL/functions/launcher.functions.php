@@ -42,7 +42,7 @@
 		$log->log("\nPLUGINS\n");
 		$log->log("--list-plugins\t\t\tReturn a list of available plugins and their types",0,"white");
 		$log->log("--sqli-plugins\t\t\tUse these plugins for sqli (default all)",0,"white");
-		$log->log("--<type>-<name>-<help>\t\tIf you need help about a certain plugin",0,"white");
+		$log->log("--help-<type>-<name>\t\tIf you need help about a certain plugin",0,"white");
 
 		$log->log("\nHTTP RELATED\n");
 		$log->log("--http-method\t\t\tPOST or GET (default GET)",0,"white");
