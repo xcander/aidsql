@@ -101,7 +101,6 @@
 
 			$cmdParser->setOption("url","http://fix.this.awful.regex.org");	
 			$pluginHelpFixMe	=	TRUE;
-
 		}
 		//</fixme>
 
@@ -192,7 +191,7 @@
 
 					if($pType==$plugin["type"]){
 
-						$log->log(ucwords($plugin["name"]). "\t\t--$pType-$plugin[name]-help to get help about this plugin",0,"white");
+						$log->log(ucwords($plugin["name"]). "\t\t--help-$pType-$plugin[name] to get help about this plugin",0,"white");
 					}
 
 				}
