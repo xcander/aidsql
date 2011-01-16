@@ -6,7 +6,7 @@
 	/**
 	 * @todo Implement spl_autoload
 	 * @todo Analyze script performance with xdebug
-	 *
+	 * @commit test
 	 */
 
 	error_reporting(E_ALL);
