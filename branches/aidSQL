@@ -11,6 +11,8 @@
 
 	error_reporting(E_ALL);
 	ini_set("display_errors","On");
+	ini_set("set_time_limit",'0');
+	ini_set("memory_limit",'64M');
 
 	function checkPHPVersion(){
 
@@ -352,7 +354,7 @@
 
 				if(!sizeof($_url["url"]->getQueryAsArray())){
 
-					unset($urls[$key]);
+					unset($urls[$key-1]);
 
 				}
 
@@ -368,16 +370,38 @@
 			if(sizeof($urls)){
 
 				//Test crawled links for vulnerabilities
+				if(in_array("list-links",$parameters)){
+
+					foreach($urls as $_url){
+
+						$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan",TRUE);
+
+					}
+
+					if(in_array("interactive",$parameters)){
+
+						$handle	=	fopen ("php://stdin","r");
+
+						echo "\nselect>";
+
+						$line		=	explode(",",fgets($handle));
+
+
+						foreach($urls as $index=>$_url){
+
+							if(!in_array($index,$line)){
+								unset($urls[$index]);
+							}
+
+						}
+
+					}
+
+				}
 
 				foreach($urls as $_url){
 
 					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan",TRUE);
-
-					if(in_array("list-links",$parameters)){
-
-						continue;
-
-					}
 
 					$httpAdapter->setUrl($_url["url"]);
 					$httpAdapter->setMethod($_url["method"]);
