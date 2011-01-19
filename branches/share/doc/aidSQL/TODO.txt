@@ -1,2 +1,3 @@
 A) Improve the Command line parser with all the bells and whistles, i.e alias options
 B) When a host redirects to another path, make sure to add that path to the URL
+C) Improve command line interactive URL selection for respecting the order the user enters links

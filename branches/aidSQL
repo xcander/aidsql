@@ -58,6 +58,7 @@
 	require	"class/core/File.class.php";
 	require	"class/core/Runner.class.php";
 	require	"class/core/PluginLoader.class.php";
+	require	"class/core/QueryBuilder.class.php";
 	require	"class/core/DatabaseSchema.class.php";
 	require	"class/core/InjectionPlugin.class.php";
 	require	"class/core/InfoPlugin.class.php";
@@ -348,22 +349,21 @@
 
 			}
 
-			//Fetch url list, btw this array also contains the current URL, seemless!
+			//Fetch url list, btw this array also contains the current URL, seamless!
 
-			$urls	=	$crawler->getUrlList(TRUE);
-
-			$count	=	1;
-
+			$urls		=	$crawler->getUrlList(TRUE);
 
 			foreach($urls as $key=>$_url){
+	
+				if(!$_url["url"]->getQueryAsArray()){
 
-				if(!sizeof($_url["url"]->getQueryAsArray())){
-
-					unset($urls[$key-1]);
+					unset($urls[$key]);
 
 				}
 
 			}
+
+			sort($urls);
 
 			if(in_array("list-links",$parameters)){
 
@@ -376,7 +376,7 @@
 
 			if(sizeof($urls)){
 
-				$count	=	0;	
+				$count	=	1;	
 
 				if(in_array("list-links",$parameters)){
 
@@ -390,16 +390,38 @@
 
 						$handle	=	fopen ("php://stdin","r");
 
-						echo "\nselect>";
+						echo "\n";
 
-						$line		=	explode(",",fgets($handle));
+						do{
+
+							echo "SELECT>";
+
+							$selectedIndexes	=	fgets($handle);
+							$selectedIndexes	=	preg_replace("/[\r\n]/",'',$selectedIndexes);
+							$selectedIndexes	=	explode(',',$selectedIndexes);
+
+							foreach($selectedIndexes as &$selected){
+
+								$selected	 =	(int)$selected-1;
+
+								if(!isset($urls[$selected])){
+
+									echo "Please enter a valid URL Index\n";
+									$selectedIndexes	=	'';
+									break;
+
+								}
+
+							}	
+
+						}while(empty($selectedIndexes));
 
 
-						foreach($urls as $index=>$_url){
+						foreach($urls as $key=>$url){
 
-							if(!in_array($index,$line)){
-								unset($urls[$index]);
-							}
+								if(!in_array($key,$selectedIndexes)){
+									unset($urls[$key]);
+								}
 
 						}
 
@@ -411,6 +433,9 @@
 
 				}
 
+				$count	=	1;
+
+				$log->log("Testing links ...",0,"white");
 
 				foreach($urls as $_url){
 
