@@ -74,8 +74,9 @@
 	require	"config/config.php";
 	
 	//Parsers
-	require	"class/parser/CmdLine.class.php";
-	require	"class/parser/Nmap.class.php";
+	require	"class/parser/CmdLine.class.php";		//should be parser/core/CmdLine
+	require	"class/parser/Nmap.class.php";			//should be parser/tools/Nmap
+	require	"class/parser/Generic.class.php";		//should be parser/sqli/Generic
 
 	//Functions
 	require	"functions/launcher.functions.php";
