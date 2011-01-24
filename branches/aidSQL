@@ -444,7 +444,7 @@
 					$httpAdapter->setUrl($_url["url"]);
 					$httpAdapter->setMethod($_url["method"]);
 
-					$result	=	isVulnerable($cmdParser,$httpAdapter,$crawler,$log,$pLoader);
+					$result	=	isVulnerableToSQLInjection($cmdParser,$httpAdapter,$crawler,$log,$pLoader);
 
 					if($result && (bool)$parsedOptions["immediate-mode"]){
 
