@@ -52,6 +52,7 @@
 	require	"interface/plugin/Info.interface.php";
 
 	//Core
+	require	"class/core/Url.class.php";
 	require	"class/core/String.class.php";
 	require	"class/core/Dom.class.php";
 	require	"class/core/Logger.class.php";
@@ -65,7 +66,6 @@
 	require	"class/core/InfoResult.class.php";
 
 	//HTTP 
-	require	"class/http/Url.class.php";
 	require	"class/http/adapter/Ecurl.class.php";
 	require	"class/http/Crawler.class.php";
 	require	"class/http/webservice/bing/Bing.class.php";
