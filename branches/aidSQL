@@ -47,6 +47,7 @@
 
 	//Interfaces
 	require	"interface/Parser.interface.php";
+	require	"interface/QueryBuilder.interface.php";
 	require	"interface/http/Adapter.interface.php";
 	require	"interface/plugin/Injection.interface.php";
 	require	"interface/plugin/Info.interface.php";
@@ -59,7 +60,6 @@
 	require	"class/core/File.class.php";
 	require	"class/core/Runner.class.php";
 	require	"class/core/PluginLoader.class.php";
-	require	"class/core/QueryBuilder.class.php";
 	require	"class/core/DatabaseSchema.class.php";
 	require	"class/core/InjectionPlugin.class.php";
 	require	"class/core/InfoPlugin.class.php";
@@ -71,6 +71,9 @@
 	require	"class/http/webservice/bing/Bing.class.php";
 	require	"class/http/webservice/google/Google.class.php";
 
+	//DB related
+	require	"class/db/MySQLQueryBuilder.class.php";
+
 	//Config 
 	require	"config/config.php";
 	
@@ -80,6 +83,7 @@
 	require	"class/parser/Generic.class.php";		//should be parser/sqli/Generic
 
 	//Functions
+	require	"functions/log.functions.php";
 	require	"functions/launcher.functions.php";
 
 	\start();
