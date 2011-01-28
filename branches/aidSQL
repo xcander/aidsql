@@ -382,7 +382,7 @@
 
 					foreach($urls as $_url){
 
-						$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan",TRUE);
+						$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan");
 
 					}
 
@@ -439,20 +439,7 @@
 
 				foreach($urls as $_url){
 
-					if(in_array("log-save",$parameters)){
-
-						createLogDirectory($parsedOptions,$_url["url"]->getHost(),$log,"log");
-
-						$logDir	=	$parsedOptions["log-path"]	.	DIRECTORY_SEPARATOR	.
-										$_url["url"]->getHost()		.	DIRECTORY_SEPARATOR	.
-										"log"								.	DIRECTORY_SEPARATOR	.
-										"console";
-
-						$log->setFilename($logDir);
-
-					}
-
-					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan",TRUE);
+					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan");
 
 					$httpAdapter->setUrl($_url["url"]);
 					$httpAdapter->setMethod($_url["method"]);
