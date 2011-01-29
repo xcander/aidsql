@@ -3,17 +3,15 @@
 
 	namespace aidSQL;
 
-	/**
-	 * @todo Implement spl_autoload
-	 * @todo Analyze script performance with xdebug
-	 * @commit test
-	 */
-
 	error_reporting(E_ALL);
 
 	ini_set("display_errors","On");
 	ini_set("set_time_limit",'0');
 	ini_set("memory_limit",'64M');
+
+	//This function is included here and not inside the lib/aidSQL/launcher.functions.php
+	//because of the simple fact that if a minor version of PHP is running in the system
+	//it will error on all of type hints that have namespaces and possibly other interpretation errors
 
 	function checkPHPVersion(){
 
@@ -83,8 +81,8 @@
 	require	"class/parser/Generic.class.php";		//should be parser/sqli/Generic
 
 	//Functions
-	require	"functions/log.functions.php";
 	require	"functions/launcher.functions.php";
+	require	"functions/log.functions.php";
 
 	\start();
 
