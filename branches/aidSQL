@@ -71,6 +71,7 @@
 	//DB related
 	require	"class/db/DatabaseSchema.class.php";
 	require	"class/db/MySQLQueryBuilder.class.php";
+	require	"class/db/MySQLDbBuilder.class.php";
 
 	//Config 
 	require	"config/config.php";
@@ -95,7 +96,9 @@
 
 		$sites			=	array();
 		$links			=	array();
+
 		banner($log);
+
 		$log->setPrepend("[aidSQL]");
 
 		$parameters		=	mergeConfig($_SERVER["argv"],"etc/aidSQL/aidSQL.conf");
@@ -122,9 +125,8 @@
 		);
 
 		$parsedOptions	=	$cmdParser->parse();
-		$parameters		=	array_keys($parsedOptions);
 
-		$pluginsDir	=	__CLASSPATH.DIRECTORY_SEPARATOR."class".DIRECTORY_SEPARATOR."plugin";
+		$pluginsDir		=	__CLASSPATH.DIRECTORY_SEPARATOR."class".DIRECTORY_SEPARATOR."plugin";
 
 		$log->reset();
 		$log->setColors((bool)$parsedOptions["colors"]);
@@ -134,6 +136,7 @@
 		$allPlugins		=	$pLoader->listPlugins();
 		$pluginTypes	=	$pLoader->listPluginTypes();
 
+
 		//<plugin-help>
 
 		if(isset($pluginHelpFixMe)){
@@ -142,7 +145,7 @@
 
 				$help	=	"help-".$plugin["type"].'-'.$plugin["name"];
 
-				if(in_array($help,$parameters)){
+				if(array_key_exists($help,$parsedOptions)){
 
 					$helpFound	=	TRUE;
 
@@ -175,7 +178,7 @@
 
 		//<help>
 
-		if(in_array("help",$parameters)){
+		if(array_key_exists("help",$parsedOptions)){
 			$log->setEcho(TRUE);
 			usageLong($log);
 			exit(0);
@@ -186,7 +189,7 @@
 
 		$log->setEcho(TRUE);
 
-		if(in_array("list-plugins",$parameters)){
+		if(array_key_exists("list-plugins",$parsedOptions)){
 
 
 			$log->setPrepend("");
@@ -220,7 +223,7 @@
 
 		if(!empty($parsedOptions["url"])){
 
-			$sites[0]	=	new \aidSQL\http\Url($parsedOptions["url"]); 
+			$sites[0]	=	new \aidSQL\core\Url($parsedOptions["url"]); 
 
 		}
 
@@ -232,6 +235,23 @@
 		$httpAdapter	=	new $Adapter();
 		$httpAdapter->setLog($log);
 		$httpAdapter->setConfig($parsedOptions);
+
+		if(array_key_exists("makedb",$parsedOptions)){
+
+			try{
+
+				$dbMaker	=	new \aidSQL\db\MySQLDbBuilder($parsedOptions,$httpAdapter,$pLoader,$log);
+
+			}catch(Exception $e){
+
+				$log->log($e->getMessage(),1,"red");
+				exit(1);
+
+			}
+
+			exit(0);
+
+		}
 
 		//</httpAdapter>
 
@@ -273,7 +293,7 @@
 
 					foreach($result->responseData->results as $searchResult){
 
-						$url = new \aidSQL\http\Url($searchResult->visibleUrl);
+						$url = new \aidSQL\core\Url($searchResult->visibleUrl);
 
 						if(!in_array($url,$sites)){
 							$sites[] = $url;
@@ -363,7 +383,7 @@
 
 			sort($urls);
 
-			if(in_array("list-links",$parameters)){
+			if(array_key_exists("list-links",$parsedOptions)){
 
 				$log->log("LINK LIST",0,"light_cyan");
 				$log->log("------------------------------------------------",0,"light_cyan");
@@ -376,7 +396,7 @@
 
 				$count	=	1;	
 
-				if(in_array("list-links",$parameters)){
+				if(array_key_exists("list-links",$parsedOptions)){
 
 					foreach($urls as $_url){
 
@@ -384,7 +404,7 @@
 
 					}
 
-					if(in_array("interactive",$parameters)){
+					if(array_key_exists("interactive",$parsedOptions)){
 
 						$handle	=	fopen ("php://stdin","r");
 
