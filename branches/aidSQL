@@ -135,7 +135,7 @@
 		$pLoader			=	new \aidSQL\core\PluginLoader($pluginsDir,$log);
 		$allPlugins		=	$pLoader->listPlugins();
 		$pluginTypes	=	$pLoader->listPluginTypes();
-
+		$pLoader->setConfig($parsedOptions);
 
 		//<plugin-help>
 
