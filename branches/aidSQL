@@ -49,6 +49,7 @@
 	require	"interface/http/Adapter.interface.php";
 	require	"interface/plugin/Injection.interface.php";
 	require	"interface/plugin/Info.interface.php";
+	require	"interface/db/DbAdapter.interface.php";
 
 	//Core
 	require	"class/core/Url.class.php";
@@ -70,6 +71,7 @@
 
 	//DB related
 	require	"class/db/DatabaseSchema.class.php";
+	require	"class/db/MySQLDbAdapter.class.php";
 	require	"class/db/MySQLQueryBuilder.class.php";
 	require	"class/db/MySQLDbBuilder.class.php";
 
