@@ -101,6 +101,10 @@
 
 		banner($log);
 
+		if(!hasAcceptedDisclaimer($log)){
+			exit(1);
+		}
+
 		$log->setPrepend("[aidSQL]");
 
 		$parameters		=	mergeConfig($_SERVER["argv"],"etc/aidSQL/aidSQL.conf");
