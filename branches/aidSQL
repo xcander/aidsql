@@ -8,6 +8,7 @@
 	ini_set("display_errors","On");
 	ini_set("set_time_limit",'0');
 	ini_set("memory_limit",'64M');
+	date_default_timezone_set("UTC");
 
 	//This function is included here and not inside the lib/aidSQL/launcher.functions.php
 	//because of the simple fact that if a minor version of PHP is running in the system
