@@ -318,6 +318,12 @@
 
 			}
 
+			if(!sizeof($sites)){
+
+				throw (new \Exception("Google search returned no sites"));
+
+			}
+
 		}
 
 		//</Google>
