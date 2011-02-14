@@ -198,7 +198,6 @@
 
 		if(array_key_exists("list-plugins",$parsedOptions)){
 
-
 			$log->setPrepend("");
 			$log->setX11Info(FALSE);
 
@@ -388,7 +387,7 @@
 	
 				if(!$_url["url"]->getQueryAsArray()){
 
-					unset($urls[$key]);
+					//unset($urls[$key]);
 
 				}
 
@@ -471,6 +470,7 @@
 				foreach($urls as $_url){
 
 					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan");
+					echo $url->getPath()."\n";;
 
 					$httpAdapter->setUrl($_url["url"]);
 					$httpAdapter->setMethod($_url["method"]);
