@@ -340,7 +340,6 @@
 
 		}
 
-
 		foreach($sites as $url){
 
 			//<urlconfig>
@@ -384,11 +383,9 @@
 			$urls		=	$crawler->getUrlList(TRUE);
 
 			foreach($urls as $key=>$_url){
-	
-				if(!$_url["url"]->getQueryAsArray()){
 
-					//unset($urls[$key]);
-
+				if(!$_url["url"]->getQueryAsArray()&&$_url["url"]->getPage()){
+					unset($urls[$key]);
 				}
 
 			}
@@ -470,7 +467,6 @@
 				foreach($urls as $_url){
 
 					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan");
-					echo $url->getPath()."\n";;
 
 					$httpAdapter->setUrl($_url["url"]);
 					$httpAdapter->setMethod($_url["method"]);
