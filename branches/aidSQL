@@ -384,7 +384,7 @@
 
 			foreach($urls as $key=>$_url){
 
-				if(!$_url["url"]->getQueryAsArray()&&$_url["url"]->getPage()){
+				if((!$_url["url"]->getQueryAsArray()&&$_url["url"]->getPage())||$_url["url"]->getPath()=='/'){
 					unset($urls[$key]);
 				}
 
