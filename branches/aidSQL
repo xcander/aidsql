@@ -87,6 +87,7 @@
 	//Functions
 	require	"functions/launcher.functions.php";
 	require	"functions/log.functions.php";
+	require	"functions/misc.functions.php";
 
 	\start();
 
