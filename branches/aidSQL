@@ -328,6 +328,29 @@
 
 		//</Google>
 
+
+		//<Bing>
+
+		if(in_array("bing",array_keys($parsedOptions))){
+
+			$bing	=	new http\webservice\Bing($httpAdapter,$log);
+			$bing->setConfig($parsedOptions);
+
+			try{
+
+				$sites = $bing->getHosts($parsedOptions["bing"]);
+
+			}catch(\Exception $e){
+
+				$log->log($e->getMessage(),1,"red");
+				exit(1);
+
+			}
+
+		}
+		//</Bing>
+
+
 		if(isset($parsedOptions["shuffle"])){
 
 			shuffle($sites);
