@@ -88,6 +88,7 @@
 	require	"functions/launcher.functions.php";
 	require	"functions/log.functions.php";
 	require	"functions/misc.functions.php";
+	require	"functions/searchEngine.functions.php";
 
 	\start();
 
@@ -265,58 +266,9 @@
 
 		//<Google>
 
-		if(in_array("google",array_keys($parsedOptions))){
+		if(array_key_exists("google",$parsedOptions)){
 
-			$google	=	new http\webservice\Google($httpAdapter,$log);
-			$google->setConfig($parsedOptions);
-
-			$userTotal	=	(isset($parsedOptions["google-max-results"]))	?	$parsedOptions["google-max-results"]	:	0;
-
-			try{
-
-				$sites	=	array();
-				$total	=	0;
-				$offset	=	(isset($parsedOptions["google-offset"]))	?	$parsedOptions["google-offset"]	:	0;
-
-				do{
-
-					if($offset>0){
-
-						$google->setStart($offset);
-
-					}
-
-					$result = $google->search();
-
-					if(isset($result->responseData->cursor->estimatedResultCount)){
-
-						$total = $result->responseData->cursor->estimatedResultCount - $offset;
-
-						if($userTotal==0){
-							$userTotal = $total;
-						}
-
-					}
-
-					foreach($result->responseData->results as $searchResult){
-
-						$url = new \aidSQL\core\Url($searchResult->visibleUrl);
-
-						if(!in_array($url,$sites)){
-							$sites[] = $url;
-						}
-
-					}
-
-					$offset+=8;
-
-				}while($offset<$total && $offset<$userTotal);
-
-			}catch(\Exception $e){
-
-				$log->log($e->getMessage(),1,"red",FALSE);
-
-			}
+			$sites	=	googleSearch($httpAdapter,$log,$parsedOptions);
 
 			if(!sizeof($sites)){
 
@@ -331,25 +283,27 @@
 
 		//<Bing>
 
-		if(in_array("bing",array_keys($parsedOptions))){
+		if(array_key_exists("bing",$parsedOptions)){
 
-			$bing	=	new http\webservice\Bing($httpAdapter,$log);
-			$bing->setConfig($parsedOptions);
+			$sites	=	bingSearch($httpAdapter,$log,$parsedOptions);
 
-			try{
+			if(!sizeof($sites)){
 
-				$sites = $bing->getHosts($parsedOptions["bing"]);
-
-			}catch(\Exception $e){
-
-				$log->log($e->getMessage(),1,"red");
-				exit(1);
+				throw(new \Exception("Bing search returned no sites"));
 
 			}
 
 		}
 		//</Bing>
 
+
+		//<BinGoo>
+		if(array_key_exists("bingoo",$parsedOptions)){
+
+			$sites	=	binGoo($httpAdapter,$log,$parsedOptions);
+
+		}
+		//</BinGoo>
 
 		if(isset($parsedOptions["shuffle"])){
 
