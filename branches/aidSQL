@@ -67,6 +67,7 @@
 	//HTTP 
 	require	"class/http/adapter/Ecurl.class.php";
 	require	"class/http/Crawler.class.php";
+	require	"class/http/ProxyHandler.class.php";
 	require	"class/http/webservice/bing/Bing.class.php";
 	require	"class/http/webservice/google/Google.class.php";
 
@@ -243,6 +244,14 @@
 		$httpAdapter	=	new $Adapter();
 		$httpAdapter->setLog($log);
 		$httpAdapter->setConfig($parsedOptions);
+
+		if(isset($parsedOptions["proxy-list"])){
+
+			$proxyHandler	=	new \aidSQL\http\ProxyHandler($httpAdapter,$log);
+			$proxyHandler->checkProxyList($parsedOptions["proxy-list"]);
+			$httpAdapter->setProxyHandler($proxyHandler);
+
+		}
 
 		if(array_key_exists("makedb",$parsedOptions)){
 
