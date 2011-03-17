@@ -242,6 +242,7 @@
 
 		$Adapter			=	"\\aidSQL\\http\\Adapter\\".$parsedOptions["http-adapter"];
 		$httpAdapter	=	new $Adapter();
+		$httpAdapter->setMethod($parsedOptions["http-method"]);
 		$httpAdapter->setLog($log);
 		$httpAdapter->setConfig($parsedOptions);
 
@@ -361,7 +362,16 @@
 			if(!in_array("no-crawl",array_keys($parsedOptions))){
 
 				$log->log("Crawling ...",0,"light_green");
+
+				$log->setEcho(FALSE);
+
+				if($parsedOptions["verbose"]==2){
+					$log->setEcho(TRUE);
+				}
+
 				$crawler->crawl();
+
+				$log->setEcho(TRUE);
 
 			}
 
@@ -390,46 +400,17 @@
 
 			if(sizeof($urls)){
 
-				$count	=	1;	
-
 				if(array_key_exists("list-links",$parsedOptions)){
 
-					foreach($urls as $_url){
+					$tmpUrls	=	NULL;
 
-						$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan");
-
+					foreach($urls as $url){
+						$tmpUrls[]	=	$url["method"]."}\t\t{".$url["url"];
 					}
 
 					if(array_key_exists("interactive",$parsedOptions)){
 
-						$handle	=	fopen ("php://stdin","r");
-
-						echo "\n";
-
-						do{
-
-							echo "SELECT>";
-
-							$selectedIndexes	=	fgets($handle);
-							$selectedIndexes	=	preg_replace("/[\r\n]/",'',$selectedIndexes);
-							$selectedIndexes	=	explode(',',$selectedIndexes);
-
-							foreach($selectedIndexes as &$selected){
-
-								$selected	 =	(int)$selected-1;
-
-								if(!isset($urls[$selected])){
-
-									echo "Please enter a valid URL Index\n";
-									$selectedIndexes	=	'';
-									break;
-
-								}
-
-							}	
-
-						}while(empty($selectedIndexes));
-
+						$selectedIndexes	=	interactive($log,$tmpUrls);
 
 						foreach($urls as $key=>$url){
 
