@@ -381,7 +381,7 @@
 
 			foreach($urls as $key=>$_url){
 
-				if((!$_url["url"]->getQueryAsArray()&&$_url["url"]->getPage())||$_url["url"]->getPath()=='/'){
+				if((!$_url["url"]->getQueryAsArray())&&$_url["url"]->getPath()=='/'&&!$_url["url"]->getQueryAsArray()){
 					unset($urls[$key]);
 				}
 
@@ -431,12 +431,13 @@
 				$count	=	1;
 
 				$log->log("Testing links ...",0,"white");
-
 				foreach($urls as $_url){
 
 					$log->log($count++.'. {'.$_url["url"]."}\t\t".'{'.$_url["method"].'}',0,"light_cyan");
 
+					echo $_url["url"]."\n";
 					$httpAdapter->setUrl($_url["url"]);
+
 					$httpAdapter->setMethod($_url["method"]);
 
 					$result	=	isVulnerableToSQLInjection($cmdParser,$httpAdapter,$crawler,$log,$pLoader);
