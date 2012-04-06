@@ -75,3 +75,12 @@ For Developers:
 	(getHttpCode), usefull to know if we've hit some place that doesnt exists, etc.
 
 
+-------------------------------------------------------------------------------------------
+06/04/2012
+-------------------------------------------------------------------------------------------
+
+
+For Developers:
+^^^^^^^^^^^^^^^
+	*Added special require functions for each of the application's parts
+	requireInterface, requireClass and requireParser 
