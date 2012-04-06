@@ -12,7 +12,7 @@
 		* This script just takes input from the command line
 		* and transforms an ASCII String to HEX or viceversa.
 		* If you want to use it in a web page just change the $str variable below.
-		* Cheers, Juan Stange.-
+		* Cheers, Federico Stange.-
 		*/
 
 		public static function hexEncode($str=NULL){
