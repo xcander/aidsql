@@ -163,7 +163,7 @@
 		$log->log($banner,0,"red");
 		$banner="\n\tSQL INJECTION DETECTION TOOL\n";
 		$log->log($banner,0,"white");
-		$banner="\t\tBy Juan Stange <jpfstange@gmail.com>\n\n\n";
+		$banner="\t\tBy Federico Stange <jpfstange@gmail.com>\n\n\n";
 		$log->log($banner,0,"white");
 
 		$log->setX11Info(TRUE);

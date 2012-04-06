@@ -7,9 +7,13 @@
 	 * 
 	 */
 
-	define ("__CLASSPATH","class");
-
 	error_reporting(E_ALL);
+
+	define ("DS",DIRECTORY_SEPARATOR);
+
+	define ("__CLASSPATH","class");
+	define ("__INTERFACEPATH","interface");
+	define ("__FUNCTIONPATH","functions");
 
 	function checkPHPVersion(){
 
@@ -26,6 +30,42 @@
 
 	}
 
+	function requireClass($file){
+	
+		$file	=	is_array($file)	?	implode($file,DS)	:	$file;
+		$file.=	'.class.php';
+
+		require __CLASSPATH.DS.$file;
+
+	}
+
+	function requireInterface($file){
+	
+		$file	=	is_array($file)	?	implode($file,DS)	:	$file;
+		$file.=	'.interface.php';
+
+		require __INTERFACEPATH.DS.$file;
+
+	}
+
+	function requireFunction($file){
+	
+		$file	=	is_array($file)	?	implode($file,DS)	:	$file;
+		$file.=	'.functions.php';
+
+		require __FUNCTIONPATH.DS.$file;
+
+	}
+
+	function requireParser($file){
+	
+		$file	=	is_array($file)	?	implode($file,DS)	:	$file;
+		$file.=	'.parser.php';
+
+		require __CLASSPATH.DS.'parser'.DS.$file;
+
+	}
+
 	if(!checkPHPVersion()){
 
 		echo "Sorry but you need at least version 5.3.0 in order to run aidSQL :(\n";
@@ -33,31 +73,33 @@
 
 	}
 
+	//Config
+	require	"config/config.php";
+
 	//Interfaces
-	require_once "interface/HttpAdapter.interface.php";
-	require_once "interface/InjectionPlugin.interface.php";
-	require_once "interface/Parser.interface.php";
-	require_once "interface/Log.interface.php";
+	requireInterface("HttpAdapter");
+	requireInterface("InjectionPlugin");
+	requireInterface("Parser");
+	requireInterface("Log");
 
 	//Classes
-	require_once "class/aidsql/Crawler.class.php";
-	require_once "class/aidsql/Runner.class.php";
-	require_once "class/log/Logger.class.php";
-	require_once "class/core/CmdLine.class.php";
-	require_once "class/core/String.class.php";
-	require_once "class/core/File.class.php";
-	require_once "class/http/eCurl.class.php";
-	require_once "class/google/GoogleSearch.class.php";
-	require_once "config/config.php";
+	requireClass(Array("aidsql","Crawler"));
+	requireClass(Array("aidsql","Runner"));
+	requireClass(Array("log","Logger"));
+	requireClass(Array("core","CmdLine"));
+	requireClass(Array("core","String"));
+	requireClass(Array("core","File"));
+	requireClass(Array("http","eCurl"));
+	requireClass(Array("google","GoogleSearch"));
 	
 	//Parsers
-	require_once "class/parser/Generic.parser.php";
-	require_once "class/parser/TagMatcher.parser.php";
-	require_once "class/parser/Dummy.parser.php";
-	require_once "class/parser/MySQLError.parser.php";
+	requireParser("Generic");
+	requireParser("TagMatcher");
+	requireParser("Dummy");
+	requireParser("MySQLError");
 
 	//Functions
-	require_once "functions/launcher.functions.php";
+	requireFunction("launcher");
 
 	checkPHPVersion();
 

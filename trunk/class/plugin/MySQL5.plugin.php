@@ -4,7 +4,7 @@
 
 		class MySQL5 extends InjectionPlugin {
 
-			const		PLUGIN_NAME	= "MySQL5 Standard Plugin by Juan Stange";
+			const		PLUGIN_NAME	= "MySQL5 Standard Plugin by Federico Stange";
 
 			private $_affectedField				= NULL;
 			private $_maxFields					= NULL;

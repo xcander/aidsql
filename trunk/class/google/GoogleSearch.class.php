@@ -1,6 +1,6 @@
 <?php
 
-	//CopyRight: Juan Pablo Stange (11-06-2008)
+	//CopyRight: Federico Pablo Stange (11-06-2008)
 	//3 Clause BSD License
 	//http://code.google.com/p/uoogle
 
