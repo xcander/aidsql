@@ -8,6 +8,7 @@
 	ini_set("display_errors","On");
 	ini_set("set_time_limit",'0');
 	ini_set("memory_limit",'64M');
+
 	date_default_timezone_set("UTC");
 
 	//This function is included here and not inside the lib/aidSQL/launcher.functions.php
@@ -53,9 +54,7 @@
 	require	"interface/db/DbAdapter.interface.php";
 
 	//Core
-	require	"class/core/Url.class.php";
 	require	"class/core/String.class.php";
-	require	"class/core/Dom.class.php";
 	require	"class/core/Logger.class.php";
 	require	"class/core/File.class.php";
 	require	"class/core/Runner.class.php";
@@ -81,6 +80,8 @@
 	require	"config/config.php";
 	
 	//Parsers
+	require	"class/parser/Url.class.php";
+	require	"class/parser/Dom.class.php";
 	require	"class/parser/CmdLine.class.php";		//should be parser/core/CmdLine
 	require	"class/parser/Nmap.class.php";			//should be parser/tools/Nmap
 	require	"class/parser/Generic.class.php";		//should be parser/sqli/Generic
@@ -232,7 +233,7 @@
 
 		if(!empty($parsedOptions["url"])){
 
-			$sites[0]	=	new \aidSQL\core\Url($parsedOptions["url"]); 
+			$sites[0]	=	new \aidSQL\parser\Url($parsedOptions["url"]); 
 
 		}
 
